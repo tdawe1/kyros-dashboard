@@ -7,8 +7,9 @@ export const useGenerate = () => {
   return useMutation({
     mutationFn: generateContent,
     onSuccess: () => {
-      // Invalidate jobs query to refresh the list
+      // Invalidate jobs and KPIs queries to refresh the data
       queryClient.invalidateQueries({ queryKey: ['jobs'] })
+      queryClient.invalidateQueries({ queryKey: ['kpis'] })
     },
   })
 }

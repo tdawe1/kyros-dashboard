@@ -81,7 +81,7 @@ export default function JobTable() {
               <FileText className="w-8 h-8 text-navy-400" />
             </div>
             <h3 className="text-lg font-medium text-white mb-2">No jobs yet</h3>
-            <p className="text-navy-300 mb-4">Start by creating your first content repurposing job</p>
+            <p className="text-gray-600 dark:text-gray-400 mb-4">Start by creating your first content repurposing job</p>
             <button className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
               Create Job
             </button>
@@ -99,10 +99,10 @@ export default function JobTable() {
 
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-navy-700">
+          <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
               <th
-                className="px-6 py-3 text-left text-xs font-medium text-navy-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200"
                 onClick={() => handleSort('client')}
               >
                 <div className="flex items-center space-x-1">
@@ -111,7 +111,7 @@ export default function JobTable() {
                 </div>
               </th>
               <th
-                className="px-6 py-3 text-left text-xs font-medium text-navy-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200"
                 onClick={() => handleSort('words')}
               >
                 <div className="flex items-center space-x-1">
@@ -120,7 +120,7 @@ export default function JobTable() {
                 </div>
               </th>
               <th
-                className="px-6 py-3 text-left text-xs font-medium text-navy-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200"
                 onClick={() => handleSort('status')}
               >
                 <div className="flex items-center space-x-1">
@@ -129,7 +129,7 @@ export default function JobTable() {
                 </div>
               </th>
               <th
-                className="px-6 py-3 text-left text-xs font-medium text-navy-300 uppercase tracking-wider cursor-pointer hover:text-white"
+                className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider cursor-pointer hover:text-gray-700 dark:hover:text-gray-200"
                 onClick={() => handleSort('created_at')}
               >
                 <div className="flex items-center space-x-1">
@@ -137,21 +137,21 @@ export default function JobTable() {
                   {getSortIcon('created_at')}
                 </div>
               </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-navy-300 uppercase tracking-wider">
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-navy-700">
+          <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
             {jobs?.map((job) => (
-              <tr key={job.id} className="hover:bg-navy-750">
+              <tr key={job.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="px-6 py-4 whitespace-nowrap">
-                  <div className="text-sm font-medium text-white">{job.client}</div>
+                  <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{job.client}</div>
                   <div className="text-sm text-navy-300 truncate max-w-xs">
                     {job.source_url}
                   </div>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-navy-300">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {job.words.toLocaleString()}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
@@ -159,7 +159,7 @@ export default function JobTable() {
                     {statusLabels[job.status]}
                   </span>
                 </td>
-                <td className="px-6 py-4 whitespace-nowrap text-sm text-navy-300">
+                <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
                   {formatDate(job.created_at)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -174,7 +174,7 @@ export default function JobTable() {
                         <Pause className="w-4 h-4" />
                       </button>
                     )}
-                    <button className="text-navy-300 hover:text-white">
+                    <button className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200">
                       <MoreHorizontal className="w-4 h-4" />
                     </button>
                   </div>

@@ -13,6 +13,6 @@
 
 @layer base {
   body {
-    @apply bg-navy-950 text-white;
+    @apply bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100;
   }
 }

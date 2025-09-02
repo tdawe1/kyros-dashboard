@@ -33,20 +33,20 @@ export default function Sidebar({ isOpen, onClose }) {
 
       {/* Sidebar */}
       <div className={clsx(
-        'fixed inset-y-0 left-0 z-50 w-64 bg-navy-800 border-r border-navy-700 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:inset-auto flex flex-col',
+        'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:inset-auto flex flex-col',
         isOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
         {/* Header */}
-        <div className="flex items-center justify-between h-16 px-6 border-b border-navy-700">
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center">
             <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">K</span>
             </div>
-            <span className="ml-3 text-white font-semibold">Kyros</span>
+            <span className="ml-3 text-gray-900 dark:text-gray-100 font-semibold">Kyros</span>
           </div>
           <button
             onClick={onClose}
-            className="lg:hidden text-navy-300 hover:text-white"
+            className="lg:hidden text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
           >
             <X className="w-6 h-6" />
           </button>
@@ -65,7 +65,7 @@ export default function Sidebar({ isOpen, onClose }) {
                     'group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
                     isActive
                       ? 'bg-accent text-white'
-                      : 'text-navy-300 hover:bg-navy-700 hover:text-white'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100'
                   )}
                 >
                   <item.icon
@@ -73,7 +73,7 @@ export default function Sidebar({ isOpen, onClose }) {
                       'mr-3 h-5 w-5 flex-shrink-0',
                       isActive
                         ? 'text-white'
-                        : 'text-navy-400 group-hover:text-white'
+                        : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-100'
                     )}
                   />
                   {item.name}
@@ -84,9 +84,9 @@ export default function Sidebar({ isOpen, onClose }) {
         </nav>
 
         {/* Theme Toggle at Bottom */}
-        <div className="p-4 border-t border-navy-700">
+        <div className="p-4 border-t border-gray-200 dark:border-gray-700">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-navy-300">Theme</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400">Theme</span>
             <ThemeToggle />
           </div>
         </div>

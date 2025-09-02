@@ -44,14 +44,14 @@ export default function KPICards() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
         {kpiConfig.map((kpi) => (
-          <div key={kpi.title} className="bg-navy-800 rounded-lg p-6 border border-navy-700 animate-pulse">
+          <div key={kpi.title} className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 animate-pulse">
             <div className="flex items-center justify-between">
               <div className="space-y-2">
-                <div className="h-4 bg-navy-700 rounded w-24"></div>
-                <div className="h-8 bg-navy-700 rounded w-16"></div>
-                <div className="h-3 bg-navy-700 rounded w-20"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24"></div>
+                <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-16"></div>
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20"></div>
               </div>
-              <div className="w-12 h-12 bg-navy-700 rounded-lg"></div>
+              <div className="w-12 h-12 bg-gray-200 dark:bg-gray-700 rounded-lg"></div>
             </div>
           </div>
         ))}
@@ -65,12 +65,12 @@ export default function KPICards() {
         {kpiConfig.map((kpi) => {
           const Icon = kpi.icon
           return (
-            <div key={kpi.title} className="bg-navy-800 rounded-lg p-6 border border-navy-700">
+            <div key={kpi.title} className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-navy-300 text-sm font-medium">{kpi.title}</p>
-                  <p className="text-2xl font-bold text-white mt-1">--</p>
-                  <p className="text-sm mt-1 text-navy-400">No data available</p>
+                  <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">{kpi.title}</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">--</p>
+                  <p className="text-sm mt-1 text-gray-500 dark:text-gray-500">No data available</p>
                 </div>
                 <div className={`${kpi.color} p-3 rounded-lg opacity-50`}>
                   <Icon className="w-6 h-6 text-white" />
@@ -91,13 +91,13 @@ export default function KPICards() {
         const displayValue = kpi.suffix ? `${value}${kpi.suffix}` : value.toString()
 
         return (
-          <div key={kpi.title} className="bg-navy-800 rounded-lg p-6 border border-navy-700">
+          <div key={kpi.title} className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-navy-300 text-sm font-medium">{kpi.title}</p>
-                <p className="text-2xl font-bold text-white mt-1">{displayValue}</p>
+                <p className="text-gray-600 dark:text-gray-400 text-sm font-medium">{kpi.title}</p>
+                <p className="text-2xl font-bold text-gray-900 dark:text-gray-100 mt-1">{displayValue}</p>
                 <p className={`text-sm mt-1 ${
-                  kpi.changeType === 'positive' ? 'text-green-400' : 'text-red-400'
+                  kpi.changeType === 'positive' ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                 }`}>
                   {kpi.change} from last month
                 </p>

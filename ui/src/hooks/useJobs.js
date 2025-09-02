@@ -6,7 +6,7 @@ export const useJobs = () => {
     queryKey: ['jobs'],
     queryFn: getJobs,
     staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchInterval: 10 * 1000, // Refetch every 10 seconds
+    refetchOnWindowFocus: false,
   })
 }
 
