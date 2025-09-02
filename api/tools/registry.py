@@ -23,16 +23,16 @@ TOOLS = [
         "version": "1.0.0",
         "enabled": True,
     },
+    {
+        "name": "hello",
+        "module": "tools.hello",
+        "router": "router",
+        "title": "Hello World",
+        "description": "A simple demonstration tool",
+        "version": "1.0.0",
+        "enabled": True,
+    },
     # Future tools will be added here
-    # {
-    #     "name": "hello",
-    #     "module": "tools.hello",
-    #     "router": "router",
-    #     "title": "Hello World",
-    #     "description": "A simple demo tool",
-    #     "version": "1.0.0",
-    #     "enabled": True,
-    # },
 ]
 
 

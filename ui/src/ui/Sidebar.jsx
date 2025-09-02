@@ -5,7 +5,8 @@ import {
   Settings,
   X,
   FileText,
-  BarChart3
+  BarChart3,
+  MessageCircle
 } from 'lucide-react'
 import clsx from 'clsx'
 import ThemeToggle from './ThemeToggle'
@@ -14,6 +15,7 @@ import { getEnabledTools } from '../toolRegistry'
 // Icon mapping for tools
 const iconMap = {
   FileText: FileText,
+  MessageCircle: MessageCircle,
   // Add more icon mappings as needed
 }
 

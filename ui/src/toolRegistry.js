@@ -6,12 +6,13 @@
  */
 
 import repurposer from './tools/repurposer'
+import hello from './tools/hello'
 
 // Static registry of available tools
 export const tools = [
   repurposer,
+  hello,
   // Future tools will be added here
-  // hello,
   // summarizer,
   // etc.
 ]
