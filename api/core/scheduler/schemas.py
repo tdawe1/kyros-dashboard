@@ -4,8 +4,9 @@ Pydantic schemas for the scheduler API.
 
 from datetime import datetime
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, validator, field_validator
 from enum import Enum
+import uuid
 
 
 class JobStatus(str, Enum):
@@ -143,6 +144,14 @@ class ScheduledJobResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
+    @field_validator("id", mode="before")
+    @classmethod
+    def convert_uuid_to_str(cls, v):
+        """Convert UUID to string."""
+        if isinstance(v, uuid.UUID):
+            return str(v)
+        return v
+
 
 class JobRunResponse(BaseModel):
     """Response schema for a job run."""
@@ -159,6 +168,14 @@ class JobRunResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
+
+    @field_validator("id", "scheduled_job_id", mode="before")
+    @classmethod
+    def convert_uuid_to_str(cls, v):
+        """Convert UUID to string."""
+        if isinstance(v, uuid.UUID):
+            return str(v)
+        return v
 
 
 class ScheduleListResponse(BaseModel):
