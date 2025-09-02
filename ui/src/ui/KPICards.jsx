@@ -73,7 +73,7 @@ export default function KPICards() {
         const Icon = kpi.icon
         const value = kpis?.[kpi.key] || 0
         const displayValue = kpi.suffix ? `${value}${kpi.suffix}` : value.toString()
-        
+
         return (
           <div key={kpi.title} className="bg-navy-800 rounded-lg p-6 border border-navy-700">
             <div className="flex items-center justify-between">

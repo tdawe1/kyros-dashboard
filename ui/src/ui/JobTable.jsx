@@ -41,8 +41,8 @@ export default function JobTable() {
 
   const getSortIcon = (field) => {
     if (sortField !== field) return null
-    return sortDirection === 'asc' ? 
-      <ChevronUp className="w-4 h-4" /> : 
+    return sortDirection === 'asc' ?
+      <ChevronUp className="w-4 h-4" /> :
       <ChevronDown className="w-4 h-4" />
   }
 
@@ -89,12 +89,12 @@ export default function JobTable() {
       <div className="px-6 py-4 border-b border-navy-700">
         <h3 className="text-lg font-semibold text-white">Recent Jobs</h3>
       </div>
-      
+
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead className="bg-navy-700">
             <tr>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-navy-300 uppercase tracking-wider cursor-pointer hover:text-white"
                 onClick={() => handleSort('client')}
               >
@@ -103,7 +103,7 @@ export default function JobTable() {
                   {getSortIcon('client')}
                 </div>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-navy-300 uppercase tracking-wider cursor-pointer hover:text-white"
                 onClick={() => handleSort('words')}
               >
@@ -112,7 +112,7 @@ export default function JobTable() {
                   {getSortIcon('words')}
                 </div>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-navy-300 uppercase tracking-wider cursor-pointer hover:text-white"
                 onClick={() => handleSort('status')}
               >
@@ -121,7 +121,7 @@ export default function JobTable() {
                   {getSortIcon('status')}
                 </div>
               </th>
-              <th 
+              <th
                 className="px-6 py-3 text-left text-xs font-medium text-navy-300 uppercase tracking-wider cursor-pointer hover:text-white"
                 onClick={() => handleSort('created_at')}
               >

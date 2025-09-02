@@ -1,6 +1,6 @@
 # Kyros Repurposer Dashboard - Demo Script
 
-**Duration**: 90-120 seconds  
+**Duration**: 90-120 seconds
 **Audience**: Stakeholders, potential customers, development team
 
 ## 🎯 Demo Overview

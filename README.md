@@ -209,16 +209,32 @@ python -m pytest
 
 ## 🚀 Deployment
 
-### Frontend (Vercel)
+### Automatic Deployment
+The project is configured for automatic deployment using GitHub Actions:
+
+- **Production**: Merging to `main` branch automatically deploys to production
+- **Staging**: Pushing to `develop` or `feature/*` branches deploys to staging
+- **Quality Checks**: All PRs run comprehensive tests and security scans
+
+### Manual Deployment
+
+#### Frontend (Vercel)
 1. Connect your GitHub repository to Vercel
 2. Set environment variables:
    - `VITE_API_BASE_URL`: Your API base URL
-3. Deploy from the `feature/ui-dashboard` branch
+3. Deploy from the `main` branch
 
-### Backend (Railway/Render)
+#### Backend (Railway/Render)
 1. Deploy the `api/` directory
 2. Set environment variables as needed
 3. Update frontend API base URL
+
+### Setup Instructions
+See [Deployment Guide](docs/DEPLOYMENT.md) for complete setup instructions including:
+- GitHub Actions configuration
+- Required secrets and environment variables
+- Platform-specific setup (Vercel, Railway, Render)
+- Troubleshooting guide
 
 ## 📝 Development Notes
 

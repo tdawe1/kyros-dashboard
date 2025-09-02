@@ -27,7 +27,7 @@ describe('VariantCard', () => {
 
   test('renders variant information correctly', () => {
     render(<VariantCard {...defaultProps} />)
-    
+
     expect(screen.getByText('linkedin')).toBeInTheDocument()
     expect(screen.getByText('150 chars')).toBeInTheDocument()
     expect(screen.getByText('Good')).toBeInTheDocument()
@@ -36,34 +36,34 @@ describe('VariantCard', () => {
 
   test('calls onEdit when edit button is clicked', () => {
     render(<VariantCard {...defaultProps} />)
-    
+
     const editButton = screen.getByText('Edit')
     fireEvent.click(editButton)
-    
+
     expect(defaultProps.onEdit).toHaveBeenCalledWith(mockVariant)
   })
 
   test('calls onAccept when accept button is clicked', () => {
     render(<VariantCard {...defaultProps} />)
-    
+
     const acceptButton = screen.getByText('Accept')
     fireEvent.click(acceptButton)
-    
+
     expect(defaultProps.onAccept).toHaveBeenCalledWith(mockVariant.id)
   })
 
   test('toggles favorite state when heart button is clicked', () => {
     render(<VariantCard {...defaultProps} />)
-    
+
     // Find the heart button by its class (it's the first button with the heart styling)
     const buttons = screen.getAllByRole('button')
-    const heartButton = buttons.find(button => 
+    const heartButton = buttons.find(button =>
       button.className.includes('hover:text-red-400')
     )
-    
+
     expect(heartButton).toBeDefined()
     fireEvent.click(heartButton)
-    
+
     expect(defaultProps.onToggleFavorite).toHaveBeenCalledWith(mockVariant.id, true)
   })
 

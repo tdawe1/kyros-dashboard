@@ -41,11 +41,11 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
     <div className="fixed inset-0 z-50 overflow-y-auto">
       <div className="flex min-h-screen items-center justify-center p-4">
         {/* Backdrop */}
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 transition-opacity"
           onClick={onClose}
         />
-        
+
         {/* Modal */}
         <div className="relative bg-navy-800 rounded-lg border border-navy-700 w-full max-w-4xl max-h-[90vh] overflow-hidden">
           {/* Header */}

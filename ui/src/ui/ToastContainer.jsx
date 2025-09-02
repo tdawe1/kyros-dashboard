@@ -20,7 +20,7 @@ export default function ToastContainer({ toasts, onRemove }) {
       {toasts.map((toast) => {
         const Icon = toastIcons[toast.type]
         const colorClass = toastColors[toast.type]
-        
+
         return (
           <div
             key={toast.id}

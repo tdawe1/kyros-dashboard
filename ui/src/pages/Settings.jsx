@@ -8,7 +8,7 @@ export default function Settings() {
   const createPreset = useCreatePreset()
   const updatePreset = useUpdatePreset()
   const deletePreset = useDeletePreset()
-  
+
   const [glossary, setGlossary] = useState([
     { id: 1, term: 'AI', definition: 'Artificial Intelligence' },
     { id: 2, term: 'ML', definition: 'Machine Learning' },
@@ -121,7 +121,7 @@ export default function Settings() {
                         <Save className="w-4 h-4 inline mr-1" />
                         Save
                       </button>
-                      <button 
+                      <button
                         onClick={() => setEditingPreset(null)}
                         className="bg-navy-600 hover:bg-navy-500 text-white px-3 py-1 rounded text-sm"
                       >
@@ -202,7 +202,7 @@ export default function Settings() {
                           <Save className="w-4 h-4 inline mr-1" />
                           Save
                         </button>
-                        <button 
+                        <button
                           onClick={() => setEditingGlossary(null)}
                           className="bg-navy-600 hover:bg-navy-500 text-white px-3 py-1 rounded text-sm"
                         >

@@ -26,12 +26,12 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
 
   const handleSelectAll = (channel) => {
     if (channel === 'all') {
-      const allVariantIds = variants?.flatMap(v => 
+      const allVariantIds = variants?.flatMap(v =>
         Object.values(v.variants || {}).flat().map(variant => variant.id)
       ) || []
       setSelectedVariants(new Set(allVariantIds))
     } else {
-      const channelVariantIds = variants?.flatMap(v => 
+      const channelVariantIds = variants?.flatMap(v =>
         (v.variants?.[channel] || []).map(variant => variant.id)
       ) || []
       setSelectedVariants(new Set(channelVariantIds))
@@ -54,7 +54,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
         format: 'csv',
         selected_variants: Array.from(selectedVariants)
       })
-      
+
       // Create download link
       const link = document.createElement('a')
       link.href = result.file_url
@@ -62,7 +62,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
       document.body.appendChild(link)
       link.click()
       document.body.removeChild(link)
-      
+
       alert(`Exported ${selectedVariants.size} variants successfully!`)
     } catch (error) {
       console.error('Export failed:', error)
@@ -106,7 +106,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
     setFavoriteVariants(newFavorites)
   }
 
-  const filteredVariants = variants?.filter(v => 
+  const filteredVariants = variants?.filter(v =>
     filterChannel === 'all' || v.variants?.[filterChannel]
   ) || []
 
@@ -134,15 +134,15 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
             {selectedVariants.size > 0 && `${selectedVariants.size} selected`}
           </p>
         </div>
-        
+
         <div className="flex items-center space-x-3">
           {/* View Mode Toggle */}
           <div className="flex bg-navy-700 rounded-lg p-1">
             <button
               onClick={() => setViewMode('grid')}
               className={`p-2 rounded transition-colors ${
-                viewMode === 'grid' 
-                  ? 'bg-accent text-white' 
+                viewMode === 'grid'
+                  ? 'bg-accent text-white'
                   : 'text-navy-300 hover:text-white'
               }`}
             >
@@ -151,8 +151,8 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
             <button
               onClick={() => setViewMode('list')}
               className={`p-2 rounded transition-colors ${
-                viewMode === 'list' 
-                  ? 'bg-accent text-white' 
+                viewMode === 'list'
+                  ? 'bg-accent text-white'
                   : 'text-navy-300 hover:text-white'
               }`}
             >
@@ -199,7 +199,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
                 </button>
               </div>
             </div>
-            
+
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleBulkExport}
@@ -216,12 +216,12 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
 
       {/* Variants Grid */}
       <div className={`${
-        viewMode === 'grid' 
-          ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6' 
+        viewMode === 'grid'
+          ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
           : 'space-y-4'
       }`}>
-        {filteredVariants.map((job) => 
-          Object.entries(job.variants || {}).map(([channel, channelVariants]) => 
+        {filteredVariants.map((job) =>
+          Object.entries(job.variants || {}).map(([channel, channelVariants]) =>
             channelVariants.map((variant) => (
               <VariantCard
                 key={variant.id}

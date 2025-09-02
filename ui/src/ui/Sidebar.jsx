@@ -1,8 +1,8 @@
 import { Link, useLocation } from 'react-router-dom'
-import { 
-  LayoutDashboard, 
-  Monitor, 
-  Settings, 
+import {
+  LayoutDashboard,
+  Monitor,
+  Settings,
   X,
   FileText,
   BarChart3
@@ -24,12 +24,12 @@ export default function Sidebar({ isOpen, onClose }) {
     <>
       {/* Mobile backdrop */}
       {isOpen && (
-        <div 
+        <div
           className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden"
           onClick={onClose}
         />
       )}
-      
+
       {/* Sidebar */}
       <div className={clsx(
         'fixed inset-y-0 left-0 z-50 w-64 bg-navy-900 border-r border-navy-800 transform transition-transform duration-300 ease-in-out lg:translate-x-0 lg:static lg:inset-0',
@@ -49,7 +49,7 @@ export default function Sidebar({ isOpen, onClose }) {
             <X className="w-6 h-6" />
           </button>
         </div>
-        
+
         <nav className="mt-6 px-3">
           <div className="space-y-1">
             {navigation.map((item) => {

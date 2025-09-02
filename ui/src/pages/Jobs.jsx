@@ -15,7 +15,7 @@ export default function Jobs() {
           <h1 className="text-3xl font-bold text-white mb-2">Job Monitor</h1>
           <p className="text-navy-300">Monitor and manage your content repurposing jobs</p>
         </div>
-        <button 
+        <button
           onClick={() => refreshJobs.mutate()}
           disabled={refreshJobs.isPending}
           className="bg-accent hover:bg-accent/90 disabled:bg-navy-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors"
@@ -41,7 +41,7 @@ export default function Jobs() {
               />
             </div>
           </div>
-          
+
           {/* Status Filter */}
           <div className="sm:w-48">
             <div className="relative">
@@ -59,7 +59,7 @@ export default function Jobs() {
               </select>
             </div>
           </div>
-          
+
           {/* Export Button */}
           <button className="bg-navy-700 hover:bg-navy-600 text-white px-4 py-2 rounded-lg font-medium transition-colors border border-navy-600">
             <Download className="w-4 h-4 inline mr-2" />

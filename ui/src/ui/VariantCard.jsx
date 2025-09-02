@@ -55,13 +55,13 @@ export default function VariantCard({ variant, channel, onEdit, onAccept, onCopy
             </div>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-2">
           <button
             onClick={handleToggleFavorite}
             className={`p-2 rounded-lg transition-colors ${
-              isFavorited 
-                ? 'text-red-400 bg-red-900/20' 
+              isFavorited
+                ? 'text-red-400 bg-red-900/20'
                 : 'text-navy-300 hover:text-red-400 hover:bg-red-900/20'
             }`}
           >
@@ -90,7 +90,7 @@ export default function VariantCard({ variant, channel, onEdit, onAccept, onCopy
             <Check className="w-4 h-4" />
             <span>Accept</span>
           </button>
-          
+
           <button
             onClick={() => onEdit?.(variant)}
             className="bg-navy-700 hover:bg-navy-600 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 border border-navy-600"
@@ -108,7 +108,7 @@ export default function VariantCard({ variant, channel, onEdit, onAccept, onCopy
           >
             <Copy className="w-4 h-4" />
           </button>
-          
+
           <button
             onClick={() => onDownload?.(variant.id)}
             className="p-2 text-navy-300 hover:text-white hover:bg-navy-700 rounded-lg transition-colors"

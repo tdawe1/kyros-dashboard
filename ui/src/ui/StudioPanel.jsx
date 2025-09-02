@@ -11,7 +11,7 @@ export default function StudioPanel() {
       alert('Please enter at least 50 characters for better results.')
       return
     }
-    
+
     try {
       await generateMutation.mutateAsync({
         input_text: inputText,
@@ -34,7 +34,7 @@ export default function StudioPanel() {
           Quick Studio
         </h3>
       </div>
-      
+
       <div className="p-6 space-y-4">
         <div>
           <label className="block text-sm font-medium text-navy-300 mb-2">

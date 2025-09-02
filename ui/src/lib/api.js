@@ -29,19 +29,19 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     const { response } = error
-    
+
     if (response?.status === 401) {
       // Handle unauthorized access
       localStorage.removeItem('auth_token')
       window.location.href = '/login'
     }
-    
+
     // Transform error for consistent handling
-    const errorMessage = response?.data?.detail || 
-                        response?.data?.message || 
-                        error.message || 
+    const errorMessage = response?.data?.detail ||
+                        response?.data?.message ||
+                        error.message ||
                         'An unexpected error occurred'
-    
+
     return Promise.reject({
       message: errorMessage,
       status: response?.status,

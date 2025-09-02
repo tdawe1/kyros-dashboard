@@ -11,15 +11,15 @@ export const useToast = () => {
       duration: 5000,
       ...toast
     }
-    
+
     setToasts(prev => [...prev, newToast])
-    
+
     if (newToast.duration > 0) {
       setTimeout(() => {
         removeToast(id)
       }, newToast.duration)
     }
-    
+
     return id
   }, [])
 

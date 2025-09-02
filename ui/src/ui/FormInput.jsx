@@ -1,12 +1,12 @@
 import { forwardRef } from 'react'
 import { AlertCircle } from 'lucide-react'
 
-const FormInput = forwardRef(({ 
-  label, 
-  error, 
-  required, 
-  className = '', 
-  ...props 
+const FormInput = forwardRef(({
+  label,
+  error,
+  required,
+  className = '',
+  ...props
 }, ref) => {
   return (
     <div className="space-y-2">
@@ -20,8 +20,8 @@ const FormInput = forwardRef(({
         <input
           ref={ref}
           className={`w-full px-3 py-2 bg-navy-700 border rounded-lg text-white placeholder-navy-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-colors ${
-            error 
-              ? 'border-red-500 focus:ring-red-500' 
+            error
+              ? 'border-red-500 focus:ring-red-500'
               : 'border-navy-600'
           } ${className}`}
           {...props}

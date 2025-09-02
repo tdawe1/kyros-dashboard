@@ -10,12 +10,12 @@ export default function AppShell() {
     <div className="min-h-screen bg-navy-950">
       {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      
+
       {/* Main content */}
       <div className="lg:pl-64">
         {/* Topbar */}
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
-        
+
         {/* Page content */}
         <main className="p-6">
           <Outlet />

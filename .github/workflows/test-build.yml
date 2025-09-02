@@ -1,0 +1,145 @@
+name: Test Build and Validation
+
+on:
+  push:
+    branches: [main, develop, feature/*]
+  pull_request:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Test the build process without deploying
+  test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r api/requirements.txt
+
+      - name: Install Node.js dependencies
+        run: |
+          cd ui
+          npm ci
+
+      - name: Run Python tests
+        run: |
+          cd api
+          python -m pytest --tb=short
+
+      - name: Run frontend tests
+        run: |
+          cd ui
+          npm test -- --coverage --watchAll=false
+
+      - name: Test API startup
+        run: |
+          cd api
+          python -c "
+          import main
+          print('✅ API imports successfully')
+          print('✅ All dependencies are available')
+          "
+
+      - name: Build frontend (test)
+        run: |
+          cd ui
+          npm run build
+        env:
+          VITE_API_BASE_URL: http://localhost:8000
+
+      - name: Test frontend build
+        run: |
+          cd ui
+          if [ -d "dist" ]; then
+            echo "✅ Frontend build successful"
+            echo "📁 Build output:"
+            ls -la dist/
+          else
+            echo "❌ Frontend build failed"
+            exit 1
+          fi
+
+      - name: Validate build artifacts
+        run: |
+          echo "🔍 Validating build artifacts..."
+
+          # Check if main files exist
+          if [ -f "ui/dist/index.html" ]; then
+            echo "✅ index.html exists"
+          else
+            echo "❌ index.html missing"
+            exit 1
+          fi
+
+          if [ -d "ui/dist/assets" ]; then
+            echo "✅ Assets directory exists"
+            echo "📦 Assets:"
+            ls -la ui/dist/assets/
+          else
+            echo "❌ Assets directory missing"
+            exit 1
+          fi
+
+      - name: Test API health endpoint
+        run: |
+          cd api
+          # Start API in background
+          python -m uvicorn main:app --host 0.0.0.0 --port 8000 &
+          API_PID=$!
+
+          # Wait for API to start
+          sleep 5
+
+          # Test health endpoint
+          if curl -f http://localhost:8000/api/health; then
+            echo "✅ API health check passed"
+          else
+            echo "❌ API health check failed"
+            kill $API_PID
+            exit 1
+          fi
+
+          # Clean up
+          kill $API_PID
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: build-artifacts
+          path: |
+            ui/dist/
+            api/
+          retention-days: 7
+
+      - name: Build Summary
+        run: |
+          echo "🎉 Build Test Summary:"
+          echo "✅ Python dependencies installed"
+          echo "✅ Node.js dependencies installed"
+          echo "✅ Python tests passed"
+          echo "✅ Frontend tests passed"
+          echo "✅ API imports successfully"
+          echo "✅ Frontend build successful"
+          echo "✅ Build artifacts validated"
+          echo "✅ API health check passed"
+          echo ""
+          echo "🚀 Your application is ready for deployment!"

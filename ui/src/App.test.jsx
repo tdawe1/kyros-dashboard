@@ -17,7 +17,7 @@ vi.mock('./hooks/useKPIs', () => ({
 
 test('renders KPI cards with data', () => {
   render(<KPICards />)
-  
+
   // Check if KPI cards are rendered with correct data
   expect(screen.getByText('Jobs Processed')).toBeInTheDocument()
   expect(screen.getByText('12')).toBeInTheDocument()

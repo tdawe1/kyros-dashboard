@@ -1,0 +1,184 @@
+name: Quality Checks
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main, develop]
+
+env:
+  NODE_VERSION: '18'
+  PYTHON_VERSION: '3.11'
+
+jobs:
+  # Security and code quality checks
+  security:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for secrets detection
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r api/requirements.txt
+
+      - name: Install Node.js dependencies
+        run: |
+          cd ui
+          npm ci
+
+      - name: Run security scan (Python)
+        run: |
+          cd api
+          bandit -r . -f json -o bandit-report.json || true
+          bandit -r . -f txt
+
+      - name: Run security scan (Node.js)
+        run: |
+          cd ui
+          npm audit --audit-level=moderate
+
+      - name: Check for secrets
+        run: |
+          detect-secrets scan --baseline .secrets.baseline
+
+      - name: Upload security reports
+        uses: actions/upload-artifact@v3
+        with:
+          name: security-reports
+          path: |
+            api/bandit-report.json
+            ui/npm-audit.json
+
+  # Code formatting and linting
+  linting:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r api/requirements.txt
+
+      - name: Install Node.js dependencies
+        run: |
+          cd ui
+          npm ci
+
+      - name: Check Python formatting
+        run: |
+          cd api
+          black --check --diff .
+          ruff check .
+
+      - name: Check frontend formatting
+        run: |
+          cd ui
+          npm run lint
+          npm run format:check
+
+      - name: Check commit message format
+        uses: commitlint/action@v1
+        with:
+          configFile: .commitlintrc.js
+
+  # Build verification
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r api/requirements.txt
+
+      - name: Install Node.js dependencies
+        run: |
+          cd ui
+          npm ci
+
+      - name: Build frontend
+        run: |
+          cd ui
+          npm run build
+        env:
+          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'http://localhost:8000' }}
+
+      - name: Test API startup
+        run: |
+          cd api
+          python -c "import main; print('API imports successfully')"
+
+  # Performance checks
+  performance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'npm'
+          cache-dependency-path: ui/package-lock.json
+
+      - name: Install Node.js dependencies
+        run: |
+          cd ui
+          npm ci
+
+      - name: Build and analyze bundle
+        run: |
+          cd ui
+          npm run build
+          npx bundle-analyzer dist/assets/*.js --mode static --report
+
+      - name: Upload bundle analysis
+        uses: actions/upload-artifact@v3
+        with:
+          name: bundle-analysis
+          path: ui/bundle-report.html

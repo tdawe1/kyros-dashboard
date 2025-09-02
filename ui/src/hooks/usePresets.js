@@ -11,7 +11,7 @@ export const usePresets = () => {
 
 export const useCreatePreset = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: createPreset,
     onSuccess: () => {
@@ -22,7 +22,7 @@ export const useCreatePreset = () => {
 
 export const useUpdatePreset = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: ({ presetId, data }) => updatePreset(presetId, data),
     onSuccess: () => {
@@ -33,7 +33,7 @@ export const useUpdatePreset = () => {
 
 export const useDeletePreset = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: deletePreset,
     onSuccess: () => {

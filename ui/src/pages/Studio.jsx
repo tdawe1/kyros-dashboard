@@ -12,13 +12,13 @@ export default function Studio() {
   const [selectedPreset, setSelectedPreset] = useState('default')
   const [generatedVariants, setGeneratedVariants] = useState(null)
   const [errors, setErrors] = useState({})
-  
+
   const generateMutation = useGenerate()
   const toast = useToast()
 
   const handleChannelToggle = (channelId) => {
-    setSelectedChannels(prev => 
-      prev.includes(channelId) 
+    setSelectedChannels(prev =>
+      prev.includes(channelId)
         ? prev.filter(id => id !== channelId)
         : [...prev, channelId]
     )
@@ -26,19 +26,19 @@ export default function Studio() {
 
   const validateForm = () => {
     const newErrors = {}
-    
+
     if (inputText.length < VALIDATION_RULES.MIN_INPUT_LENGTH) {
       newErrors.inputText = `Please enter at least ${VALIDATION_RULES.MIN_INPUT_LENGTH} characters for better results.`
     }
-    
+
     if (inputText.length > VALIDATION_RULES.MAX_INPUT_LENGTH) {
       newErrors.inputText = `Input text cannot exceed ${VALIDATION_RULES.MAX_INPUT_LENGTH} characters.`
     }
-    
+
     if (selectedChannels.length === 0) {
       newErrors.channels = 'Please select at least one channel.'
     }
-    
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
@@ -48,7 +48,7 @@ export default function Studio() {
       toast.error('Please fix the errors before generating content.')
       return
     }
-    
+
     try {
       const result = await generateMutation.mutateAsync({
         input_text: inputText,
@@ -56,13 +56,13 @@ export default function Studio() {
         tone: selectedTone,
         preset: selectedPreset
       })
-      
+
       // Store the generated variants
       setGeneratedVariants([{
         job_id: result.job_id,
         variants: result.variants
       }])
-      
+
       toast.success('Content generated successfully!', {
         description: `Created variants for ${selectedChannels.length} channel(s)`
       })
@@ -203,17 +203,17 @@ export default function Studio() {
       {/* Generated Variants */}
       {generatedVariants && (
         <div className="mt-8">
-          <VariantsGallery 
+          <VariantsGallery
             variants={generatedVariants}
             onVariantUpdate={(updatedVariant) => {
               // Update the variant in the state
-              setGeneratedVariants(prev => 
+              setGeneratedVariants(prev =>
                 prev.map(job => ({
                   ...job,
                   variants: Object.fromEntries(
                     Object.entries(job.variants).map(([channel, variants]) => [
                       channel,
-                      variants.map(variant => 
+                      variants.map(variant =>
                         variant.id === updatedVariant.id ? updatedVariant : variant
                       )
                     ])

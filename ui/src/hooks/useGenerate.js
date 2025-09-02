@@ -3,7 +3,7 @@ import { generateContent, exportContent } from '../lib/api'
 
 export const useGenerate = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: generateContent,
     onSuccess: () => {

@@ -20,7 +20,7 @@ export const useJob = (jobId) => {
 
 export const useRefreshJobs = () => {
   const queryClient = useQueryClient()
-  
+
   return useMutation({
     mutationFn: async () => {
       // Force refetch of jobs

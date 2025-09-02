@@ -1,0 +1,54 @@
+version: '3.8'
+
+services:
+  # Test API service
+  api-test:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.test
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONPATH=/app
+      - OPENAI_API_KEY=test-key
+      - DATABASE_URL=sqlite:///./test.db
+      - JWT_SECRET=test-secret-key-for-testing-only
+    volumes:
+      - ./api:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Test UI service
+  ui-test:
+    build:
+      context: ./ui
+      dockerfile: Dockerfile.test
+    ports:
+      - "3000:3000"
+    environment:
+      - VITE_API_BASE_URL=http://localhost:8000
+    volumes:
+      - ./ui:/app
+      - /app/node_modules
+    command: npm run dev -- --host 0.0.0.0
+    depends_on:
+      - api-test
+
+  # Test database (optional)
+  db-test:
+    image: postgres:15-alpine
+    environment:
+      - POSTGRES_DB=kyros_test
+      - POSTGRES_USER=test
+      - POSTGRES_PASSWORD=test
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_test_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_test_data:
