@@ -67,7 +67,9 @@ export default function Sidebar({ isOpen, onClose }) {
       )}>
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
-          <KyrosLogo />
+          <div className="flex items-center">
+            <KyrosLogo showText={false} className="w-32 h-32" />
+          </div>
           <button
             onClick={onClose}
             className="lg:hidden text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
