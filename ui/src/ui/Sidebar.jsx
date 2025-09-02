@@ -61,7 +61,7 @@ export default function Sidebar({ isOpen, onClose }) {
                   className={clsx(
                     'group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
                     isActive
-                      ? 'bg-teal-600 text-white'
+                      ? 'bg-accent text-white'
                       : 'text-navy-300 hover:bg-navy-800 hover:text-white'
                   )}
                 >

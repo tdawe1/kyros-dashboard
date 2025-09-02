@@ -36,8 +36,9 @@ export default {
         },
       },
       backgroundImage: {
-        'gradient-kyros': 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)',
+        'gradient-kyros': 'linear-gradient(to right, #081028, #0b1220, #0f1724)',
       },
+      accent: '#07c6b7',
     },
   },
   plugins: [],
