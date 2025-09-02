@@ -40,7 +40,7 @@ class RecurrenceType(str, Enum):
 class CreateScheduleRequest(BaseModel):
     """Request schema for creating a scheduled job."""
 
-    tool: str = Field(..., description="Tool name (e.g., 'repurposer', 'translator')")
+    tool: str = Field(..., description="Tool name (e.g., 'hello', 'translator')")
     name: Optional[str] = Field(None, description="Human-readable name for the job")
     input_source: Dict[str, Any] = Field(..., description="Input data or URL reference")
     options: Optional[Dict[str, Any]] = Field(None, description="Tool-specific options")

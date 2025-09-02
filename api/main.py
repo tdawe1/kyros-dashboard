@@ -85,7 +85,7 @@ class GenerateResponse(BaseModel):
     job_id: str
     status: str
     variants: Dict[str, List[Dict[str, Any]]]
-    token_usage: Dict[str, int]
+    token_usage: Dict[str, Any]
     model: str
     api_mode: str
 
@@ -279,7 +279,7 @@ async def generate_content_endpoint(request: GenerateRequest):
 
     # Generate content using the new generator
     try:
-        variants = await generate_content(
+        variants = generate_content(
             input_text=request.input_text,
             channels=request.channels,
             tone=request.tone,

@@ -15,15 +15,6 @@ logger = logging.getLogger(__name__)
 # Registry of available tools
 TOOLS = [
     {
-        "name": "repurposer",
-        "module": "tools.repurposer",
-        "router": "router",
-        "title": "Content Repurposer",
-        "description": "Transform content into multiple channel formats",
-        "version": "1.0.0",
-        "enabled": True,
-    },
-    {
         "name": "hello",
         "module": "tools.hello",
         "router": "router",

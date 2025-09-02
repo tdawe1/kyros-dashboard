@@ -126,16 +126,16 @@ export default function Studio() {
         </div>
 
         {/* Settings Panel */}
-        <div className="space-y-6">
+        <div className="space-y-3">
           {/* Tone Selection */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Tone & Style</h3>
-            <div className="space-y-2">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Tone & Style</h3>
+            <div className="space-y-1">
               {TONES.map((tone) => (
                 <button
                   key={tone.id}
                   onClick={() => setSelectedTone(tone.id)}
-                  className={`w-full p-3 rounded-lg border transition-colors ${
+                  className={`w-full p-2 rounded-lg border transition-colors text-sm ${
                     selectedTone === tone.id
                       ? 'bg-blue-600 border-blue-600 text-white'
                       : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
@@ -148,14 +148,14 @@ export default function Studio() {
           </div>
 
           {/* Preset Selection */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Preset</h3>
-            <div className="space-y-2">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Preset</h3>
+            <div className="space-y-1">
               {PRESETS.map((preset) => (
                 <button
                   key={preset.id}
                   onClick={() => setSelectedPreset(preset.id)}
-                  className={`w-full p-3 rounded-lg border transition-colors ${
+                  className={`w-full p-2 rounded-lg border transition-colors text-sm ${
                     selectedPreset === preset.id
                       ? 'bg-blue-600 border-blue-600 text-white'
                       : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
@@ -187,15 +187,15 @@ export default function Studio() {
           </button>
 
           {/* Quick Actions */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
-            <div className="space-y-3">
-              <button className="w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-lg font-medium transition-colors border border-gray-300 dark:border-gray-600">
-                <Settings className="w-4 h-4 inline mr-2" />
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-3 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-base font-semibold text-gray-900 dark:text-gray-100 mb-2">Quick Actions</h3>
+            <div className="space-y-2">
+              <button className="w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 px-3 py-2 rounded-lg font-medium transition-colors border border-gray-300 dark:border-gray-600 text-sm">
+                <Settings className="w-3 h-3 inline mr-2" />
                 Manage Presets
               </button>
-              <button className="w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-lg font-medium transition-colors border border-gray-300 dark:border-gray-600">
-                <Download className="w-4 h-4 inline mr-2" />
+              <button className="w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 px-3 py-2 rounded-lg font-medium transition-colors border border-gray-300 dark:border-gray-600 text-sm">
+                <Download className="w-3 h-3 inline mr-2" />
                 Export Templates
               </button>
             </div>

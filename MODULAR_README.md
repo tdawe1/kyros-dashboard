@@ -18,7 +18,7 @@ This document outlines the modular tools architecture implementation for the Kyr
 backend/
 ├── core/                    # Shared services (auth, storage, OpenAI wrapper, logging)
 ├── tools/                   # Individual tool modules
-│   ├── repurposer/         # Content repurposing tool
+
 │   │   ├── router.py       # FastAPI routes
 │   │   ├── generator.py    # LLM wrapper + prompt logic
 │   │   ├── schemas.py      # Pydantic models
@@ -30,7 +30,7 @@ backend/
 ui/src/
 ├── core/                   # Shared frontend services
 ├── tools/                  # Individual tool UI components
-│   ├── repurposer/        # Repurposer UI components
+
 │   └── hello/             # Demo tool UI
 ├── toolRegistry.js        # Frontend tool registry
 └── components/
@@ -44,7 +44,7 @@ ui/src/
 - [x] Add this documentation
 
 ### Phase 1: Backend Repurposer Extraction ✅
-- [x] Create `api/tools/repurposer/` structure
+
 - [x] Move generator logic from `api/generator.py`
 - [x] Create tool-specific router and schemas
 - [x] Maintain backwards compatibility
@@ -58,7 +58,7 @@ ui/src/
 - [x] Add comprehensive tests (18 tests passing)
 
 ### Phase 3: Frontend ToolLoader & Repurposer UI ✅
-- [x] Create `ui/src/tools/repurposer/` structure
+
 - [x] Move Studio UI to RepurposerPanel
 - [x] Implement ToolLoader component
 - [x] Create tool registry system
