@@ -1,27 +1,33 @@
-import { useState } from 'react'
-import { Search, Filter, Download, RefreshCw } from 'lucide-react'
-import JobTable from '../ui/JobTable'
-import { useRefreshJobs } from '../hooks/useJobs'
+import { useState } from "react";
+import { Search, Filter, Download, RefreshCw } from "lucide-react";
+import JobTable from "../ui/JobTable";
+import { useRefreshJobs } from "../hooks/useJobs";
 
 export default function Jobs() {
-  const [searchTerm, setSearchTerm] = useState('')
-  const [statusFilter, setStatusFilter] = useState('all')
-  const refreshJobs = useRefreshJobs()
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const refreshJobs = useRefreshJobs();
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Job Monitor</h1>
-          <p className="text-gray-600 dark:text-gray-400">Monitor and manage your content repurposing jobs</p>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+            Job Monitor
+          </h1>
+          <p className="text-gray-600 dark:text-gray-400">
+            Monitor and manage your content repurposing jobs
+          </p>
         </div>
         <button
           onClick={() => refreshJobs.mutate()}
           disabled={refreshJobs.isPending}
           className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed text-gray-900 dark:text-gray-100 px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
         >
-          <RefreshCw className={`w-4 h-4 ${refreshJobs.isPending ? 'animate-spin' : ''}`} />
-          <span>{refreshJobs.isPending ? 'Refreshing...' : 'Refresh'}</span>
+          <RefreshCw
+            className={`w-4 h-4 ${refreshJobs.isPending ? "animate-spin" : ""}`}
+          />
+          <span>{refreshJobs.isPending ? "Refreshing..." : "Refresh"}</span>
         </button>
       </div>
 
@@ -71,5 +77,5 @@ export default function Jobs() {
       {/* Job Table */}
       <JobTable />
     </div>
-  )
+  );
 }

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from "react";
 import {
   Plus,
   Calendar,
@@ -9,96 +9,108 @@ import {
   Edit,
   Filter,
   RefreshCw,
-  Settings
-} from 'lucide-react'
-import { useSchedules, useCreateSchedule, useUpdateSchedule, useDeleteSchedule, useRunNow } from '../hooks/useScheduler'
-import { useConfig } from '../hooks/useConfig'
+  Settings,
+} from "lucide-react";
+import {
+  useSchedules,
+  useCreateSchedule,
+  useUpdateSchedule,
+  useDeleteSchedule,
+  useRunNow,
+} from "../hooks/useScheduler";
+import { useConfig } from "../hooks/useConfig";
 
 export default function Scheduler() {
-  const [activeTab, setActiveTab] = useState('schedules')
-  const [showCreateModal, setShowCreateModal] = useState(false)
-  const [editingSchedule, setEditingSchedule] = useState(null)
-  const [filterStatus, setFilterStatus] = useState('all')
+  const [activeTab, setActiveTab] = useState("schedules");
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [editingSchedule, setEditingSchedule] = useState(null);
+  const [filterStatus, setFilterStatus] = useState("all");
 
-  const { data: schedules, isLoading, refetch } = useSchedules()
-  const createSchedule = useCreateSchedule()
-  const updateSchedule = useUpdateSchedule()
-  const deleteSchedule = useDeleteSchedule()
-  const runNow = useRunNow()
-  const { config } = useConfig()
+  const { data: schedules, isLoading, refetch } = useSchedules();
+  const createSchedule = useCreateSchedule();
+  const updateSchedule = useUpdateSchedule();
+  const deleteSchedule = useDeleteSchedule();
+  const runNow = useRunNow();
+  const {} = useConfig();
 
   const tabs = [
-    { id: 'schedules', name: 'Scheduled Jobs', icon: Calendar },
-    { id: 'runs', name: 'Job Runs', icon: Clock },
-    { id: 'settings', name: 'Settings', icon: Settings }
-  ]
+    { id: "schedules", name: "Scheduled Jobs", icon: Calendar },
+    { id: "runs", name: "Job Runs", icon: Clock },
+    { id: "settings", name: "Settings", icon: Settings },
+  ];
 
   const statusOptions = [
-    { value: 'all', label: 'All Statuses' },
-    { value: 'active', label: 'Active' },
-    { value: 'paused', label: 'Paused' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'failed', label: 'Failed' }
-  ]
+    { value: "all", label: "All Statuses" },
+    { value: "active", label: "Active" },
+    { value: "paused", label: "Paused" },
+    { value: "completed", label: "Completed" },
+    { value: "failed", label: "Failed" },
+  ];
 
   const handleCreateSchedule = async (scheduleData) => {
     try {
-      await createSchedule.mutateAsync(scheduleData)
-      setShowCreateModal(false)
-      refetch()
+      await createSchedule.mutateAsync(scheduleData);
+      setShowCreateModal(false);
+      refetch();
     } catch (error) {
-      console.error('Failed to create schedule:', error)
+      console.error("Failed to create schedule:", error);
     }
-  }
+  };
 
   const handleUpdateSchedule = async (id, updateData) => {
     try {
-      await updateSchedule.mutateAsync({ id, ...updateData })
-      setEditingSchedule(null)
-      refetch()
+      await updateSchedule.mutateAsync({ id, ...updateData });
+      setEditingSchedule(null);
+      refetch();
     } catch (error) {
-      console.error('Failed to update schedule:', error)
+      console.error("Failed to update schedule:", error);
     }
-  }
+  };
 
   const handleDeleteSchedule = async (id) => {
-    if (window.confirm('Are you sure you want to delete this scheduled job?')) {
+    if (window.confirm("Are you sure you want to delete this scheduled job?")) {
       try {
-        await deleteSchedule.mutateAsync(id)
-        refetch()
+        await deleteSchedule.mutateAsync(id);
+        refetch();
       } catch (error) {
-        console.error('Failed to delete schedule:', error)
+        console.error("Failed to delete schedule:", error);
       }
     }
-  }
+  };
 
   const handleRunNow = async (id) => {
     try {
-      await runNow.mutateAsync({ id, idempotency_key: `manual_${Date.now()}` })
-      refetch()
+      await runNow.mutateAsync({ id, idempotency_key: `manual_${Date.now()}` });
+      refetch();
     } catch (error) {
-      console.error('Failed to run job now:', error)
+      console.error("Failed to run job now:", error);
     }
-  }
+  };
 
   const formatDateTime = (dateString) => {
-    if (!dateString) return 'Not scheduled'
-    return new Date(dateString).toLocaleString()
-  }
+    if (!dateString) return "Not scheduled";
+    return new Date(dateString).toLocaleString();
+  };
 
   const getStatusColor = (status) => {
     switch (status) {
-      case 'active': return 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-      case 'paused': return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-      case 'completed': return 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
-      case 'failed': return 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-      default: return 'bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200'
+      case "active":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
+      case "paused":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
+      case "completed":
+        return "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200";
+      case "failed":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
     }
-  }
+  };
 
-  const filteredSchedules = schedules?.filter(schedule =>
-    filterStatus === 'all' || schedule.status === filterStatus
-  ) || []
+  const filteredSchedules =
+    schedules?.filter(
+      (schedule) => filterStatus === "all" || schedule.status === filterStatus,
+    ) || [];
 
   return (
     <div className="space-y-6">
@@ -106,8 +118,12 @@ export default function Scheduler() {
       <div className="mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Scheduler</h1>
-            <p className="text-gray-600 dark:text-gray-400">Manage automated content generation jobs</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+              Scheduler
+            </h1>
+            <p className="text-gray-600 dark:text-gray-400">
+              Manage automated content generation jobs
+            </p>
           </div>
           <div className="flex items-center space-x-3">
             <button
@@ -115,7 +131,9 @@ export default function Scheduler() {
               disabled={isLoading}
               className="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 disabled:bg-gray-100 dark:disabled:bg-gray-800 disabled:cursor-not-allowed text-gray-900 dark:text-gray-100 px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
             >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`}
+              />
               <span>Refresh</span>
             </button>
             <button
@@ -133,27 +151,27 @@ export default function Scheduler() {
       <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="-mb-px flex space-x-8">
           {tabs.map((tab) => {
-            const Icon = tab.icon
+            const Icon = tab.icon;
             return (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
                 className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                   activeTab === tab.id
-                    ? 'border-blue-500 text-blue-600 dark:text-blue-400'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                    ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                    : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
                 }`}
               >
                 <Icon className="w-4 h-4" />
                 <span>{tab.name}</span>
               </button>
-            )
+            );
           })}
         </nav>
       </div>
 
       {/* Content */}
-      {activeTab === 'schedules' && (
+      {activeTab === "schedules" && (
         <div className="space-y-6">
           {/* Filters */}
           <div className="flex items-center justify-between">
@@ -165,7 +183,7 @@ export default function Scheduler() {
                   onChange={(e) => setFilterStatus(e.target.value)}
                   className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
                 >
-                  {statusOptions.map(option => (
+                  {statusOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -174,7 +192,8 @@ export default function Scheduler() {
               </div>
             </div>
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              {filteredSchedules.length} scheduled job{filteredSchedules.length !== 1 ? 's' : ''}
+              {filteredSchedules.length} scheduled job
+              {filteredSchedules.length !== 1 ? "s" : ""}
             </div>
           </div>
 
@@ -186,7 +205,9 @@ export default function Scheduler() {
           ) : filteredSchedules.length === 0 ? (
             <div className="text-center py-12">
               <Calendar className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">No scheduled jobs</h3>
+              <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+                No scheduled jobs
+              </h3>
               <p className="text-gray-500 dark:text-gray-400 mb-4">
                 Create your first scheduled job to automate content generation
               </p>
@@ -209,22 +230,27 @@ export default function Scheduler() {
                     <div className="flex-1">
                       <div className="flex items-center space-x-3 mb-2">
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                          {schedule.name || 'Unnamed Job'}
+                          {schedule.name || "Unnamed Job"}
                         </h3>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(schedule.status)}`}>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(schedule.status)}`}
+                        >
                           {schedule.status}
                         </span>
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm text-gray-600 dark:text-gray-400">
                         <div>
-                          <span className="font-medium">Tool:</span> {schedule.tool}
+                          <span className="font-medium">Tool:</span>{" "}
+                          {schedule.tool}
                         </div>
                         <div>
-                          <span className="font-medium">Next Run:</span> {formatDateTime(schedule.next_run_at)}
+                          <span className="font-medium">Next Run:</span>{" "}
+                          {formatDateTime(schedule.next_run_at)}
                         </div>
                         <div>
-                          <span className="font-medium">Recurrence:</span> {schedule.recurrence || 'One-time'}
+                          <span className="font-medium">Recurrence:</span>{" "}
+                          {schedule.recurrence || "One-time"}
                         </div>
                       </div>
 
@@ -232,10 +258,9 @@ export default function Scheduler() {
                         <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
                           <span className="font-medium">Input:</span>
                           <span className="ml-1">
-                            {typeof schedule.input_source === 'string'
+                            {typeof schedule.input_source === "string"
                               ? schedule.input_source
-                              : JSON.stringify(schedule.input_source)
-                            }
+                              : JSON.stringify(schedule.input_source)}
                           </span>
                         </div>
                       )}
@@ -272,20 +297,24 @@ export default function Scheduler() {
         </div>
       )}
 
-      {activeTab === 'runs' && (
+      {activeTab === "runs" && (
         <div className="text-center py-12">
           <Clock className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Job Runs</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            Job Runs
+          </h3>
           <p className="text-gray-500 dark:text-gray-400">
             View execution history and results for your scheduled jobs
           </p>
         </div>
       )}
 
-      {activeTab === 'settings' && (
+      {activeTab === "settings" && (
         <div className="text-center py-12">
           <Settings className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">Scheduler Settings</h3>
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+            Scheduler Settings
+          </h3>
           <p className="text-gray-500 dark:text-gray-400">
             Configure scheduler preferences and global settings
           </p>
@@ -297,65 +326,79 @@ export default function Scheduler() {
         <CreateScheduleModal
           schedule={editingSchedule}
           onClose={() => {
-            setShowCreateModal(false)
-            setEditingSchedule(null)
+            setShowCreateModal(false);
+            setEditingSchedule(null);
           }}
-          onSubmit={editingSchedule ? handleUpdateSchedule : handleCreateSchedule}
+          onSubmit={
+            editingSchedule ? handleUpdateSchedule : handleCreateSchedule
+          }
         />
       )}
     </div>
-  )
+  );
 }
 
 // Create/Edit Schedule Modal Component
 function CreateScheduleModal({ schedule, onClose, onSubmit }) {
   const [formData, setFormData] = useState({
-    name: schedule?.name || '',
-    tool: schedule?.tool || 'hello',
-    input_source: schedule?.input_source || { text: '' },
+    name: schedule?.name || "",
+    tool: schedule?.tool || "hello",
+    input_source: schedule?.input_source || { text: "" },
     options: schedule?.options || {},
-    run_at: schedule?.next_run_at ? new Date(schedule.next_run_at).toISOString().slice(0, 16) : '',
-    recurrence: schedule?.recurrence || 'none',
-    timezone: schedule?.timezone || 'UTC',
-    max_runs: schedule?.max_runs || null
-  })
+    run_at: schedule?.next_run_at
+      ? new Date(schedule.next_run_at).toISOString().slice(0, 16)
+      : "",
+    recurrence: schedule?.recurrence || "none",
+    timezone: schedule?.timezone || "UTC",
+    max_runs: schedule?.max_runs || null,
+  });
 
   const handleSubmit = (e) => {
-    e.preventDefault()
+    e.preventDefault();
 
     const submitData = {
       ...formData,
       run_at: formData.run_at ? new Date(formData.run_at) : null,
-      max_runs: formData.max_runs ? parseInt(formData.max_runs) : null
-    }
+      max_runs: formData.max_runs ? parseInt(formData.max_runs) : null,
+    };
 
     if (schedule) {
-      onSubmit(schedule.id, submitData)
+      onSubmit(schedule.id, submitData);
     } else {
-      onSubmit(submitData)
+      onSubmit(submitData);
     }
-  }
+  };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [field]: value
-    }))
-  }
+      [field]: value,
+    }));
+  };
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-6">
           <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
-            {schedule ? 'Edit Schedule' : 'Create New Schedule'}
+            {schedule ? "Edit Schedule" : "Create New Schedule"}
           </h2>
           <button
             onClick={onClose}
             className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
           >
-            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            <svg
+              className="w-6 h-6"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </div>
@@ -368,7 +411,7 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
             <input
               type="text"
               value={formData.name}
-              onChange={(e) => handleInputChange('name', e.target.value)}
+              onChange={(e) => handleInputChange("name", e.target.value)}
               className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter a name for this scheduled job"
             />
@@ -380,7 +423,7 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
             </label>
             <select
               value={formData.tool}
-              onChange={(e) => handleInputChange('tool', e.target.value)}
+              onChange={(e) => handleInputChange("tool", e.target.value)}
               className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="hello">Hello World</option>
@@ -392,8 +435,10 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
               Input Text
             </label>
             <textarea
-              value={formData.input_source.text || ''}
-              onChange={(e) => handleInputChange('input_source', { text: e.target.value })}
+              value={formData.input_source.text || ""}
+              onChange={(e) =>
+                handleInputChange("input_source", { text: e.target.value })
+              }
               className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
               rows={4}
               placeholder="Enter the content to be processed..."
@@ -408,7 +453,7 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
               <input
                 type="datetime-local"
                 value={formData.run_at}
-                onChange={(e) => handleInputChange('run_at', e.target.value)}
+                onChange={(e) => handleInputChange("run_at", e.target.value)}
                 className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -419,7 +464,9 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
               </label>
               <select
                 value={formData.recurrence}
-                onChange={(e) => handleInputChange('recurrence', e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("recurrence", e.target.value)
+                }
                 className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="none">One-time</option>
@@ -442,11 +489,11 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
               type="submit"
               className="bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 text-white px-4 py-2 rounded-lg font-medium transition-colors"
             >
-              {schedule ? 'Update Schedule' : 'Create Schedule'}
+              {schedule ? "Update Schedule" : "Create Schedule"}
             </button>
           </div>
         </form>
       </div>
     </div>
-  )
+  );
 }

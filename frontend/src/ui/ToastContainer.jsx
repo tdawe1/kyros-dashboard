@@ -1,25 +1,25 @@
-import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from 'lucide-react'
+import { X, CheckCircle, AlertCircle, Info, AlertTriangle } from "lucide-react";
 
 const toastIcons = {
   success: CheckCircle,
   error: AlertCircle,
   warning: AlertTriangle,
-  info: Info
-}
+  info: Info,
+};
 
 const toastColors = {
-  success: 'bg-green-900/20 border-green-500/20 text-green-400',
-  error: 'bg-red-900/20 border-red-500/20 text-red-400',
-  warning: 'bg-yellow-900/20 border-yellow-500/20 text-yellow-400',
-  info: 'bg-blue-900/20 border-blue-500/20 text-blue-400'
-}
+  success: "bg-green-900/20 border-green-500/20 text-green-400",
+  error: "bg-red-900/20 border-red-500/20 text-red-400",
+  warning: "bg-yellow-900/20 border-yellow-500/20 text-yellow-400",
+  info: "bg-blue-900/20 border-blue-500/20 text-blue-400",
+};
 
 export default function ToastContainer({ toasts, onRemove }) {
   return (
     <div className="fixed top-4 right-4 z-50 space-y-2">
       {toasts.map((toast) => {
-        const Icon = toastIcons[toast.type]
-        const colorClass = toastColors[toast.type]
+        const Icon = toastIcons[toast.type];
+        const colorClass = toastColors[toast.type];
 
         return (
           <div
@@ -42,8 +42,8 @@ export default function ToastContainer({ toasts, onRemove }) {
               </button>
             </div>
           </div>
-        )
+        );
       })}
     </div>
-  )
+  );
 }

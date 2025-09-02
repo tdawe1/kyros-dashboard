@@ -1,41 +1,41 @@
-import { useState, useEffect } from 'react'
-import { X, Save, RotateCcw } from 'lucide-react'
+import { useState, useEffect } from "react";
+import { X, Save, RotateCcw } from "lucide-react";
 
 export default function EditorModal({ isOpen, onClose, variant, onSave }) {
-  const [editedText, setEditedText] = useState('')
-  const [originalText, setOriginalText] = useState('')
+  const [editedText, setEditedText] = useState("");
+  const [originalText, setOriginalText] = useState("");
 
   useEffect(() => {
     if (variant) {
-      setEditedText(variant.text)
-      setOriginalText(variant.text)
+      setEditedText(variant.text);
+      setOriginalText(variant.text);
     }
-  }, [variant])
+  }, [variant]);
 
   const handleSave = () => {
     if (onSave) {
       onSave({
         ...variant,
-        text: editedText
-      })
+        text: editedText,
+      });
     }
-    onClose()
-  }
+    onClose();
+  };
 
   const handleReset = () => {
-    setEditedText(originalText)
-  }
+    setEditedText(originalText);
+  };
 
   const handleKeyDown = (e) => {
-    if (e.key === 'Escape') {
-      onClose()
-    } else if (e.key === 's' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault()
-      handleSave()
+    if (e.key === "Escape") {
+      onClose();
+    } else if (e.key === "s" && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      handleSave();
     }
-  }
+  };
 
-  if (!isOpen || !variant) return null
+  if (!isOpen || !variant) return null;
 
   return (
     <div className="fixed inset-0 z-50 overflow-y-auto">
@@ -51,7 +51,9 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <div>
-              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Variant</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
+                Edit Variant
+              </h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
                 {variant.length} characters • {variant.readability} readability
               </p>
@@ -99,7 +101,7 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
                 </label>
                 <div className="p-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg min-h-32">
                   <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
-                    {editedText || 'Enter content to see preview...'}
+                    {editedText || "Enter content to see preview..."}
                   </p>
                 </div>
               </div>
@@ -139,5 +141,5 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
         </div>
       </div>
     </div>
-  )
+  );
 }

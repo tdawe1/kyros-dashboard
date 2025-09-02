@@ -1,10 +1,10 @@
-import { useState } from 'react'
-import { Outlet } from 'react-router-dom'
-import Sidebar from '../ui/Sidebar'
-import Topbar from '../ui/Topbar'
+import { useState } from "react";
+import { Outlet } from "react-router-dom";
+import Sidebar from "../ui/Sidebar";
+import Topbar from "../ui/Topbar";
 
 export default function AppShell() {
-  const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   return (
     <div className="h-screen bg-white dark:bg-gray-900 flex overflow-hidden">
@@ -22,5 +22,5 @@ export default function AppShell() {
         </main>
       </div>
     </div>
-  )
+  );
 }

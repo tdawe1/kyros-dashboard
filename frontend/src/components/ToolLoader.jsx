@@ -1,6 +1,6 @@
-import React from 'react'
-import { useParams } from 'react-router-dom'
-import { getTool, listTools } from '../toolRegistry'
+import React from "react";
+import { useParams } from "react-router-dom";
+import { getTool, listTools } from "../toolRegistry";
 
 /**
  * ToolLoader Component
@@ -9,8 +9,8 @@ import { getTool, listTools } from '../toolRegistry'
  * This component provides a consistent interface for loading different tools.
  */
 export default function ToolLoader({ ...props }) {
-  const { toolName } = useParams()
-  const tool = getTool(toolName)
+  const { toolName } = useParams();
+  const tool = getTool(toolName);
 
   if (!tool) {
     return (
@@ -24,11 +24,15 @@ export default function ToolLoader({ ...props }) {
             The tool "{toolName}" could not be found or is not available.
           </p>
           <div className="text-sm text-gray-500 dark:text-gray-500">
-            Available tools: {listTools().filter(tool => tool.enabled).map(tool => tool.title).join(', ') || 'none'}
+            Available tools:{" "}
+            {listTools()
+              .filter((tool) => tool.enabled)
+              .map((tool) => tool.title)
+              .join(", ") || "none"}
           </div>
         </div>
       </div>
-    )
+    );
   }
 
   if (tool.enabled === false) {
@@ -44,11 +48,11 @@ export default function ToolLoader({ ...props }) {
           </p>
         </div>
       </div>
-    )
+    );
   }
 
   // Render the tool component
-  const ToolComponent = tool.component
+  const ToolComponent = tool.component;
 
   if (!ToolComponent) {
     return (
@@ -63,8 +67,8 @@ export default function ToolLoader({ ...props }) {
           </p>
         </div>
       </div>
-    )
+    );
   }
 
-  return <ToolComponent {...props} />
+  return <ToolComponent {...props} />;
 }

@@ -1,66 +1,74 @@
-import { useState } from 'react'
-import { MessageCircle, Info, Settings, CheckCircle } from 'lucide-react'
+import { useState } from "react";
+import { MessageCircle, Info, Settings, CheckCircle } from "lucide-react";
 
 export default function HelloPanel() {
-  const [message, setMessage] = useState('')
-  const [response, setResponse] = useState(null)
-  const [loading, setLoading] = useState(false)
-  const [info, setInfo] = useState(null)
+  const [message, setMessage] = useState("");
+  const [response, setResponse] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [info, setInfo] = useState(null);
 
   const handlePing = async () => {
-    setLoading(true)
+    setLoading(true);
     try {
-      const res = await fetch('/api/tools/hello/ping', {
-        method: 'POST',
+      const res = await fetch("/api/tools/hello/ping", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        body: JSON.stringify({ message: message || 'Hello' }),
-      })
+        body: JSON.stringify({ message: message || "Hello" }),
+      });
 
       if (!res.ok) {
-        const errorText = await res.text()
-        throw new Error(`HTTP ${res.status}: ${errorText}`)
+        const errorText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errorText}`);
       }
 
-      const data = await res.json()
-      setResponse(data)
+      const data = await res.json();
+      setResponse(data);
     } catch (error) {
-      console.error('Ping failed:', error)
+      console.error("Ping failed:", error);
       setResponse({
         error: `Failed to ping the Hello World tool: ${error.message}`,
-        status: error.message.includes('HTTP') ? error.message : 'Network error'
-      })
+        status: error.message.includes("HTTP")
+          ? error.message
+          : "Network error",
+      });
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
   const handleGetInfo = async () => {
     try {
-      const res = await fetch('/api/tools/hello/info')
+      const res = await fetch("/api/tools/hello/info");
 
       if (!res.ok) {
-        const errorText = await res.text()
-        throw new Error(`HTTP ${res.status}: ${errorText}`)
+        const errorText = await res.text();
+        throw new Error(`HTTP ${res.status}: ${errorText}`);
       }
 
-      const data = await res.json()
-      setInfo(data)
+      const data = await res.json();
+      setInfo(data);
     } catch (error) {
-      console.error('Failed to get info:', error)
+      console.error("Failed to get info:", error);
       setInfo({
         error: `Failed to get tool information: ${error.message}`,
-        status: error.message.includes('HTTP') ? error.message : 'Network error'
-      })
+        status: error.message.includes("HTTP")
+          ? error.message
+          : "Network error",
+      });
     }
-  }
+  };
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Hello World Tool</h1>
-        <p className="text-gray-600 dark:text-gray-400">A simple demonstration of the modular tool architecture</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+          Hello World Tool
+        </h1>
+        <p className="text-gray-600 dark:text-gray-400">
+          A simple demonstration of the modular tool architecture
+        </p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -68,7 +76,9 @@ export default function HelloPanel() {
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center mb-4">
             <MessageCircle className="w-6 h-6 text-blue-600 mr-2" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Ping Test</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Ping Test
+            </h3>
           </div>
 
           <div className="space-y-4">
@@ -106,16 +116,24 @@ export default function HelloPanel() {
 
           {response && (
             <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
-              <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Response:</h4>
+              <h4 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                Response:
+              </h4>
               {response.error ? (
-                <p className="text-red-600 dark:text-red-400">{response.error}</p>
+                <p className="text-red-600 dark:text-red-400">
+                  {response.error}
+                </p>
               ) : (
                 <div className="space-y-2">
-                  <p className="text-gray-700 dark:text-gray-300">{response.message}</p>
+                  <p className="text-gray-700 dark:text-gray-300">
+                    {response.message}
+                  </p>
                   <div className="text-sm text-gray-500 dark:text-gray-400">
                     <p>Tool: {response.tool}</p>
                     <p>Status: {response.status}</p>
-                    <p>Timestamp: {new Date(response.timestamp).toLocaleString()}</p>
+                    <p>
+                      Timestamp: {new Date(response.timestamp).toLocaleString()}
+                    </p>
                   </div>
                 </div>
               )}
@@ -127,7 +145,9 @@ export default function HelloPanel() {
         <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
           <div className="flex items-center mb-4">
             <Info className="w-6 h-6 text-green-600 mr-2" />
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Tool Information</h3>
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+              Tool Information
+            </h3>
           </div>
 
           <button
@@ -145,20 +165,33 @@ export default function HelloPanel() {
               ) : (
                 <div className="space-y-3">
                   <div>
-                    <h4 className="font-medium text-gray-900 dark:text-gray-100">{info.name}</h4>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">{info.description}</p>
+                    <h4 className="font-medium text-gray-900 dark:text-gray-100">
+                      {info.name}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {info.description}
+                    </p>
                   </div>
 
                   <div className="text-sm text-gray-500 dark:text-gray-400">
-                    <p><strong>Tool:</strong> {info.tool}</p>
-                    <p><strong>Version:</strong> {info.version}</p>
+                    <p>
+                      <strong>Tool:</strong> {info.tool}
+                    </p>
+                    <p>
+                      <strong>Version:</strong> {info.version}
+                    </p>
                   </div>
 
                   <div>
-                    <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-2">Features:</h5>
+                    <h5 className="font-medium text-gray-900 dark:text-gray-100 mb-2">
+                      Features:
+                    </h5>
                     <ul className="space-y-1">
                       {info.features?.map((feature, index) => (
-                        <li key={index} className="flex items-center text-sm text-gray-600 dark:text-gray-400">
+                        <li
+                          key={index}
+                          className="flex items-center text-sm text-gray-600 dark:text-gray-400"
+                        >
                           <CheckCircle className="w-3 h-3 text-green-500 mr-2" />
                           {feature}
                         </li>
@@ -176,37 +209,52 @@ export default function HelloPanel() {
       <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
         <div className="flex items-center mb-4">
           <Settings className="w-6 h-6 text-purple-600 mr-2" />
-          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Modular Architecture Demo</h3>
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+            Modular Architecture Demo
+          </h3>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
             <div className="text-2xl mb-2">🔧</div>
-            <h4 className="font-medium text-gray-900 dark:text-gray-100">Backend Tool</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Self-contained API endpoints</p>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100">
+              Backend Tool
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Self-contained API endpoints
+            </p>
           </div>
 
           <div className="text-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
             <div className="text-2xl mb-2">🎨</div>
-            <h4 className="font-medium text-gray-900 dark:text-gray-100">Frontend Panel</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Isolated UI components</p>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100">
+              Frontend Panel
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Isolated UI components
+            </p>
           </div>
 
           <div className="text-center p-4 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
             <div className="text-2xl mb-2">⚡</div>
-            <h4 className="font-medium text-gray-900 dark:text-gray-100">Dynamic Loading</h4>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Registry-based discovery</p>
+            <h4 className="font-medium text-gray-900 dark:text-gray-100">
+              Dynamic Loading
+            </h4>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Registry-based discovery
+            </p>
           </div>
         </div>
 
         <div className="mt-4 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg">
           <p className="text-sm text-gray-600 dark:text-gray-400">
-            This Hello World tool demonstrates how easy it is to add new tools to the system.
-            The tool is completely self-contained with its own backend API and frontend UI,
-            and is automatically discovered and loaded by the registry system.
+            This Hello World tool demonstrates how easy it is to add new tools
+            to the system. The tool is completely self-contained with its own
+            backend API and frontend UI, and is automatically discovered and
+            loaded by the registry system.
           </p>
         </div>
       </div>
     </div>
-  )
+  );
 }

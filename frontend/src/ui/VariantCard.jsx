@@ -1,42 +1,67 @@
-import { useState } from 'react'
-import { Check, Edit, Copy, Download, Heart, MoreHorizontal } from 'lucide-react'
+import { useState } from "react";
+import {
+  Check,
+  Edit,
+  Copy,
+  Download,
+  Heart,
+  MoreHorizontal,
+} from "lucide-react";
 
-export default function VariantCard({ variant, channel, onEdit, onAccept, onCopy, onDownload, onToggleFavorite }) {
-  const [isFavorited, setIsFavorited] = useState(false)
+export default function VariantCard({
+  variant,
+  channel,
+  onEdit,
+  onAccept,
+  onCopy,
+  onDownload,
+  onToggleFavorite,
+}) {
+  const [isFavorited, setIsFavorited] = useState(false);
 
   const handleToggleFavorite = () => {
-    setIsFavorited(!isFavorited)
-    onToggleFavorite?.(variant.id, !isFavorited)
-  }
+    setIsFavorited(!isFavorited);
+    onToggleFavorite?.(variant.id, !isFavorited);
+  };
 
   const handleCopy = async () => {
     try {
-      await navigator.clipboard.writeText(variant.text)
-      onCopy?.(variant.id)
+      await navigator.clipboard.writeText(variant.text);
+      onCopy?.(variant.id);
     } catch (error) {
-      console.error('Failed to copy text:', error)
+      console.error("Failed to copy text:", error);
     }
-  }
+  };
 
   const getReadabilityColor = (readability) => {
     switch (readability.toLowerCase()) {
-      case 'excellent': return 'text-green-400'
-      case 'good': return 'text-blue-400'
-      case 'fair': return 'text-yellow-400'
-      case 'poor': return 'text-red-400'
-      default: return 'text-gray-500 dark:text-gray-400'
+      case "excellent":
+        return "text-green-400";
+      case "good":
+        return "text-blue-400";
+      case "fair":
+        return "text-yellow-400";
+      case "poor":
+        return "text-red-400";
+      default:
+        return "text-gray-500 dark:text-gray-400";
     }
-  }
+  };
 
   const getChannelIcon = (channel) => {
     switch (channel.toLowerCase()) {
-      case 'linkedin': return '💼'
-      case 'twitter': return '🐦'
-      case 'newsletter': return '📧'
-      case 'blog': return '📝'
-      default: return '📄'
+      case "linkedin":
+        return "💼";
+      case "twitter":
+        return "🐦";
+      case "newsletter":
+        return "📧";
+      case "blog":
+        return "📝";
+      default:
+        return "📄";
     }
-  }
+  };
 
   return (
     <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
@@ -45,7 +70,9 @@ export default function VariantCard({ variant, channel, onEdit, onAccept, onCopy
         <div className="flex items-center space-x-3">
           <span className="text-2xl">{getChannelIcon(channel)}</span>
           <div>
-            <h4 className="text-gray-900 dark:text-white font-semibold capitalize">{channel}</h4>
+            <h4 className="text-gray-900 dark:text-white font-semibold capitalize">
+              {channel}
+            </h4>
             <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-gray-400">
               <span>{variant.length} chars</span>
               <span>•</span>
@@ -61,11 +88,11 @@ export default function VariantCard({ variant, channel, onEdit, onAccept, onCopy
             onClick={handleToggleFavorite}
             className={`p-2 rounded-lg transition-colors ${
               isFavorited
-                ? 'text-red-400 bg-red-900/20'
-                : 'text-gray-500 dark:text-gray-400 hover:text-red-400 hover:bg-red-900/20'
+                ? "text-red-400 bg-red-900/20"
+                : "text-gray-500 dark:text-gray-400 hover:text-red-400 hover:bg-red-900/20"
             }`}
           >
-            <Heart className={`w-4 h-4 ${isFavorited ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 ${isFavorited ? "fill-current" : ""}`} />
           </button>
           <button className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
             <MoreHorizontal className="w-4 h-4" />
@@ -119,5 +146,5 @@ export default function VariantCard({ variant, channel, onEdit, onAccept, onCopy
         </div>
       </div>
     </div>
-  )
+  );
 }

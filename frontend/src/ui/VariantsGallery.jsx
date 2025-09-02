@@ -1,114 +1,122 @@
-import { useState } from 'react'
-import { Download, CheckCircle, Filter, Grid, List } from 'lucide-react'
-import VariantCard from './VariantCard'
-import EditorModal from './EditorModal'
-import { useExport } from '../hooks/useGenerate'
+import { useState } from "react";
+import { Download, CheckCircle, Filter, Grid, List } from "lucide-react";
+import VariantCard from "./VariantCard";
+import EditorModal from "./EditorModal";
+import { useExport } from "../hooks/useGenerate";
 
 export default function VariantsGallery({ variants, onVariantUpdate }) {
-  const [selectedVariants, setSelectedVariants] = useState(new Set())
-  const [editingVariant, setEditingVariant] = useState(null)
-  const [viewMode, setViewMode] = useState('grid') // 'grid' or 'list'
-  const [filterChannel, setFilterChannel] = useState('all')
-  const [favoriteVariants, setFavoriteVariants] = useState(new Set())
-  const exportMutation = useExport()
+  const [selectedVariants, setSelectedVariants] = useState(new Set());
+  const [editingVariant, setEditingVariant] = useState(null);
+  const [viewMode, setViewMode] = useState("grid"); // 'grid' or 'list'
+  const [filterChannel, setFilterChannel] = useState("all");
+  const [favoriteVariants, setFavoriteVariants] = useState(new Set());
+  const exportMutation = useExport();
 
-  const channels = ['all', ...new Set(variants?.map(v => Object.keys(v.variants || {})).flat())]
+  const channels = [
+    "all",
+    ...new Set(variants?.map((v) => Object.keys(v.variants || {})).flat()),
+  ];
 
-  const handleVariantSelect = (variantId) => {
-    const newSelected = new Set(selectedVariants)
+  const _handleVariantSelect = (variantId) => {
+    const newSelected = new Set(selectedVariants);
     if (newSelected.has(variantId)) {
-      newSelected.delete(variantId)
+      newSelected.delete(variantId);
     } else {
-      newSelected.add(variantId)
+      newSelected.add(variantId);
     }
-    setSelectedVariants(newSelected)
-  }
+    setSelectedVariants(newSelected);
+  };
 
   const handleSelectAll = (channel) => {
-    if (channel === 'all') {
-      const allVariantIds = variants?.flatMap(v =>
-        Object.values(v.variants || {}).flat().map(variant => variant.id)
-      ) || []
-      setSelectedVariants(new Set(allVariantIds))
+    if (channel === "all") {
+      const allVariantIds =
+        variants?.flatMap((v) =>
+          Object.values(v.variants || {})
+            .flat()
+            .map((variant) => variant.id),
+        ) || [];
+      setSelectedVariants(new Set(allVariantIds));
     } else {
-      const channelVariantIds = variants?.flatMap(v =>
-        (v.variants?.[channel] || []).map(variant => variant.id)
-      ) || []
-      setSelectedVariants(new Set(channelVariantIds))
+      const channelVariantIds =
+        variants?.flatMap((v) =>
+          (v.variants?.[channel] || []).map((variant) => variant.id),
+        ) || [];
+      setSelectedVariants(new Set(channelVariantIds));
     }
-  }
+  };
 
   const handleDeselectAll = () => {
-    setSelectedVariants(new Set())
-  }
+    setSelectedVariants(new Set());
+  };
 
   const handleBulkExport = async () => {
     if (selectedVariants.size === 0) {
-      alert('Please select variants to export')
-      return
+      alert("Please select variants to export");
+      return;
     }
 
     try {
       const result = await exportMutation.mutateAsync({
-        job_id: variants?.[0]?.job_id || 'demo',
-        format: 'csv',
-        selected_variants: Array.from(selectedVariants)
-      })
+        job_id: variants?.[0]?.job_id || "demo",
+        format: "csv",
+        selected_variants: Array.from(selectedVariants),
+      });
 
       // Create download link
-      const link = document.createElement('a')
-      link.href = result.file_url
-      link.download = result.filename
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
+      const link = document.createElement("a");
+      link.href = result.file_url;
+      link.download = result.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-      alert(`Exported ${selectedVariants.size} variants successfully!`)
+      alert(`Exported ${selectedVariants.size} variants successfully!`);
     } catch (error) {
-      console.error('Export failed:', error)
-      alert('Failed to export variants. Please try again.')
+      console.error("Export failed:", error);
+      alert("Failed to export variants. Please try again.");
     }
-  }
+  };
 
   const handleVariantEdit = (variant) => {
-    setEditingVariant(variant)
-  }
+    setEditingVariant(variant);
+  };
 
   const handleVariantSave = (updatedVariant) => {
     if (onVariantUpdate) {
-      onVariantUpdate(updatedVariant)
+      onVariantUpdate(updatedVariant);
     }
-    setEditingVariant(null)
-  }
+    setEditingVariant(null);
+  };
 
   const handleVariantAccept = (variantId) => {
     // TODO: Implement accept logic
-    console.log('Accepted variant:', variantId)
-  }
+    console.log("Accepted variant:", variantId);
+  };
 
   const handleVariantCopy = (variantId) => {
     // TODO: Show copy feedback
-    console.log('Copied variant:', variantId)
-  }
+    console.log("Copied variant:", variantId);
+  };
 
   const handleVariantDownload = (variantId) => {
     // TODO: Implement individual download
-    console.log('Downloaded variant:', variantId)
-  }
+    console.log("Downloaded variant:", variantId);
+  };
 
   const handleToggleFavorite = (variantId, isFavorited) => {
-    const newFavorites = new Set(favoriteVariants)
+    const newFavorites = new Set(favoriteVariants);
     if (isFavorited) {
-      newFavorites.add(variantId)
+      newFavorites.add(variantId);
     } else {
-      newFavorites.delete(variantId)
+      newFavorites.delete(variantId);
     }
-    setFavoriteVariants(newFavorites)
-  }
+    setFavoriteVariants(newFavorites);
+  };
 
-  const filteredVariants = variants?.filter(v =>
-    filterChannel === 'all' || v.variants?.[filterChannel]
-  ) || []
+  const filteredVariants =
+    variants?.filter(
+      (v) => filterChannel === "all" || v.variants?.[filterChannel],
+    ) || [];
 
   if (!variants || variants.length === 0) {
     return (
@@ -116,12 +124,14 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
         <div className="text-gray-500 dark:text-gray-400 mb-4">
           <Grid className="w-16 h-16 mx-auto" />
         </div>
-        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Variants Generated</h3>
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
+          No Variants Generated
+        </h3>
         <p className="text-gray-600 dark:text-gray-300">
           Generate content variants to see them displayed here.
         </p>
       </div>
-    )
+    );
   }
 
   return (
@@ -129,7 +139,9 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Generated Variants</h2>
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            Generated Variants
+          </h2>
           <p className="text-gray-600 dark:text-gray-300">
             {selectedVariants.size > 0 && `${selectedVariants.size} selected`}
           </p>
@@ -139,21 +151,21 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
           {/* View Mode Toggle */}
           <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             <button
-              onClick={() => setViewMode('grid')}
+              onClick={() => setViewMode("grid")}
               className={`p-2 rounded transition-colors ${
-                viewMode === 'grid'
-                  ? 'bg-accent text-white'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                viewMode === "grid"
+                  ? "bg-accent text-white"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               <Grid className="w-4 h-4" />
             </button>
             <button
-              onClick={() => setViewMode('list')}
+              onClick={() => setViewMode("list")}
               className={`p-2 rounded transition-colors ${
-                viewMode === 'list'
-                  ? 'bg-accent text-white'
-                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
+                viewMode === "list"
+                  ? "bg-accent text-white"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
               }`}
             >
               <List className="w-4 h-4" />
@@ -166,9 +178,11 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
             onChange={(e) => setFilterChannel(e.target.value)}
             className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent"
           >
-            {channels.map(channel => (
+            {channels.map((channel) => (
               <option key={channel} value={channel}>
-                {channel === 'all' ? 'All Channels' : channel.charAt(0).toUpperCase() + channel.slice(1)}
+                {channel === "all"
+                  ? "All Channels"
+                  : channel.charAt(0).toUpperCase() + channel.slice(1)}
               </option>
             ))}
           </select>
@@ -188,7 +202,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
                   onClick={() => handleSelectAll(filterChannel)}
                   className="text-accent hover:text-accent/80 text-sm font-medium"
                 >
-                  Select All {filterChannel !== 'all' ? filterChannel : ''}
+                  Select All {filterChannel !== "all" ? filterChannel : ""}
                 </button>
                 <span className="text-gray-500 dark:text-gray-400">•</span>
                 <button
@@ -215,26 +229,30 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
       )}
 
       {/* Variants Grid */}
-      <div className={`${
-        viewMode === 'grid'
-          ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6'
-          : 'space-y-4'
-      }`}>
+      <div
+        className={`${
+          viewMode === "grid"
+            ? "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            : "space-y-4"
+        }`}
+      >
         {filteredVariants.map((job) =>
-          Object.entries(job.variants || {}).map(([channel, channelVariants]) =>
-            channelVariants.map((variant) => (
-              <VariantCard
-                key={variant.id}
-                variant={variant}
-                channel={channel}
-                onEdit={handleVariantEdit}
-                onAccept={handleVariantAccept}
-                onCopy={handleVariantCopy}
-                onDownload={handleVariantDownload}
-                onToggleFavorite={handleToggleFavorite}
-              />
-            ))
-          ).flat()
+          Object.entries(job.variants || {})
+            .map(([channel, channelVariants]) =>
+              channelVariants.map((variant) => (
+                <VariantCard
+                  key={variant.id}
+                  variant={variant}
+                  channel={channel}
+                  onEdit={handleVariantEdit}
+                  onAccept={handleVariantAccept}
+                  onCopy={handleVariantCopy}
+                  onDownload={handleVariantDownload}
+                  onToggleFavorite={handleToggleFavorite}
+                />
+              )),
+            )
+            .flat(),
         )}
       </div>
 
@@ -246,5 +264,5 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
         onSave={handleVariantSave}
       />
     </div>
-  )
+  );
 }

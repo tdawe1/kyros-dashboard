@@ -27,7 +27,7 @@ export function SkeletonCard() {
         </div>
       </div>
     </div>
-  )
+  );
 }
 
 export function SkeletonTable() {
@@ -50,5 +50,5 @@ export function SkeletonTable() {
         </div>
       </div>
     </div>
-  )
+  );
 }

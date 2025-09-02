@@ -1,74 +1,82 @@
-import { render, screen } from '@testing-library/react'
-import { BrowserRouter } from 'react-router-dom'
-import ToolLoader from './ToolLoader'
+import { render, screen } from "@testing-library/react";
+import { BrowserRouter } from "react-router-dom";
+import ToolLoader from "./ToolLoader";
 
 // Mock the tool registry
-jest.mock('../toolRegistry', () => ({
+jest.mock("../toolRegistry", () => ({
   getTool: jest.fn(),
-}))
+}));
 
-const MockedToolLoader = ({ toolName }) => (
+const MockedToolLoader = () => (
   <BrowserRouter>
     <ToolLoader />
   </BrowserRouter>
-)
+);
 
-describe('ToolLoader', () => {
+describe("ToolLoader", () => {
   beforeEach(() => {
-    jest.clearAllMocks()
-  })
+    jest.clearAllMocks();
+  });
 
-  it('renders tool not found when tool does not exist', () => {
-    const { getTool } = require('../toolRegistry')
-    getTool.mockReturnValue(null)
+  it("renders tool not found when tool does not exist", () => {
+    const { getTool } = require("../toolRegistry");
+    getTool.mockReturnValue(null);
 
-    render(<MockedToolLoader toolName="nonexistent" />)
+    render(<MockedToolLoader toolName="nonexistent" />);
 
-    expect(screen.getByText('Tool Not Found')).toBeInTheDocument()
-    expect(screen.getByText('The tool "nonexistent" could not be found or is not available.')).toBeInTheDocument()
-  })
+    expect(screen.getByText("Tool Not Found")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        'The tool "nonexistent" could not be found or is not available.',
+      ),
+    ).toBeInTheDocument();
+  });
 
-  it('renders tool disabled when tool is disabled', () => {
-    const { getTool } = require('../toolRegistry')
+  it("renders tool disabled when tool is disabled", () => {
+    const { getTool } = require("../toolRegistry");
     getTool.mockReturnValue({
-      name: 'test-tool',
-      title: 'Test Tool',
+      name: "test-tool",
+      title: "Test Tool",
       enabled: false,
-    })
+    });
 
-    render(<MockedToolLoader toolName="test-tool" />)
+    render(<MockedToolLoader toolName="test-tool" />);
 
-    expect(screen.getByText('Tool Disabled')).toBeInTheDocument()
-    expect(screen.getByText('The tool "Test Tool" is currently disabled.')).toBeInTheDocument()
-  })
+    expect(screen.getByText("Tool Disabled")).toBeInTheDocument();
+    expect(
+      screen.getByText('The tool "Test Tool" is currently disabled.'),
+    ).toBeInTheDocument();
+  });
 
-  it('renders component error when tool has no component', () => {
-    const { getTool } = require('../toolRegistry')
+  it("renders component error when tool has no component", () => {
+    const { getTool } = require("../toolRegistry");
     getTool.mockReturnValue({
-      name: 'test-tool',
-      title: 'Test Tool',
+      name: "test-tool",
+      title: "Test Tool",
       enabled: true,
       component: null,
-    })
+    });
 
-    render(<MockedToolLoader toolName="test-tool" />)
+    render(<MockedToolLoader toolName="test-tool" />);
 
-    expect(screen.getByText('Component Error')).toBeInTheDocument()
-    expect(screen.getByText('The tool "Test Tool" component could not be loaded.')).toBeInTheDocument()
-  })
+    expect(screen.getByText("Component Error")).toBeInTheDocument();
+    expect(
+      screen.getByText('The tool "Test Tool" component could not be loaded.'),
+    ).toBeInTheDocument();
+  });
 
-  it('renders tool component when tool exists and is enabled', () => {
-    const MockComponent = () => <div>Mock Tool Component</div>
-    const { getTool } = require('../toolRegistry')
+  it("renders tool component when tool exists and is enabled", () => {
+    const MockComponent = () => <div>Mock Tool Component</div>;
+    const { getTool } = require("../toolRegistry");
     getTool.mockReturnValue({
-      name: 'test-tool',
-      title: 'Test Tool',
+      name: "test-tool",
+      title: "Test Tool",
       enabled: true,
       component: MockComponent,
-    })
+    });
 
-    render(<MockedToolLoader toolName="test-tool" />)
+    render(<MockedToolLoader toolName="test-tool" />);
 
-    expect(screen.getByText('Mock Tool Component')).toBeInTheDocument()
-  })
-})
+    expect(screen.getByText("Mock Tool Component")).toBeInTheDocument();
+  });
+});

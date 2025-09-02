@@ -171,7 +171,7 @@ def create_default_admin():
     """Create default admin user if none exists."""
     admin_username = "admin"
     if admin_username not in _user_credentials:
-        admin_password = os.getenv("ADMIN_PASSWORD", "admin123")
+        admin_password = os.getenv("ADMIN_PASSWORD", secrets.token_urlsafe(16))
         _user_credentials[admin_username] = hash_password(admin_password)
         _users_db[admin_username] = User(
             id="admin",

@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 export default function KyrosLogo({ className = "w-8 h-8", showText = true }) {
   return (
@@ -22,7 +22,7 @@ export default function KyrosLogo({ className = "w-8 h-8", showText = true }) {
         </span>
       )}
     </div>
-  )
+  );
 }
 
 // Compact version for smaller spaces
@@ -36,17 +36,9 @@ export function KyrosLogoCompact({ className = "w-6 h-6" }) {
         xmlns="http://www.w3.org/2000/svg"
       >
         {/* Simplified logo - just the "k" with teal accent */}
-        <path
-          d="M4 4h3v6l4-6h3l-5 6 5 6h-3l-4-6v6H4V4z"
-          fill="#3B82F6"
-        />
-        <circle
-          cx="18"
-          cy="18"
-          r="3"
-          fill="#14B8A6"
-        />
+        <path d="M4 4h3v6l4-6h3l-5 6 5 6h-3l-4-6v6H4V4z" fill="#3B82F6" />
+        <circle cx="18" cy="18" r="3" fill="#14B8A6" />
       </svg>
     </div>
-  )
+  );
 }

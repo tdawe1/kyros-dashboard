@@ -4,6 +4,7 @@ Implements secure configuration loading with validation and environment-specific
 """
 
 import logging
+import secrets
 from typing import List, Optional
 from pydantic import BaseSettings, validator, Field
 from enum import Enum
@@ -51,7 +52,9 @@ class Settings(BaseSettings):
     jwt_refresh_token_expire_days: int = Field(
         default=7, env="JWT_REFRESH_TOKEN_EXPIRE_DAYS"
     )
-    admin_password: str = Field(default="admin123", env="ADMIN_PASSWORD")
+    admin_password: str = Field(
+        default_factory=lambda: secrets.token_urlsafe(16), env="ADMIN_PASSWORD"
+    )
 
     # Database settings
     database_url: str = Field(default="sqlite:///./kyros.db", env="DATABASE_URL")

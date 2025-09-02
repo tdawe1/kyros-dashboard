@@ -8,7 +8,7 @@ class TestOpenAIClient:
 
     def test_init_with_api_key(self):
         """Test client initialization with API key."""
-        client = OpenAIClient(api_key="test-key")
+        client = OpenAIClient(api_key="test-key-12345")
         assert client.api_key == "test-key"
 
     @patch.dict("os.environ", {"OPENAI_API_KEY": "env-key"})
@@ -25,13 +25,13 @@ class TestOpenAIClient:
 
     def test_validate_model_valid(self):
         """Test model validation with valid models."""
-        client = OpenAIClient(api_key="test-key")
+        client = OpenAIClient(api_key="test-key-12345")
         for model in VALID_MODELS:
             assert client.validate_model(model) is True
 
     def test_validate_model_invalid(self):
         """Test model validation with invalid models."""
-        client = OpenAIClient(api_key="test-key")
+        client = OpenAIClient(api_key="test-key-12345")
         invalid_models = ["gpt-3.5-turbo", "invalid-model", "claude-3"]
         for model in invalid_models:
             assert client.validate_model(model) is False
@@ -51,7 +51,7 @@ class TestOpenAIClient:
         mock_client.chat.completions.create.return_value = mock_response
         mock_openai_class.return_value = mock_client
 
-        client = OpenAIClient(api_key="test-key")
+        client = OpenAIClient(api_key="test-key-12345")
         result = client.chat_completion(
             messages=[{"role": "user", "content": "Test prompt"}],
             model="gpt-4o-mini",
@@ -66,7 +66,7 @@ class TestOpenAIClient:
 
     def test_chat_completion_invalid_model(self):
         """Test chat completion with invalid model."""
-        client = OpenAIClient(api_key="test-key")
+        client = OpenAIClient(api_key="test-key-12345")
         with pytest.raises(OpenAIError, match="Invalid model"):
             client.chat_completion(
                 messages=[{"role": "user", "content": "Test prompt"}],
@@ -94,7 +94,7 @@ class TestOpenAIClient:
         ]
         mock_openai_class.return_value = mock_client
 
-        client = OpenAIClient(api_key="test-key")
+        client = OpenAIClient(api_key="test-key-12345")
         result = client.chat_completion(
             messages=[{"role": "user", "content": "Test prompt"}],
             model="gpt-4o-mini",
@@ -112,7 +112,7 @@ class TestOpenAIClient:
         )
         mock_openai_class.return_value = mock_client
 
-        client = OpenAIClient(api_key="test-key")
+        client = OpenAIClient(api_key="test-key-12345")
         with pytest.raises(OpenAIError, match="OpenAI request failed after"):
             client.chat_completion(
                 messages=[{"role": "user", "content": "Test prompt"}],
@@ -121,7 +121,7 @@ class TestOpenAIClient:
 
     def test_estimate_cost(self):
         """Test cost estimation for different models."""
-        client = OpenAIClient(api_key="test-key")
+        client = OpenAIClient(api_key="test-key-12345")
 
         # Test gpt-4o-mini
         cost = client.estimate_cost(1000, 500, "gpt-4o-mini")
@@ -135,6 +135,6 @@ class TestOpenAIClient:
 
     def test_estimate_cost_unknown_model(self):
         """Test cost estimation for unknown model."""
-        client = OpenAIClient(api_key="test-key")
+        client = OpenAIClient(api_key="test-key-12345")
         cost = client.estimate_cost(1000, 500, "unknown-model")
         assert cost == 0.0
