@@ -23,16 +23,10 @@ def can_create_job(user_id: str, daily_limit: int = 10) -> tuple[bool, int]:
     today = date.today().isoformat()
     key = f"jobs:{user_id}:{today}"
 
-    # Use Redis pipeline for atomic operations
-    pipe = r._client.pipeline()
-
-    # Check current count first
-    pipe.get(key)
-    pipe.incr(key)
-    pipe.expire(key, 86400)  # Set TTL
-
-    results = pipe.execute()
-    new_count = results[1]
+    # Safer: use wrapped ops; set TTL only on first increment
+    new_count = r.incr(key)
+    if new_count == 1:
+        r.expire(key, 86400)
 
     # Check if limit exceeded after increment
     if new_count > daily_limit:
