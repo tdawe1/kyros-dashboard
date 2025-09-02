@@ -215,8 +215,10 @@ async def generate_content(
     # Validate model using core service
     client = get_openai_client()
     if not client.validate_model(selected_model):
+        from core.openai_client import VALID_MODELS
+
         raise ValueError(
-            f"Invalid model: {selected_model}. Must be one of {client.VALID_MODELS}"
+            f"Invalid model: {selected_model}. Must be one of {VALID_MODELS}"
         )
 
     if api_mode == "demo":

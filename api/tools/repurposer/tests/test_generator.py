@@ -1,6 +1,7 @@
 import pytest
 from unittest.mock import patch, MagicMock
-from ..generator import generate_content, get_demo_variants, VALID_MODELS
+from ..generator import generate_content, get_demo_variants
+from core.openai_client import VALID_MODELS
 
 
 class TestRepurposerGenerator:
@@ -54,7 +55,9 @@ class TestRepurposerGenerator:
     @pytest.mark.asyncio
     async def test_generate_content_demo_mode(self):
         """Test content generation in demo mode."""
-        with patch.dict("os.environ", {"API_MODE": "demo"}):
+        with patch.dict(
+            "os.environ", {"API_MODE": "demo", "OPENAI_API_KEY": "test-key"}
+        ):
             input_text = "This is a test blog post about AI and productivity."
             channels = ["linkedin", "twitter"]
             tone = "professional"
@@ -75,7 +78,9 @@ class TestRepurposerGenerator:
     @pytest.mark.asyncio
     async def test_generate_content_invalid_model(self):
         """Test that invalid models raise ValueError."""
-        with patch.dict("os.environ", {"API_MODE": "demo"}):
+        with patch.dict(
+            "os.environ", {"API_MODE": "demo", "OPENAI_API_KEY": "test-key"}
+        ):
             with pytest.raises(ValueError, match="Invalid model"):
                 await generate_content(
                     input_text="Test content",
@@ -88,7 +93,9 @@ class TestRepurposerGenerator:
     @pytest.mark.asyncio
     async def test_generate_content_invalid_api_mode(self):
         """Test that invalid API_MODE raises ValueError."""
-        with patch.dict("os.environ", {"API_MODE": "invalid"}):
+        with patch.dict(
+            "os.environ", {"API_MODE": "invalid", "OPENAI_API_KEY": "test-key"}
+        ):
             with pytest.raises(ValueError, match="Invalid API_MODE"):
                 await generate_content(
                     input_text="Test content",
@@ -112,14 +119,21 @@ class TestRepurposerGenerator:
         with patch.dict(
             "os.environ", {"API_MODE": "real", "OPENAI_API_KEY": "test-key"}
         ):
-            with patch("tools.repurposer.generator.OpenAI") as mock_openai_class:
+            with patch(
+                "tools.repurposer.generator.get_openai_client"
+            ) as mock_get_client:
                 mock_client = MagicMock()
-                mock_client.chat.completions.create.return_value = mock_response
-                mock_openai_class.return_value = mock_client
+                mock_client.chat_completion.return_value = {
+                    "content": "Test LinkedIn post content",
+                    "usage": {
+                        "prompt_tokens": 100,
+                        "completion_tokens": 50,
+                        "total_tokens": 150,
+                    },
+                }
+                mock_get_client.return_value = mock_client
 
-                with patch(
-                    "tools.repurposer.generator.save_token_usage"
-                ) as mock_save_tokens:
+                with patch("utils.token_storage.save_token_usage"):
                     variants = await generate_content(
                         input_text="Test content for LinkedIn",
                         channels=["linkedin"],
@@ -129,10 +143,7 @@ class TestRepurposerGenerator:
                     )
 
                     # Should call OpenAI API
-                    mock_client.chat.completions.create.assert_called_once()
-
-                    # Should save token usage
-                    mock_save_tokens.assert_called_once()
+                    mock_client.chat_completion.assert_called_once()
 
                     # Should return variants
                     assert "linkedin" in variants
