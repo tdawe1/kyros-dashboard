@@ -12,6 +12,7 @@ import {
 import clsx from 'clsx'
 import ThemeToggle from './ThemeToggle'
 import { getEnabledTools } from '../toolRegistry'
+import KyrosLogo from '../components/KyrosLogo'
 
 // Icon mapping for tools
 const iconMap = {
@@ -66,12 +67,7 @@ export default function Sidebar({ isOpen, onClose }) {
       )}>
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center">
-            <div className="w-8 h-8 bg-accent rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">K</span>
-            </div>
-            <span className="ml-3 text-gray-900 dark:text-gray-100 font-semibold">Kyros</span>
-          </div>
+          <KyrosLogo />
           <button
             onClick={onClose}
             className="lg:hidden text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
