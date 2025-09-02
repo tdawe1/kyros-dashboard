@@ -9,17 +9,40 @@ import {
 } from 'lucide-react'
 import clsx from 'clsx'
 import ThemeToggle from './ThemeToggle'
+import { getEnabledTools } from '../toolRegistry'
 
-const navigation = [
+// Icon mapping for tools
+const iconMap = {
+  FileText: FileText,
+  // Add more icon mappings as needed
+}
+
+// Static navigation items
+const staticNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Job Monitor', href: '/jobs', icon: Monitor },
-  { name: 'Repurposer Studio', href: '/studio', icon: FileText },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
+// Generate dynamic navigation from tools
+const getToolNavigation = () => {
+  return getEnabledTools().map(tool => ({
+    name: tool.title,
+    href: `/tools/${tool.name}`,
+    icon: iconMap[tool.icon] || FileText, // Default to FileText if icon not found
+    tool: true,
+  }))
+}
+
 export default function Sidebar({ isOpen, onClose }) {
   const location = useLocation()
+
+  // Combine static and dynamic navigation
+  const navigation = [
+    ...staticNavigation,
+    ...getToolNavigation(),
+  ]
 
   return (
     <>
@@ -56,7 +79,10 @@ export default function Sidebar({ isOpen, onClose }) {
         <nav className="flex-1 mt-6 px-3">
           <div className="space-y-1">
             {navigation.map((item) => {
-              const isActive = location.pathname === item.href
+              // Handle tool routes - check if current path starts with tool path
+              const isActive = item.tool
+                ? location.pathname.startsWith(item.href)
+                : location.pathname === item.href
               return (
                 <Link
                   key={item.name}

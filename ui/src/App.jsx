@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import Jobs from './pages/Jobs'
 import Studio from './pages/Studio'
 import Settings from './pages/Settings'
+import ToolLoader from './components/ToolLoader'
 import ErrorBoundary from './components/ErrorBoundary'
 import ToastProvider from './components/ToastProvider'
 import './App.css'
@@ -38,6 +39,8 @@ function App() {
                   <Route path="jobs" element={<Jobs />} />
                   <Route path="studio" element={<Studio />} />
                   <Route path="settings" element={<Settings />} />
+                  {/* Tool routes */}
+                  <Route path="tools/:toolName" element={<ToolLoader />} />
                 </Route>
               </Routes>
             </Router>
