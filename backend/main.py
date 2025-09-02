@@ -186,6 +186,12 @@ mock_presets = [
 # Routes
 @app.get("/api/health")
 async def health_check():
+    """Simple health check for Railway deployment."""
+    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+
+
+@app.get("/api/health/detailed")
+async def detailed_health_check():
     """Comprehensive health check including database connectivity."""
     db_healthy = check_database_health()
 
