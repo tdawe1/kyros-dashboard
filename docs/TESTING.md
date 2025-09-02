@@ -25,11 +25,17 @@ This script will:
 
 #### Test Backend (API)
 ```bash
+# Create and activate virtual environment
+cd api
+python -m venv .venv
+
 # Activate virtual environment
-source venv/bin/activate
+# Linux/Mac:
+source .venv/bin/activate
+# Windows PowerShell:
+# .venv\Scripts\Activate.ps1
 
 # Install dependencies
-cd api
 pip install -r requirements.txt
 
 # Test imports
@@ -168,7 +174,10 @@ In GitHub Actions, you'll see:
 1. **Python Import Errors**:
    ```bash
    # Make sure virtual environment is activated
-   source venv/bin/activate
+   # Linux/Mac:
+   source .venv/bin/activate
+   # Windows PowerShell:
+   # .venv\Scripts\Activate.ps1
 
    # Reinstall dependencies
    pip install -r api/requirements.txt

@@ -3,7 +3,7 @@
 # Local Testing Script for Kyros Dashboard
 # This script tests the build process locally without deploying
 
-set -e
+set -euo pipefail
 
 echo "🧪 Starting local build test for Kyros Dashboard..."
 echo "=================================================="
@@ -31,6 +31,24 @@ print_warning() {
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
+
+# Cleanup function
+API_PID=""
+cleanup() {
+    if [ ! -z "$API_PID" ] && kill -0 "$API_PID" 2>/dev/null; then
+        print_status "Stopping API server (PID: $API_PID)..."
+        kill "$API_PID" 2>/dev/null || true
+    fi
+
+    # Deactivate virtualenv if active
+    if [ ! -z "${VIRTUAL_ENV:-}" ]; then
+        print_status "Deactivating virtual environment..."
+        deactivate 2>/dev/null || true
+    fi
+}
+
+# Set up cleanup trap
+trap cleanup EXIT INT TERM
 
 # Check if we're in the right directory
 if [ ! -f "README.md" ] || [ ! -d "api" ] || [ ! -d "ui" ]; then

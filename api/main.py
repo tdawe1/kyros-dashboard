@@ -11,15 +11,14 @@ from sentry_sdk.integrations.fastapi import FastApiIntegration
 from sentry_sdk.integrations.logging import LoggingIntegration
 
 # Import our new utilities
-from utils.quotas import can_create_job, get_user_quota_status, reset_user_quota
-from utils.token_utils import validate_input_limits, get_token_usage_stats
-from utils.token_storage import save_job_record, get_token_usage
-from middleware.rate_limiter import rate_limit_middleware
-from generator import generate_content
+from api.utils.quotas import can_create_job, get_user_quota_status, reset_user_quota
+from api.utils.token_utils import validate_input_limits, get_token_usage_stats
+from api.utils.token_storage import save_job_record, get_token_usage
+from api.middleware.rate_limiter import rate_limit_middleware
+from api.generator import generate_content
 
 # Import tools registry
-from tools.registry import load_tool_routers, get_tools_metadata, get_tool_metadata
-from tools.repurposer.router import router as repurposer_router
+from api.tools.registry import load_tool_routers, get_tools_metadata, get_tool_metadata
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -54,9 +53,6 @@ app.middleware("http")(rate_limit_middleware)
 for name, router in load_tool_routers():
     app.include_router(router, prefix=f"/api/tools/{name}", tags=[name])
     logger.info(f"Registered tool router: {name}")
-
-# Backwards compatibility - keep the old /api/generate endpoint for repurposer
-app.include_router(repurposer_router, prefix="/api", tags=["repurposer"])
 
 # CORS middleware
 app.add_middleware(

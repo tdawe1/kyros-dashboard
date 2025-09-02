@@ -147,6 +147,8 @@ posthog.host = os.getenv("POSTHOG_HOST")
 ### JWT Implementation
 
 ```python
+from typing import Optional
+from datetime import datetime, timedelta
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 

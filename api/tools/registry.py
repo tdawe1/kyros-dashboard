@@ -7,7 +7,7 @@ It allows the system to automatically discover and register tool routers.
 
 import importlib
 import logging
-from typing import List, Dict, Any, Tuple
+from typing import List, Dict, Any, Tuple, Optional
 from fastapi import APIRouter
 
 logger = logging.getLogger(__name__)
@@ -100,7 +100,7 @@ def get_tools_metadata() -> List[Dict[str, Any]]:
     ]
 
 
-def get_tool_metadata(tool_name: str) -> Dict[str, Any]:
+def get_tool_metadata(tool_name: str) -> Optional[Dict[str, Any]]:
     """
     Get metadata for a specific tool.
 
@@ -216,9 +216,8 @@ def remove_tool(tool_name: str) -> bool:
     Returns:
         True if tool was removed, False if tool not found.
     """
-    global TOOLS
     original_count = len(TOOLS)
-    TOOLS = [t for t in TOOLS if t["name"] != tool_name]
+    TOOLS[:] = [t for t in TOOLS if t["name"] != tool_name]
 
     if len(TOOLS) < original_count:
         logger.info(f"Removed tool: {tool_name}")

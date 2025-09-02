@@ -30,18 +30,19 @@ def can_create_job(user_id: str, daily_limit: int = 10) -> tuple[bool, int]:
         today = date.today().isoformat()
         key = f"jobs:{user_id}:{today}"
 
-        # Get current count
-        count = r.get(key)
-        current_count = int(count) if count else 0
-
-        # Check if limit exceeded
-        if current_count >= daily_limit:
-            return False, current_count
-
-        # Increment counter
+        # Atomic increment-first approach
         new_count = r.incr(key)
-        # Set expiration to end of day (86400 seconds = 24 hours)
-        r.expire(key, 86400)
+
+        # Set expiration only when the returned counter equals 1 (first increment sets TTL)
+        if new_count == 1:
+            r.expire(key, 86400)  # 24 hours
+
+        # Check if limit exceeded after increment
+        if new_count > daily_limit:
+            logger.warning(
+                f"User {user_id} exceeded daily limit: {new_count}/{daily_limit}"
+            )
+            return False, new_count
 
         logger.info(f"User {user_id} job count: {new_count}/{daily_limit}")
         return True, new_count

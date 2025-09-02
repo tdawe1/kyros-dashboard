@@ -4,6 +4,7 @@ This is a simple in-memory implementation that can be replaced with a real datab
 """
 
 import json
+import copy
 from datetime import datetime
 from typing import Dict, Optional, Any
 import logging
@@ -49,13 +50,21 @@ def save_token_usage(
             token_usage.get("total_tokens", 0) * 0.0001
         )  # Mock cost calculation
 
-        # Store per-channel usage
-        _token_usage_storage[job_id]["channels"][channel] = {
+        # Store per-channel usage (maintain list of entries per channel)
+        if "channels" not in _token_usage_storage[job_id]:
+            _token_usage_storage[job_id]["channels"] = {}
+
+        if channel not in _token_usage_storage[job_id]["channels"]:
+            _token_usage_storage[job_id]["channels"][channel] = []
+
+        # Create usage dict and append to list
+        usage_entry = {
             "prompt_tokens": token_usage.get("prompt_tokens", 0),
             "completion_tokens": token_usage.get("completion_tokens", 0),
             "total_tokens": token_usage.get("total_tokens", 0),
             "timestamp": datetime.now().isoformat(),
         }
+        _token_usage_storage[job_id]["channels"][channel].append(usage_entry)
 
         logger.info(f"Token usage saved for job {job_id}: {token_usage}")
         return True
@@ -75,7 +84,8 @@ def get_token_usage(job_id: str) -> Optional[Dict[str, Any]]:
     Returns:
         Dict containing token usage data or None if not found
     """
-    return _token_usage_storage.get(job_id)
+    data = _token_usage_storage.get(job_id)
+    return copy.deepcopy(data) if data else None
 
 
 def get_all_token_usage() -> Dict[str, Dict[str, Any]]:
@@ -85,7 +95,7 @@ def get_all_token_usage() -> Dict[str, Dict[str, Any]]:
     Returns:
         Dict of all token usage records
     """
-    return _token_usage_storage.copy()
+    return copy.deepcopy(_token_usage_storage)
 
 
 def save_job_record(job_id: str, job_data: Dict[str, Any]) -> bool:
@@ -100,11 +110,20 @@ def save_job_record(job_id: str, job_data: Dict[str, Any]) -> bool:
         bool: True if saved successfully, False otherwise
     """
     try:
-        _job_storage[job_id] = {
-            **job_data,
-            "created_at": datetime.now().isoformat(),
-            "updated_at": datetime.now().isoformat(),
-        }
+        # Preserve original created_at when updating existing job
+        if job_id in _job_storage:
+            existing_record = _job_storage[job_id]
+            created_at = existing_record.get("created_at", datetime.now().isoformat())
+        else:
+            created_at = datetime.now().isoformat()
+
+        _job_storage[job_id] = copy.deepcopy(
+            {
+                **job_data,
+                "created_at": created_at,
+                "updated_at": datetime.now().isoformat(),
+            }
+        )
 
         logger.info(f"Job record saved for job {job_id}")
         return True
@@ -124,7 +143,8 @@ def get_job_record(job_id: str) -> Optional[Dict[str, Any]]:
     Returns:
         Dict containing job data or None if not found
     """
-    return _job_storage.get(job_id)
+    data = _job_storage.get(job_id)
+    return copy.deepcopy(data) if data else None
 
 
 def get_all_job_records() -> Dict[str, Dict[str, Any]]:
@@ -134,7 +154,7 @@ def get_all_job_records() -> Dict[str, Dict[str, Any]]:
     Returns:
         Dict of all job records
     """
-    return _job_storage.copy()
+    return copy.deepcopy(_job_storage)
 
 
 def get_token_usage_stats() -> Dict[str, Any]:

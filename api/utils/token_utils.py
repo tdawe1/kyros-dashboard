@@ -105,7 +105,7 @@ def get_token_usage_stats(text: str) -> Dict[str, Any]:
             "max_tokens": MAX_TOKENS_PER_JOB,
         },
         "usage_percentage": {
-            "characters": (len(text) / MAX_INPUT_CHARACTERS) * 100,
-            "tokens": (estimated_tokens / MAX_TOKENS_PER_JOB) * 100,
+            "characters": (len(text) / max(MAX_INPUT_CHARACTERS, 1)) * 100,
+            "tokens": (estimated_tokens / max(MAX_TOKENS_PER_JOB, 1)) * 100,
         },
     }

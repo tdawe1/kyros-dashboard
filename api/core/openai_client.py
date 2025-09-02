@@ -8,6 +8,7 @@ It includes retry logic, token logging, and error handling.
 import os
 import logging
 import time
+import threading
 from typing import Dict, List, Any, Optional
 from openai import OpenAI
 import sentry_sdk
@@ -15,7 +16,7 @@ import sentry_sdk
 logger = logging.getLogger(__name__)
 
 # Valid models whitelist
-VALID_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini"]
+VALID_MODELS = ["gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-4o-mini"]
 
 
 class OpenAIError(Exception):
@@ -113,7 +114,7 @@ class OpenAIClient:
 
                 # Set Sentry context
                 if job_id:
-                    with sentry_sdk.configure_scope() as scope:
+                    with sentry_sdk.push_scope() as scope:
                         scope.set_tag("openai_model", model)
                         scope.set_tag("openai_tokens", usage.total_tokens)
                         if tool_name:
@@ -167,10 +168,10 @@ class OpenAIClient:
         """
         # Pricing per 1K tokens (as of 2024)
         pricing = {
-            "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
+            "gpt-4": {"input": 0.03, "output": 0.06},
+            "gpt-4-turbo": {"input": 0.01, "output": 0.03},
             "gpt-4o": {"input": 0.005, "output": 0.015},
-            "gpt-4.1": {"input": 0.01, "output": 0.03},
-            "gpt-4.1-mini": {"input": 0.0025, "output": 0.01},
+            "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
         }
 
         if model not in pricing:
@@ -185,6 +186,7 @@ class OpenAIClient:
 
 # Global client instance
 _client_instance = None
+_client_lock = threading.Lock()
 
 
 def get_openai_client() -> OpenAIClient:
@@ -196,7 +198,9 @@ def get_openai_client() -> OpenAIClient:
     """
     global _client_instance
     if _client_instance is None:
-        _client_instance = OpenAIClient()
+        with _client_lock:
+            if _client_instance is None:
+                _client_instance = OpenAIClient()
     return _client_instance
 
 

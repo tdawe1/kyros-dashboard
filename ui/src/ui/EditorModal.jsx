@@ -51,7 +51,7 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <div>
-              <h3 className="text-xl font-semibold text-white">Edit Variant</h3>
+              <h3 className="text-xl font-semibold text-gray-900 dark:text-white">Edit Variant</h3>
               <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
                 {variant.length} characters • {variant.readability} readability
               </p>

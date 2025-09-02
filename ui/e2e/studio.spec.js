@@ -124,7 +124,8 @@ test.describe('Kyros Dashboard - Studio Page', () => {
 
     // Verify variants are displayed
     const variantCards = page.locator('[data-testid="variant-card"], .variant-card, [class*="variant"]');
-    await expect(variantCards).toHaveCount.greaterThan(0);
+    const variantCount = await variantCards.count();
+    expect(variantCount).toBeGreaterThan(0);
   });
 
   test('variant interaction', async ({ page }) => {
@@ -194,7 +195,14 @@ test.describe('Kyros Dashboard - Studio Page', () => {
       // Test download
       const downloadButton = page.locator('button:has-text("Download"), button:has-text("Export")').first();
       if (await downloadButton.isVisible()) {
-        await downloadButton.click();
+        // Wait for download event and click button in parallel
+        const [download] = await Promise.all([
+          page.waitForEvent('download'),
+          downloadButton.click()
+        ]);
+
+        // Assert download started
+        expect(download.suggestedFilename()).toBeTruthy();
       }
     }
   });

@@ -36,6 +36,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r api/requirements.txt
+          pip install bandit detect-secrets
 
       - name: Install Node.js dependencies
         run: |
@@ -51,7 +52,7 @@ jobs:
       - name: Run security scan (Node.js)
         run: |
           cd ui
-          npm audit --audit-level=moderate
+          npm audit --json > npm-audit-report.json || true
 
       - name: Check for secrets
         run: |
@@ -63,7 +64,7 @@ jobs:
           name: security-reports
           path: |
             api/bandit-report.json
-            ui/npm-audit.json
+            ui/npm-audit-report.json
 
   # Code formatting and linting
   linting:

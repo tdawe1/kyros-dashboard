@@ -17,11 +17,20 @@ export default function HelloPanel() {
         },
         body: JSON.stringify({ message: message || 'Hello' }),
       })
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(`HTTP ${res.status}: ${errorText}`)
+      }
+
       const data = await res.json()
       setResponse(data)
     } catch (error) {
       console.error('Ping failed:', error)
-      setResponse({ error: 'Failed to ping the Hello World tool' })
+      setResponse({
+        error: `Failed to ping the Hello World tool: ${error.message}`,
+        status: error.message.includes('HTTP') ? error.message : 'Network error'
+      })
     } finally {
       setLoading(false)
     }
@@ -30,11 +39,20 @@ export default function HelloPanel() {
   const handleGetInfo = async () => {
     try {
       const res = await fetch('/api/tools/hello/info')
+
+      if (!res.ok) {
+        const errorText = await res.text()
+        throw new Error(`HTTP ${res.status}: ${errorText}`)
+      }
+
       const data = await res.json()
       setInfo(data)
     } catch (error) {
       console.error('Failed to get info:', error)
-      setInfo({ error: 'Failed to get tool information' })
+      setInfo({
+        error: `Failed to get tool information: ${error.message}`,
+        status: error.message.includes('HTTP') ? error.message : 'Network error'
+      })
     }
   }
 

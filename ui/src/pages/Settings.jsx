@@ -285,7 +285,8 @@ export default function Settings() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">API Base URL</label>
                 <input
                   type="text"
-                  defaultValue="http://localhost:8000"
+                  value={config?.apiBaseUrl || "http://localhost:8000"}
+                  readOnly={isDemoMode}
                   className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
@@ -296,6 +297,11 @@ export default function Settings() {
                   <input
                     type="password"
                     placeholder="Enter your OpenAI API key"
+                    value={config?.openaiApiKey || ""}
+                    onChange={(e) => {
+                      // TODO: Implement API key persistence
+                      console.log('API key changed:', e.target.value)
+                    }}
                     className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                   />
                 </div>

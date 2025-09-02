@@ -25,6 +25,13 @@ export const getEnabledTools = () => {
 }
 
 /**
+ * List all tools (alias for tools array)
+ */
+export const listTools = () => {
+  return tools
+}
+
+/**
  * Get a specific tool by name
  */
 export const getTool = (toolName) => {
