@@ -6,7 +6,8 @@ import {
   X,
   FileText,
   BarChart3,
-  MessageCircle
+  MessageCircle,
+  Calendar
 } from 'lucide-react'
 import clsx from 'clsx'
 import ThemeToggle from './ThemeToggle'
@@ -24,6 +25,7 @@ const staticNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'Studio', href: '/studio', icon: FileText },
   { name: 'Job Monitor', href: '/jobs', icon: Monitor },
+  { name: 'Scheduler', href: '/scheduler', icon: Calendar },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
