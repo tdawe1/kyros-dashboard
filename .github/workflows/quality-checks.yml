@@ -98,7 +98,7 @@ jobs:
       - name: Check Python formatting
         run: |
           cd backend
-          black --check --diff .
+          ruff format --check .
           ruff check .
 
       - name: Check frontend formatting
