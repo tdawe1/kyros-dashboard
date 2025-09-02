@@ -4,10 +4,52 @@ export default {
     "./index.html",
     "./src/**/*.{js,ts,jsx,tsx}",
   ],
+  darkMode: 'class',
   theme: {
     extend: {
       colors: {
-        // kyros.solutions color scheme
+        // Light theme colors (Kyros brand)
+        primary: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
+          950: '#082f49',
+        },
+        electric: {
+          50: '#f0f9ff',
+          100: '#e0f2fe',
+          200: '#bae6fd',
+          300: '#7dd3fc',
+          400: '#38bdf8',
+          500: '#0ea5e9',
+          600: '#0284c7',
+          700: '#0369a1',
+          800: '#075985',
+          900: '#0c4a6e',
+          950: '#082f49',
+        },
+        // Dark theme colors (GitHub-style)
+        dark: {
+          50: '#f6f8fa',
+          100: '#eaeef2',
+          200: '#d0d7de',
+          300: '#afb8c1',
+          400: '#8c959f',
+          500: '#6e7781',
+          600: '#57606a',
+          700: '#424a53',
+          800: '#32383f',
+          900: '#24292f',
+          950: '#0d1117',
+        },
+        // Legacy colors for compatibility
         navy: {
           50: '#f0f4ff',
           100: '#e0e7ff',
@@ -36,9 +78,9 @@ export default {
         },
       },
       backgroundImage: {
-        'gradient-kyros': 'linear-gradient(to right, #081028, #0b1220, #0f1724)',
+        'gradient-kyros': 'linear-gradient(to right, #0ea5e9, #0284c7, #0369a1)',
+        'gradient-dark': 'linear-gradient(to right, #0d1117, #161b22, #21262d)',
       },
-      accent: '#07c6b7',
     },
   },
   plugins: [],

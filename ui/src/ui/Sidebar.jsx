@@ -8,6 +8,7 @@ import {
   BarChart3
 } from 'lucide-react'
 import clsx from 'clsx'
+import ThemeToggle from './ThemeToggle'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
@@ -32,25 +33,27 @@ export default function Sidebar({ isOpen, onClose }) {
 
       {/* Sidebar */}
       <div className={clsx(
-        'fixed inset-y-0 left-0 z-50 w-64 bg-navy-900 border-r border-navy-800 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:inset-auto',
+        'fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-dark-900 border-r border-gray-200 dark:border-dark-800 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:inset-auto flex flex-col',
         isOpen ? 'translate-x-0' : '-translate-x-full'
       )}>
-        <div className="flex items-center justify-between h-16 px-6 border-b border-navy-800">
+        {/* Header */}
+        <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-dark-800">
           <div className="flex items-center">
-            <div className="w-8 h-8 bg-gradient-kyros rounded-lg flex items-center justify-center">
+            <div className="w-8 h-8 bg-gradient-kyros dark:bg-gradient-dark rounded-lg flex items-center justify-center">
               <span className="text-white font-bold text-sm">K</span>
             </div>
-            <span className="ml-3 text-white font-semibold">Kyros</span>
+            <span className="ml-3 text-gray-900 dark:text-white font-semibold">Kyros</span>
           </div>
           <button
             onClick={onClose}
-            className="lg:hidden text-navy-300 hover:text-white"
+            className="lg:hidden text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
-        <nav className="mt-6 px-3">
+        {/* Navigation */}
+        <nav className="flex-1 mt-6 px-3">
           <div className="space-y-1">
             {navigation.map((item) => {
               const isActive = location.pathname === item.href
@@ -61,14 +64,16 @@ export default function Sidebar({ isOpen, onClose }) {
                   className={clsx(
                     'group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors',
                     isActive
-                      ? 'bg-accent text-white'
-                      : 'text-navy-300 hover:bg-navy-800 hover:text-white'
+                      ? 'bg-primary-100 dark:bg-primary-900 text-primary-700 dark:text-primary-300'
+                      : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-dark-800 hover:text-gray-900 dark:hover:text-white'
                   )}
                 >
                   <item.icon
                     className={clsx(
                       'mr-3 h-5 w-5 flex-shrink-0',
-                      isActive ? 'text-white' : 'text-navy-400 group-hover:text-white'
+                      isActive
+                        ? 'text-primary-700 dark:text-primary-300'
+                        : 'text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-300'
                     )}
                   />
                   {item.name}
@@ -77,6 +82,14 @@ export default function Sidebar({ isOpen, onClose }) {
             })}
           </div>
         </nav>
+
+        {/* Theme Toggle at Bottom */}
+        <div className="p-4 border-t border-gray-200 dark:border-dark-800">
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-gray-600 dark:text-gray-400">Theme</span>
+            <ThemeToggle />
+          </div>
+        </div>
       </div>
     </>
   )
