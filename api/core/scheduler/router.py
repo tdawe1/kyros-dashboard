@@ -48,7 +48,7 @@ async def create_schedule(
         raise HTTPException(status_code=400, detail=error)
 
     return CreateScheduleResponse(
-        scheduled_job_id=str(job.id),
+        scheduled_job_id=job.id,
         next_run_at=job.next_run_at,
         status=job.status,
         message="Scheduled job created successfully",

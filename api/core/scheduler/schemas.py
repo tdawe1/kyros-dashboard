@@ -4,9 +4,9 @@ Pydantic schemas for the scheduler API.
 
 from datetime import datetime
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, Field, validator, field_validator
+from pydantic import BaseModel, Field, validator
 from enum import Enum
-import uuid
+from uuid import UUID
 
 
 class JobStatus(str, Enum):
@@ -119,7 +119,7 @@ class RunNowRequest(BaseModel):
 class CreateScheduleResponse(BaseModel):
     """Response schema for creating a scheduled job."""
 
-    scheduled_job_id: str
+    scheduled_job_id: UUID
     next_run_at: Optional[datetime]
     status: str
     message: str
@@ -128,7 +128,7 @@ class CreateScheduleResponse(BaseModel):
 class ScheduledJobResponse(BaseModel):
     """Response schema for a scheduled job."""
 
-    id: str
+    id: UUID
     tool: str
     name: Optional[str]
     owner_user_id: Optional[str]
@@ -144,20 +144,12 @@ class ScheduledJobResponse(BaseModel):
 
     model_config = {"from_attributes": True}
 
-    @field_validator("id", mode="before")
-    @classmethod
-    def convert_uuid_to_str(cls, v):
-        """Convert UUID to string."""
-        if isinstance(v, uuid.UUID):
-            return str(v)
-        return v
-
 
 class JobRunResponse(BaseModel):
     """Response schema for a job run."""
 
-    id: str
-    scheduled_job_id: str
+    id: UUID
+    scheduled_job_id: UUID
     status: str
     started_at: Optional[datetime]
     finished_at: Optional[datetime]
@@ -168,14 +160,6 @@ class JobRunResponse(BaseModel):
     created_at: datetime
 
     model_config = {"from_attributes": True}
-
-    @field_validator("id", "scheduled_job_id", mode="before")
-    @classmethod
-    def convert_uuid_to_str(cls, v):
-        """Convert UUID to string."""
-        if isinstance(v, uuid.UUID):
-            return str(v)
-        return v
 
 
 class ScheduleListResponse(BaseModel):
@@ -210,7 +194,7 @@ class ScheduleDetailResponse(BaseModel):
 class RunNowResponse(BaseModel):
     """Response schema for running a job immediately."""
 
-    run_id: str
+    run_id: UUID
     status: str
     message: str
     estimated_completion: Optional[datetime]
