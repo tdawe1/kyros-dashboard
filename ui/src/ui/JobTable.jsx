@@ -48,19 +48,19 @@ export default function JobTable() {
 
   if (isLoading) {
     return (
-      <div className="bg-navy-800 rounded-lg border border-navy-700">
-        <div className="px-6 py-4 border-b border-navy-700">
-          <h3 className="text-lg font-semibold text-white">Recent Jobs</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Jobs</h3>
         </div>
         <div className="p-6">
           <div className="animate-pulse space-y-4">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="flex space-x-4">
-                <div className="h-4 bg-navy-700 rounded w-1/4"></div>
-                <div className="h-4 bg-navy-700 rounded w-1/6"></div>
-                <div className="h-4 bg-navy-700 rounded w-1/6"></div>
-                <div className="h-4 bg-navy-700 rounded w-1/6"></div>
-                <div className="h-4 bg-navy-700 rounded w-1/6"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/4"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/6"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/6"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/6"></div>
+                <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-1/6"></div>
               </div>
             ))}
           </div>
@@ -71,16 +71,16 @@ export default function JobTable() {
 
   if (error) {
     return (
-      <div className="bg-navy-800 rounded-lg border border-navy-700">
-        <div className="px-6 py-4 border-b border-navy-700">
-          <h3 className="text-lg font-semibold text-white">Recent Jobs</h3>
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Recent Jobs</h3>
         </div>
         <div className="p-6">
           <div className="text-center py-12">
-            <div className="w-16 h-16 mx-auto mb-4 bg-navy-700 rounded-full flex items-center justify-center">
-              <FileText className="w-8 h-8 text-navy-400" />
+            <div className="w-16 h-16 mx-auto mb-4 bg-gray-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+              <FileText className="w-8 h-8 text-gray-500 dark:text-gray-400" />
             </div>
-            <h3 className="text-lg font-medium text-white mb-2">No jobs yet</h3>
+            <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">No jobs yet</h3>
             <p className="text-gray-600 dark:text-gray-400 mb-4">Start by creating your first content repurposing job</p>
             <button className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
               Create Job
@@ -92,8 +92,8 @@ export default function JobTable() {
   }
 
   return (
-    <div className="bg-navy-800 rounded-lg border border-navy-700">
-      <div className="px-6 py-4 border-b border-navy-700">
+    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+      <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
         <h3 className="text-lg font-semibold text-white">Recent Jobs</h3>
       </div>
 
@@ -147,7 +147,7 @@ export default function JobTable() {
               <tr key={job.id} className="hover:bg-gray-50 dark:hover:bg-gray-700">
                 <td className="px-6 py-4 whitespace-nowrap">
                   <div className="text-sm font-medium text-gray-900 dark:text-gray-100">{job.client}</div>
-                  <div className="text-sm text-navy-300 truncate max-w-xs">
+                  <div className="text-sm text-gray-500 dark:text-gray-400 truncate max-w-xs">
                     {job.source_url}
                   </div>
                 </td>

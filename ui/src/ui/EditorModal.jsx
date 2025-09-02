@@ -47,18 +47,18 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
         />
 
         {/* Modal */}
-        <div className="relative bg-navy-800 rounded-lg border border-navy-700 w-full max-w-4xl max-h-[90vh] overflow-hidden">
+        <div className="relative bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-4xl max-h-[90vh] overflow-hidden">
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-navy-700">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <div>
               <h3 className="text-xl font-semibold text-white">Edit Variant</h3>
-              <p className="text-navy-300 text-sm mt-1">
+              <p className="text-gray-600 dark:text-gray-300 text-sm mt-1">
                 {variant.length} characters • {variant.readability} readability
               </p>
             </div>
             <button
               onClick={onClose}
-              className="text-navy-300 hover:text-white transition-colors"
+              className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
@@ -69,19 +69,19 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
             <div className="space-y-4">
               {/* Text Editor */}
               <div>
-                <label className="block text-sm font-medium text-navy-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Content
                 </label>
                 <textarea
                   value={editedText}
                   onChange={(e) => setEditedText(e.target.value)}
                   onKeyDown={handleKeyDown}
-                  className="w-full h-96 p-4 bg-navy-700 border border-navy-600 rounded-lg text-white placeholder-navy-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-none font-mono text-sm leading-relaxed"
+                  className="w-full h-96 p-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-none font-mono text-sm leading-relaxed"
                   placeholder="Enter your content here..."
                   autoFocus
                 />
                 <div className="flex justify-between items-center mt-2">
-                  <span className="text-xs text-navy-400">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {editedText.length} characters
                   </span>
                   {editedText !== originalText && (
@@ -94,11 +94,11 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
 
               {/* Preview */}
               <div>
-                <label className="block text-sm font-medium text-navy-300 mb-2">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Preview
                 </label>
-                <div className="p-4 bg-navy-700 border border-navy-600 rounded-lg min-h-32">
-                  <p className="text-navy-200 leading-relaxed whitespace-pre-wrap">
+                <div className="p-4 bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg min-h-32">
+                  <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
                     {editedText || 'Enter content to see preview...'}
                   </p>
                 </div>
@@ -107,12 +107,12 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
           </div>
 
           {/* Footer */}
-          <div className="flex items-center justify-between p-6 border-t border-navy-700">
+          <div className="flex items-center justify-between p-6 border-t border-gray-200 dark:border-gray-700">
             <div className="flex items-center space-x-2">
               <button
                 onClick={handleReset}
                 disabled={editedText === originalText}
-                className="bg-navy-700 hover:bg-navy-600 disabled:bg-navy-800 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 border border-navy-600"
+                className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:bg-gray-200 dark:disabled:bg-gray-800 disabled:cursor-not-allowed text-gray-900 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 border border-gray-300 dark:border-gray-600"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>Reset</span>
@@ -122,14 +122,14 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
             <div className="flex items-center space-x-3">
               <button
                 onClick={onClose}
-                className="bg-navy-700 hover:bg-navy-600 text-white px-4 py-2 rounded-lg font-medium transition-colors border border-navy-600"
+                className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors border border-gray-300 dark:border-gray-600"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSave}
                 disabled={editedText === originalText}
-                className="bg-accent hover:bg-accent/90 disabled:bg-navy-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                className="bg-accent hover:bg-accent/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
               >
                 <Save className="w-4 h-4" />
                 <span>Save Changes</span>

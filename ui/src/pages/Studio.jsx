@@ -77,30 +77,30 @@ export default function Studio() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Repurposer Studio</h1>
-        <p className="text-navy-300">Transform your content into multiple channel formats</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">Repurposer Studio</h1>
+        <p className="text-gray-600 dark:text-gray-400">Transform your content into multiple channel formats</p>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Input Panel */}
         <div className="lg:col-span-2 space-y-6">
           {/* Text Input */}
-          <div className="bg-navy-800 rounded-lg p-6 border border-navy-700">
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-white">Source Content</h3>
-              <span className="text-sm text-navy-300">{inputText.length} characters</span>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Source Content</h3>
+              <span className="text-sm text-gray-600 dark:text-gray-400">{inputText.length} characters</span>
             </div>
             <textarea
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Paste your source content here... (minimum 100 characters for best results)"
-              className="w-full h-64 p-4 bg-navy-700 border border-navy-600 rounded-lg text-white placeholder-navy-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-none"
+              className="w-full h-64 p-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
             />
           </div>
 
           {/* Channel Selection */}
-          <div className="bg-navy-800 rounded-lg p-6 border border-navy-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Target Channels</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Target Channels</h3>
             <div className="grid grid-cols-2 gap-3">
               {CHANNELS.map((channel) => (
                 <button
@@ -108,8 +108,8 @@ export default function Studio() {
                   onClick={() => handleChannelToggle(channel.id)}
                   className={`p-3 rounded-lg border transition-colors ${
                     selectedChannels.includes(channel.id)
-                      ? 'bg-accent border-accent text-white'
-                      : 'bg-navy-700 border-navy-600 text-navy-300 hover:bg-navy-600'
+                      ? 'bg-blue-600 border-blue-600 text-white'
+                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                   }`}
                 >
                   <div className="flex items-center space-x-2">
@@ -125,8 +125,8 @@ export default function Studio() {
         {/* Settings Panel */}
         <div className="space-y-6">
           {/* Tone Selection */}
-          <div className="bg-navy-800 rounded-lg p-6 border border-navy-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Tone & Style</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Tone & Style</h3>
             <div className="space-y-2">
               {TONES.map((tone) => (
                 <button
@@ -134,8 +134,8 @@ export default function Studio() {
                   onClick={() => setSelectedTone(tone.id)}
                   className={`w-full p-3 rounded-lg border transition-colors ${
                     selectedTone === tone.id
-                      ? 'bg-accent border-accent text-white'
-                      : 'bg-navy-700 border-navy-600 text-navy-300 hover:bg-navy-600'
+                      ? 'bg-blue-600 border-blue-600 text-white'
+                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                   }`}
                 >
                   {tone.name}
@@ -145,8 +145,8 @@ export default function Studio() {
           </div>
 
           {/* Preset Selection */}
-          <div className="bg-navy-800 rounded-lg p-6 border border-navy-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Preset</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Preset</h3>
             <div className="space-y-2">
               {PRESETS.map((preset) => (
                 <button
@@ -154,8 +154,8 @@ export default function Studio() {
                   onClick={() => setSelectedPreset(preset.id)}
                   className={`w-full p-3 rounded-lg border transition-colors ${
                     selectedPreset === preset.id
-                      ? 'bg-accent border-accent text-white'
-                      : 'bg-navy-700 border-navy-600 text-navy-300 hover:bg-navy-600'
+                      ? 'bg-blue-600 border-blue-600 text-white'
+                      : 'bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600'
                   }`}
                 >
                   {preset.name}
@@ -168,7 +168,7 @@ export default function Studio() {
           <button
             onClick={handleGenerate}
             disabled={generateMutation.isPending || inputText.length < 100}
-            className="w-full bg-accent hover:bg-accent/90 disabled:bg-navy-600 disabled:cursor-not-allowed text-white px-6 py-4 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
+            className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-4 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
           >
             {generateMutation.isPending ? (
               <>
@@ -184,14 +184,14 @@ export default function Studio() {
           </button>
 
           {/* Quick Actions */}
-          <div className="bg-navy-800 rounded-lg p-6 border border-navy-700">
-            <h3 className="text-lg font-semibold text-white mb-4">Quick Actions</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Quick Actions</h3>
             <div className="space-y-3">
-              <button className="w-full bg-navy-700 hover:bg-navy-600 text-white px-4 py-2 rounded-lg font-medium transition-colors border border-navy-600">
+              <button className="w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-lg font-medium transition-colors border border-gray-300 dark:border-gray-600">
                 <Settings className="w-4 h-4 inline mr-2" />
                 Manage Presets
               </button>
-              <button className="w-full bg-navy-700 hover:bg-navy-600 text-white px-4 py-2 rounded-lg font-medium transition-colors border border-navy-600">
+              <button className="w-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-900 dark:text-gray-100 px-4 py-2 rounded-lg font-medium transition-colors border border-gray-300 dark:border-gray-600">
                 <Download className="w-4 h-4 inline mr-2" />
                 Export Templates
               </button>

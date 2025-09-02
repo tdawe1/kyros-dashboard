@@ -11,7 +11,7 @@ const FormInput = forwardRef(({
   return (
     <div className="space-y-2">
       {label && (
-        <label className="block text-sm font-medium text-navy-300">
+        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {label}
           {required && <span className="text-red-400 ml-1">*</span>}
         </label>
@@ -19,10 +19,10 @@ const FormInput = forwardRef(({
       <div className="relative">
         <input
           ref={ref}
-          className={`w-full px-3 py-2 bg-navy-700 border rounded-lg text-white placeholder-navy-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-colors ${
+          className={`w-full px-3 py-2 bg-white dark:bg-gray-700 border rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-colors ${
             error
               ? 'border-red-500 focus:ring-red-500'
-              : 'border-navy-600'
+              : 'border-gray-300 dark:border-gray-600'
           } ${className}`}
           {...props}
         />

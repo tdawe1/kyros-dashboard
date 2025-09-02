@@ -62,12 +62,12 @@ export default function Settings() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-white mb-2">Settings</h1>
-        <p className="text-navy-300">Manage your presets, glossary, and application settings</p>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Settings</h1>
+        <p className="text-gray-600 dark:text-gray-300">Manage your presets, glossary, and application settings</p>
       </div>
 
       {/* Tabs */}
-      <div className="border-b border-navy-700">
+      <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="-mb-px flex space-x-8">
           {tabs.map((tab) => (
             <button
@@ -76,7 +76,7 @@ export default function Settings() {
               className={`py-2 px-1 border-b-2 font-medium text-sm ${
                 activeTab === tab.id
                   ? 'border-accent text-accent'
-                  : 'border-transparent text-navy-300 hover:text-navy-200 hover:border-navy-300'
+                  : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:border-gray-400 dark:hover:border-gray-300'
               }`}
             >
               {tab.name}
@@ -101,20 +101,20 @@ export default function Settings() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {presetsLoading ? (
-              <div className="col-span-full text-center text-navy-300">Loading presets...</div>
+              <div className="col-span-full text-center text-gray-500 dark:text-gray-400">Loading presets...</div>
             ) : (
               presets?.map((preset) => (
-              <div key={preset.id} className="bg-navy-800 rounded-lg p-6 border border-navy-700">
+              <div key={preset.id} className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
                 {editingPreset === preset.id ? (
                   <div className="space-y-4">
                     <input
                       type="text"
                       defaultValue={preset.name}
-                      className="w-full p-2 bg-navy-700 border border-navy-600 rounded text-white focus:outline-none focus:ring-2 focus:ring-accent"
+                      className="w-full p-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                     />
                     <textarea
                       defaultValue={preset.description}
-                      className="w-full p-2 bg-navy-700 border border-navy-600 rounded text-white h-20 resize-none"
+                      className="w-full p-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white h-20 resize-none"
                     />
                     <div className="flex space-x-2">
                       <button className="bg-accent hover:bg-accent/90 text-white px-3 py-1 rounded text-sm">
@@ -123,7 +123,7 @@ export default function Settings() {
                       </button>
                       <button
                         onClick={() => setEditingPreset(null)}
-                        className="bg-navy-600 hover:bg-navy-500 text-white px-3 py-1 rounded text-sm"
+                        className="bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-900 dark:text-white px-3 py-1 rounded text-sm"
                       >
                         <X className="w-4 h-4 inline mr-1" />
                         Cancel
@@ -133,11 +133,11 @@ export default function Settings() {
                 ) : (
                   <div>
                     <div className="flex items-center justify-between mb-2">
-                      <h3 className="text-lg font-semibold text-white">{preset.name}</h3>
+                      <h3 className="text-lg font-semibold text-gray-900 dark:text-white">{preset.name}</h3>
                       <div className="flex space-x-2">
                         <button
                           onClick={() => setEditingPreset(preset.id)}
-                          className="text-navy-300 hover:text-white"
+                          className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -149,8 +149,8 @@ export default function Settings() {
                         </button>
                       </div>
                     </div>
-                    <p className="text-navy-300 text-sm mb-3">{preset.description}</p>
-                    <div className="text-xs text-navy-400">
+                    <p className="text-gray-600 dark:text-gray-300 text-sm mb-3">{preset.description}</p>
+                    <div className="text-xs text-gray-500 dark:text-gray-400">
                       <div>Tone: {preset.config.tone}</div>
                       <div>Length: {preset.config.length}</div>
                     </div>
@@ -176,11 +176,11 @@ export default function Settings() {
             </button>
           </div>
 
-          <div className="bg-navy-800 rounded-lg border border-navy-700">
-            <div className="px-6 py-4 border-b border-navy-700">
-              <h3 className="text-lg font-semibold text-white">Terms & Definitions</h3>
+          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Terms & Definitions</h3>
             </div>
-            <div className="divide-y divide-navy-700">
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
               {glossary.map((item) => (
                 <div key={item.id} className="p-6">
                   {editingGlossary === item.id ? (
@@ -188,13 +188,13 @@ export default function Settings() {
                       <input
                         type="text"
                         defaultValue={item.term}
-                        className="p-2 bg-navy-700 border border-navy-600 rounded text-white"
+                        className="p-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
                         placeholder="Term"
                       />
                       <input
                         type="text"
                         defaultValue={item.definition}
-                        className="p-2 bg-navy-700 border border-navy-600 rounded text-white"
+                        className="p-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white"
                         placeholder="Definition"
                       />
                       <div className="md:col-span-2 flex space-x-2">
@@ -204,7 +204,7 @@ export default function Settings() {
                         </button>
                         <button
                           onClick={() => setEditingGlossary(null)}
-                          className="bg-navy-600 hover:bg-navy-500 text-white px-3 py-1 rounded text-sm"
+                          className="bg-gray-200 dark:bg-gray-600 hover:bg-gray-300 dark:hover:bg-gray-500 text-gray-900 dark:text-white px-3 py-1 rounded text-sm"
                         >
                           <X className="w-4 h-4 inline mr-1" />
                           Cancel
@@ -214,13 +214,13 @@ export default function Settings() {
                   ) : (
                     <div className="flex items-center justify-between">
                       <div className="flex-1">
-                        <div className="font-semibold text-white">{item.term}</div>
-                        <div className="text-navy-300 text-sm">{item.definition}</div>
+                        <div className="font-semibold text-gray-900 dark:text-white">{item.term}</div>
+                        <div className="text-gray-600 dark:text-gray-300 text-sm">{item.definition}</div>
                       </div>
                       <div className="flex space-x-2">
                         <button
                           onClick={() => setEditingGlossary(item.id)}
-                          className="text-navy-300 hover:text-white"
+                          className="text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
                         >
                           <Edit className="w-4 h-4" />
                         </button>
@@ -242,23 +242,23 @@ export default function Settings() {
 
       {activeTab === 'api' && (
         <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-white">API Configuration</h2>
-          <div className="bg-navy-800 rounded-lg p-6 border border-navy-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">API Configuration</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-navy-300 mb-2">API Base URL</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">API Base URL</label>
                 <input
                   type="text"
                   defaultValue="http://localhost:8000"
-                  className="w-full p-3 bg-navy-700 border border-navy-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-navy-300 mb-2">API Key</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">API Key</label>
                 <input
                   type="password"
                   placeholder="Enter your API key"
-                  className="w-full p-3 bg-navy-700 border border-navy-600 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-accent"
+                  className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
               <button className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
@@ -271,21 +271,21 @@ export default function Settings() {
 
       {activeTab === 'export' && (
         <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-white">Export Settings</h2>
-          <div className="bg-navy-800 rounded-lg p-6 border border-navy-700">
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">Export Settings</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-navy-300 mb-2">Default Export Format</label>
-                <select className="w-full p-3 bg-navy-700 border border-navy-600 rounded-lg text-white">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Default Export Format</label>
+                <select className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white">
                   <option value="csv">CSV</option>
                   <option value="docx">Word Document</option>
                   <option value="json">JSON</option>
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-navy-300 mb-2">Include Metadata</label>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Include Metadata</label>
                 <input type="checkbox" className="mr-2" defaultChecked />
-                <span className="text-navy-300">Include timestamps and source information</span>
+                <span className="text-gray-600 dark:text-gray-300">Include timestamps and source information</span>
               </div>
               <button className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                 Save Settings

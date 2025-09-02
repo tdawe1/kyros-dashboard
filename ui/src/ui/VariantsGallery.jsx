@@ -112,12 +112,12 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
 
   if (!variants || variants.length === 0) {
     return (
-      <div className="bg-navy-800 rounded-lg border border-navy-700 p-12 text-center">
-        <div className="text-navy-400 mb-4">
+      <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-12 text-center">
+        <div className="text-gray-500 dark:text-gray-400 mb-4">
           <Grid className="w-16 h-16 mx-auto" />
         </div>
-        <h3 className="text-xl font-semibold text-white mb-2">No Variants Generated</h3>
-        <p className="text-navy-300">
+        <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Variants Generated</h3>
+        <p className="text-gray-600 dark:text-gray-300">
           Generate content variants to see them displayed here.
         </p>
       </div>
@@ -129,21 +129,21 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-white">Generated Variants</h2>
-          <p className="text-navy-300">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">Generated Variants</h2>
+          <p className="text-gray-600 dark:text-gray-300">
             {selectedVariants.size > 0 && `${selectedVariants.size} selected`}
           </p>
         </div>
 
         <div className="flex items-center space-x-3">
           {/* View Mode Toggle */}
-          <div className="flex bg-navy-700 rounded-lg p-1">
+          <div className="flex bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
             <button
               onClick={() => setViewMode('grid')}
               className={`p-2 rounded transition-colors ${
                 viewMode === 'grid'
                   ? 'bg-accent text-white'
-                  : 'text-navy-300 hover:text-white'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <Grid className="w-4 h-4" />
@@ -153,7 +153,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
               className={`p-2 rounded transition-colors ${
                 viewMode === 'list'
                   ? 'bg-accent text-white'
-                  : 'text-navy-300 hover:text-white'
+                  : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'
               }`}
             >
               <List className="w-4 h-4" />
@@ -164,7 +164,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
           <select
             value={filterChannel}
             onChange={(e) => setFilterChannel(e.target.value)}
-            className="bg-navy-700 border border-navy-600 rounded-lg text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent"
+            className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent"
           >
             {channels.map(channel => (
               <option key={channel} value={channel}>
@@ -177,7 +177,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
 
       {/* Bulk Actions */}
       {selectedVariants.size > 0 && (
-        <div className="bg-navy-800 rounded-lg border border-navy-700 p-4">
+        <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <span className="text-white font-medium">
@@ -190,10 +190,10 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
                 >
                   Select All {filterChannel !== 'all' ? filterChannel : ''}
                 </button>
-                <span className="text-navy-400">•</span>
+                <span className="text-gray-500 dark:text-gray-400">•</span>
                 <button
                   onClick={handleDeselectAll}
-                  className="text-navy-300 hover:text-white text-sm font-medium"
+                  className="text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white text-sm font-medium"
                 >
                   Deselect All
                 </button>
@@ -204,7 +204,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
               <button
                 onClick={handleBulkExport}
                 disabled={exportMutation.isPending}
-                className="bg-accent hover:bg-accent/90 disabled:bg-navy-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
+                className="bg-accent hover:bg-accent/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
               >
                 <Download className="w-4 h-4" />
                 <span>Export Selected</span>
