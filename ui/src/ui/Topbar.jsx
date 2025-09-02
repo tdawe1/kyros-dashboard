@@ -1,5 +1,6 @@
 import { Menu, Bell, User } from 'lucide-react'
 import { useLocation } from 'react-router-dom'
+import { useConfig } from '../hooks/useConfig'
 
 const pageTitles = {
   '/': 'Dashboard',
@@ -11,6 +12,7 @@ const pageTitles = {
 export default function Topbar({ onMenuClick }) {
   const location = useLocation()
   const pageTitle = pageTitles[location.pathname] || 'Dashboard'
+  const { isDemoMode } = useConfig()
 
   return (
     <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
@@ -24,8 +26,13 @@ export default function Topbar({ onMenuClick }) {
         </button>
 
         {/* Page title - dynamic based on route */}
-        <div className="flex-1 lg:flex-none">
+        <div className="flex-1 lg:flex-none flex items-center space-x-3">
           <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">{pageTitle}</h1>
+          {isDemoMode && (
+            <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-yellow-900 dark:text-yellow-300">
+              Demo Mode
+            </span>
+          )}
         </div>
 
         {/* Right side actions */}

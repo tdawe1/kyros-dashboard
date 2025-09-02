@@ -106,4 +106,5 @@ export const deletePreset = async (presetId) => {
   return response.data
 }
 
+export { api }
 export default api

@@ -1,10 +1,12 @@
 import { useState } from 'react'
 import { FileText, Sparkles, ArrowRight } from 'lucide-react'
 import { useGenerate } from '../hooks/useGenerate'
+import { useModelSelection } from '../hooks/useConfig'
 
 export default function StudioPanel() {
   const [inputText, setInputText] = useState('')
   const generateMutation = useGenerate()
+  const { selectedModel } = useModelSelection()
 
   const handleGenerate = async () => {
     if (inputText.length < 50) {
@@ -17,7 +19,8 @@ export default function StudioPanel() {
         input_text: inputText,
         channels: ['linkedin', 'twitter'],
         tone: 'professional',
-        preset: 'default'
+        preset: 'default',
+        model: selectedModel
       })
       // TODO: Show success message or redirect to results
     } catch (error) {

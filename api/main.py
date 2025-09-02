@@ -11,6 +11,7 @@ import logging
 from utils.quotas import can_create_job, get_user_quota_status, reset_user_quota
 from utils.token_utils import validate_input_limits, get_token_usage_stats
 from middleware.rate_limiter import rate_limit_middleware
+from generator import generate_content
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,6 +39,7 @@ class GenerateRequest(BaseModel):
     tone: str = "professional"
     preset: str = "default"
     user_id: str = "anonymous"  # Default for demo purposes
+    model: str = None  # Optional model parameter
 
 
 class GenerateResponse(BaseModel):
@@ -45,6 +47,8 @@ class GenerateResponse(BaseModel):
     status: str
     variants: Dict[str, List[Dict[str, Any]]]
     token_usage: Dict[str, int]
+    model: str
+    api_mode: str
 
 
 class ExportRequest(BaseModel):
@@ -120,6 +124,16 @@ async def health_check():
     return {"status": "ok", "timestamp": datetime.now().isoformat()}
 
 
+@app.get("/api/config")
+async def get_config():
+    """Get API configuration for frontend"""
+    return {
+        "api_mode": os.getenv("API_MODE", "demo"),
+        "default_model": os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
+        "valid_models": ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini"],
+    }
+
+
 @app.get("/api/kpis")
 async def get_kpis():
     return {
@@ -144,7 +158,7 @@ async def get_job(job_id: str):
 
 
 @app.post("/api/generate", response_model=GenerateResponse)
-async def generate_content(request: GenerateRequest):
+async def generate_content_endpoint(request: GenerateRequest):
     """
     Generate content variants with token and quota controls.
     """
@@ -190,56 +204,26 @@ async def generate_content(request: GenerateRequest):
     job_id = str(uuid.uuid4())
     logger.info(f"Processing job {job_id} for user {request.user_id}")
 
-    # Mock variants based on channels (same as before)
-    variants = {}
-    for channel in request.channels:
-        if channel == "linkedin":
-            variants[channel] = [
-                {
-                    "id": f"{job_id}_linkedin_1",
-                    "text": f"LinkedIn post 1: {request.input_text[:100]}...",
-                    "length": 150,
-                    "readability": "Good",
-                    "tone": request.tone,
-                },
-                {
-                    "id": f"{job_id}_linkedin_2",
-                    "text": f"LinkedIn post 2: {request.input_text[50:150]}...",
-                    "length": 200,
-                    "readability": "Excellent",
-                    "tone": request.tone,
-                },
-            ]
-        elif channel == "twitter":
-            variants[channel] = [
-                {
-                    "id": f"{job_id}_twitter_1",
-                    "text": f"Twitter thread 1: {request.input_text[:50]}...",
-                    "length": 280,
-                    "readability": "Good",
-                    "tone": request.tone,
-                }
-            ]
-        elif channel == "newsletter":
-            variants[channel] = [
-                {
-                    "id": f"{job_id}_newsletter_1",
-                    "text": f"Newsletter section: {request.input_text[:200]}...",
-                    "length": 500,
-                    "readability": "Excellent",
-                    "tone": request.tone,
-                }
-            ]
-        elif channel == "blog":
-            variants[channel] = [
-                {
-                    "id": f"{job_id}_blog_1",
-                    "text": f"Blog post: {request.input_text[:300]}...",
-                    "length": 800,
-                    "readability": "Good",
-                    "tone": request.tone,
-                }
-            ]
+    # Generate content using the new generator
+    try:
+        variants = await generate_content(
+            input_text=request.input_text,
+            channels=request.channels,
+            tone=request.tone,
+            model=request.model,
+        )
+
+        # Update variant IDs to include job_id
+        for channel, channel_variants in variants.items():
+            for i, variant in enumerate(channel_variants):
+                variant["id"] = f"{job_id}_{channel}_{i+1}"
+
+    except Exception as e:
+        logger.error(f"Content generation failed: {str(e)}")
+        raise HTTPException(
+            status_code=500,
+            detail={"error": "Content generation failed", "message": str(e)},
+        )
 
     # 5. Calculate actual token usage (mock for now)
     token_stats = get_token_usage_stats(request.input_text)
@@ -247,6 +231,11 @@ async def generate_content(request: GenerateRequest):
 
     # Mock output tokens (in real implementation, this would come from OpenAI response)
     estimated_output_tokens = len(request.channels) * 150  # Rough estimate
+
+    # Get the actual model used
+    api_mode = os.getenv("API_MODE", "demo")
+    default_model = os.getenv("DEFAULT_MODEL", "gpt-4o-mini")
+    used_model = request.model or default_model
 
     return GenerateResponse(
         job_id=job_id,
@@ -261,6 +250,8 @@ async def generate_content(request: GenerateRequest):
             "quota_used": current_count,
             "quota_remaining": daily_limit - current_count,
         },
+        model=used_model,
+        api_mode=api_mode,
     )
 
 

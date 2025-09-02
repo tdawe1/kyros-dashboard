@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { FileText, Settings, Download, Sparkles } from 'lucide-react'
 import { useGenerate } from '../hooks/useGenerate'
 import { useToast } from '../hooks/useToast'
+import { useModelSelection } from '../hooks/useConfig'
 import VariantsGallery from '../ui/VariantsGallery'
 import { CHANNELS, TONES, PRESETS, VALIDATION_RULES } from '../constants'
 
@@ -15,6 +16,7 @@ export default function Studio() {
 
   const generateMutation = useGenerate()
   const toast = useToast()
+  const { selectedModel } = useModelSelection()
 
   const handleChannelToggle = (channelId) => {
     setSelectedChannels(prev =>
@@ -54,7 +56,8 @@ export default function Studio() {
         input_text: inputText,
         channels: selectedChannels,
         tone: selectedTone,
-        preset: selectedPreset
+        preset: selectedPreset,
+        model: selectedModel
       })
 
       // Store the generated variants

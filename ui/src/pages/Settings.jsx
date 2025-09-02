@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Plus, Edit, Trash2, Save, X } from 'lucide-react'
 import { usePresets, useCreatePreset, useUpdatePreset, useDeletePreset } from '../hooks/usePresets'
+import { useConfig, useModelSelection } from '../hooks/useConfig'
 
 export default function Settings() {
   const [activeTab, setActiveTab] = useState('presets')
@@ -8,6 +9,8 @@ export default function Settings() {
   const createPreset = useCreatePreset()
   const updatePreset = useUpdatePreset()
   const deletePreset = useDeletePreset()
+  const { config, isDemoMode } = useConfig()
+  const { selectedModel, updateModel, validModels } = useModelSelection()
 
   const [glossary, setGlossary] = useState([
     { id: 1, term: 'AI', definition: 'Artificial Intelligence' },
@@ -242,9 +245,42 @@ export default function Settings() {
 
       {activeTab === 'api' && (
         <div className="space-y-6">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">API Configuration</h2>
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold text-gray-900 dark:text-white">API Configuration</h2>
+            {isDemoMode && (
+              <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-yellow-900 dark:text-yellow-300">
+                Demo Mode Active
+              </span>
+            )}
+          </div>
+
           <div className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700">
             <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">API Mode</label>
+                <div className="text-sm text-gray-600 dark:text-gray-400 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg">
+                  {isDemoMode ? 'Demo Mode - Using canned responses' : 'Real Mode - Using OpenAI API'}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Model Selection</label>
+                <select
+                  value={selectedModel}
+                  onChange={(e) => updateModel(e.target.value)}
+                  className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
+                >
+                  {validModels.map((model) => (
+                    <option key={model} value={model}>
+                      {model}
+                    </option>
+                  ))}
+                </select>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Selected model will be used for content generation
+                </p>
+              </div>
+
               <div>
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">API Base URL</label>
                 <input
@@ -253,15 +289,19 @@ export default function Settings() {
                   className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                 />
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">API Key</label>
-                <input
-                  type="password"
-                  placeholder="Enter your API key"
-                  className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
-                />
-              </div>
-              <button className="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
+
+              {!isDemoMode && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">OpenAI API Key</label>
+                  <input
+                    type="password"
+                    placeholder="Enter your OpenAI API key"
+                    className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
+                  />
+                </div>
+              )}
+
+              <button className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-lg font-medium transition-colors">
                 Save Configuration
               </button>
             </div>
