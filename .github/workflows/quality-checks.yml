@@ -59,7 +59,7 @@ jobs:
           detect-secrets scan --baseline .secrets.baseline
 
       - name: Upload security reports
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: security-reports
           path: |
@@ -179,7 +179,7 @@ jobs:
           npx bundle-analyzer dist/assets/*.js --mode static --report
 
       - name: Upload bundle analysis
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: bundle-analysis
           path: ui/bundle-report.html
