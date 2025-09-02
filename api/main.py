@@ -1,11 +1,25 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any
 import uuid
 from datetime import datetime
+import os
+import logging
+
+# Import our new utilities
+from utils.quotas import can_create_job, get_user_quota_status, reset_user_quota
+from utils.token_utils import validate_input_limits, get_token_usage_stats
+from middleware.rate_limiter import rate_limit_middleware
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Kyros Repurposer API", version="1.0.0")
+
+# Add rate limiting middleware
+app.middleware("http")(rate_limit_middleware)
 
 # CORS middleware
 app.add_middleware(
@@ -23,6 +37,7 @@ class GenerateRequest(BaseModel):
     channels: List[str] = ["linkedin", "twitter"]
     tone: str = "professional"
     preset: str = "default"
+    user_id: str = "anonymous"  # Default for demo purposes
 
 
 class GenerateResponse(BaseModel):
@@ -130,14 +145,52 @@ async def get_job(job_id: str):
 
 @app.post("/api/generate", response_model=GenerateResponse)
 async def generate_content(request: GenerateRequest):
+    """
+    Generate content variants with token and quota controls.
+    """
+    # 1. Validate input limits (character count and token estimation)
+    validation_result = validate_input_limits(request.input_text)
+    if not validation_result["valid"]:
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "Input validation failed",
+                "message": "; ".join(validation_result["errors"]),
+                "stats": validation_result["stats"]
+            }
+        )
+    
+    # 2. Check minimum input length
     if len(request.input_text) < 100:
         raise HTTPException(
-            status_code=400, detail="Input text must be at least 100 characters"
+            status_code=400, 
+            detail={
+                "error": "Input too short",
+                "message": "Input text must be at least 100 characters",
+                "current_length": len(request.input_text)
+            }
         )
-
+    
+    # 3. Check user quota
+    daily_limit = int(os.getenv("DAILY_JOB_LIMIT", "10"))
+    can_create, current_count = can_create_job(request.user_id, daily_limit)
+    
+    if not can_create:
+        quota_status = get_user_quota_status(request.user_id, daily_limit)
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "error": "Daily quota exceeded",
+                "message": f"Daily job limit of {daily_limit} exceeded. Current count: {current_count}",
+                "quota_status": quota_status
+            }
+        )
+    
+    # 4. Generate job ID and process content
     job_id = str(uuid.uuid4())
-
-    # Mock variants based on channels
+    logger.info(f"Processing job {job_id} for user {request.user_id}")
+    
+    # Mock variants based on channels (same as before)
     variants = {}
     for channel in request.channels:
         if channel == "linkedin":
@@ -188,11 +241,25 @@ async def generate_content(request: GenerateRequest):
                 }
             ]
 
+    # 5. Calculate actual token usage (mock for now)
+    token_stats = get_token_usage_stats(request.input_text)
+    estimated_input_tokens = token_stats["estimated_tokens"]
+    
+    # Mock output tokens (in real implementation, this would come from OpenAI response)
+    estimated_output_tokens = len(request.channels) * 150  # Rough estimate
+    
     return GenerateResponse(
         job_id=job_id,
         status="completed",
         variants=variants,
-        token_usage={"input_tokens": 150, "output_tokens": 300, "total_cost": 0.05},
+        token_usage={
+            "input_tokens": estimated_input_tokens,
+            "output_tokens": estimated_output_tokens,
+            "total_tokens": estimated_input_tokens + estimated_output_tokens,
+            "total_cost": (estimated_input_tokens + estimated_output_tokens) * 0.0001,  # Mock cost
+            "quota_used": current_count,
+            "quota_remaining": daily_limit - current_count
+        },
     )
 
 
@@ -208,6 +275,49 @@ async def export_content(request: ExportRequest):
 @app.get("/api/presets")
 async def get_presets():
     return mock_presets
+
+
+# New endpoints for Phase B features
+
+@app.get("/api/quota/{user_id}")
+async def get_user_quota(user_id: str):
+    """
+    Get current quota status for a user.
+    """
+    daily_limit = int(os.getenv("DAILY_JOB_LIMIT", "10"))
+    quota_status = get_user_quota_status(user_id, daily_limit)
+    return quota_status
+
+
+@app.post("/api/quota/{user_id}/reset")
+async def reset_user_quota_endpoint(user_id: str, date_str: str = None):
+    """
+    Reset user quota for a specific date (admin function).
+    """
+    success = reset_user_quota(user_id, date_str)
+    if success:
+        return {"message": f"Quota reset successfully for user {user_id}"}
+    else:
+        raise HTTPException(status_code=500, detail="Failed to reset quota")
+
+
+@app.post("/api/token-stats")
+async def get_token_statistics(request: GenerateRequest):
+    """
+    Get token usage statistics for input text without creating a job.
+    """
+    token_stats = get_token_usage_stats(request.input_text)
+    validation_result = validate_input_limits(request.input_text)
+    
+    return {
+        "token_stats": token_stats,
+        "validation": validation_result,
+        "recommendations": {
+            "can_process": validation_result["valid"],
+            "estimated_cost": token_stats["estimated_tokens"] * 0.0001,
+            "efficiency_tip": "Consider breaking large texts into smaller chunks for better processing"
+        }
+    }
 
 
 @app.post("/api/presets")
