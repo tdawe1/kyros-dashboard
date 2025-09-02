@@ -13,6 +13,7 @@ from sentry_sdk.integrations.logging import LoggingIntegration
 # Import our new utilities
 from utils.quotas import can_create_job, get_user_quota_status, reset_user_quota
 from utils.token_utils import validate_input_limits, get_token_usage_stats
+from utils.token_storage import save_job_record, get_token_usage
 from middleware.rate_limiter import rate_limit_middleware
 from generator import generate_content
 
@@ -250,12 +251,26 @@ async def generate_content_endpoint(request: GenerateRequest):
             channels=request.channels,
             tone=request.tone,
             model=request.model,
+            job_id=job_id,
         )
 
         # Update variant IDs to include job_id
         for channel, channel_variants in variants.items():
             for i, variant in enumerate(channel_variants):
                 variant["id"] = f"{job_id}_{channel}_{i+1}"
+
+        # Save job record
+        job_record = {
+            "job_id": job_id,
+            "user_id": request.user_id,
+            "input_text": request.input_text,
+            "channels": request.channels,
+            "tone": request.tone,
+            "model": request.model or os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
+            "status": "completed",
+            "variants": variants,
+        }
+        save_job_record(job_id, job_record)
 
     except Exception as e:
         logger.error(f"Content generation failed for job {job_id}: {str(e)}")
@@ -265,12 +280,23 @@ async def generate_content_endpoint(request: GenerateRequest):
             detail={"error": "Content generation failed", "message": str(e)},
         )
 
-    # 5. Calculate actual token usage (mock for now)
+    # 5. Calculate actual token usage
     token_stats = get_token_usage_stats(request.input_text)
     estimated_input_tokens = token_stats["estimated_tokens"]
 
-    # Mock output tokens (in real implementation, this would come from OpenAI response)
-    estimated_output_tokens = len(request.channels) * 150  # Rough estimate
+    # Get actual token usage from storage if available
+    stored_token_usage = get_token_usage(job_id)
+    if stored_token_usage:
+        actual_output_tokens = (
+            stored_token_usage["total_tokens"] - estimated_input_tokens
+        )
+        total_tokens = stored_token_usage["total_tokens"]
+        total_cost = stored_token_usage["total_cost"]
+    else:
+        # Fallback to estimation
+        actual_output_tokens = len(request.channels) * 150  # Rough estimate
+        total_tokens = estimated_input_tokens + actual_output_tokens
+        total_cost = total_tokens * 0.0001  # Mock cost
 
     # Get the actual model used
     api_mode = os.getenv("API_MODE", "demo")
@@ -283,10 +309,9 @@ async def generate_content_endpoint(request: GenerateRequest):
         variants=variants,
         token_usage={
             "input_tokens": estimated_input_tokens,
-            "output_tokens": estimated_output_tokens,
-            "total_tokens": estimated_input_tokens + estimated_output_tokens,
-            "total_cost": (estimated_input_tokens + estimated_output_tokens)
-            * 0.0001,  # Mock cost
+            "output_tokens": actual_output_tokens,
+            "total_tokens": total_tokens,
+            "total_cost": total_cost,
             "quota_used": current_count,
             "quota_remaining": daily_limit - current_count,
         },
@@ -395,6 +420,49 @@ async def delete_preset(preset_id: str):
     global mock_presets
     mock_presets = [preset for preset in mock_presets if preset["id"] != preset_id]
     return {"message": "Preset deleted successfully"}
+
+
+# Token usage endpoints
+@app.get("/api/token-usage/{job_id}")
+async def get_job_token_usage(job_id: str):
+    """
+    Get token usage data for a specific job.
+    """
+    token_usage = get_token_usage(job_id)
+    if not token_usage:
+        raise HTTPException(
+            status_code=404, detail="Token usage data not found for this job"
+        )
+    return token_usage
+
+
+@app.get("/api/token-usage/stats")
+async def get_token_usage_statistics():
+    """
+    Get aggregated token usage statistics.
+    """
+    from utils.token_storage import get_token_usage_stats
+
+    return get_token_usage_stats()
+
+
+@app.get("/api/jobs/{job_id}/details")
+async def get_job_details(job_id: str):
+    """
+    Get detailed job information including token usage.
+    """
+    from utils.token_storage import get_job_record
+
+    job_record = get_job_record(job_id)
+    if not job_record:
+        raise HTTPException(status_code=404, detail="Job not found")
+
+    token_usage = get_token_usage(job_id)
+
+    return {
+        "job": job_record,
+        "token_usage": token_usage,
+    }
 
 
 if __name__ == "__main__":

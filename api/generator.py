@@ -3,6 +3,7 @@ import logging
 from typing import Dict, List, Any, Optional
 from openai import OpenAI
 import sentry_sdk
+from utils.token_storage import save_token_usage
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +107,7 @@ def get_demo_variants(
 
 
 async def generate_content_real(
-    input_text: str, channels: List[str], tone: str, model: str
+    input_text: str, channels: List[str], tone: str, model: str, job_id: str
 ) -> Dict[str, List[Dict[str, Any]]]:
     """
     Generate content using real OpenAI API calls.
@@ -183,8 +184,8 @@ Return as JSON array with objects containing: text, length, readability, tone"""
                 sentry_sdk.set_context("token_usage", token_usage)
                 logger.info(f"Token usage for {channel}: {token_usage}")
 
-                # TODO: In a real implementation, save to database
-                # await save_token_usage_to_db(job_id, token_usage)
+                # Save token usage to storage
+                save_token_usage(job_id, token_usage, model, channel)
 
             # Parse the response and create variants
             content = response.choices[0].message.content
@@ -210,7 +211,11 @@ Return as JSON array with objects containing: text, length, readability, tone"""
 
 
 async def generate_content(
-    input_text: str, channels: List[str], tone: str, model: Optional[str] = None
+    input_text: str,
+    channels: List[str],
+    tone: str,
+    model: Optional[str] = None,
+    job_id: Optional[str] = None,
 ) -> Dict[str, List[Dict[str, Any]]]:
     """
     Main content generation function that routes to demo or real mode.
@@ -234,6 +239,8 @@ async def generate_content(
         logger.info(
             f"Generating real content using model {selected_model} for channels: {channels}"
         )
-        return await generate_content_real(input_text, channels, tone, selected_model)
+        return await generate_content_real(
+            input_text, channels, tone, selected_model, job_id or "unknown"
+        )
     else:
         raise ValueError(f"Invalid API_MODE: {api_mode}. Must be 'demo' or 'real'")
