@@ -1,7 +1,6 @@
 import { RefreshCw } from 'lucide-react'
 import KPICards from '../ui/KPICards'
 import JobTable from '../ui/JobTable'
-import StudioPanel from '../ui/StudioPanel'
 import { useRefreshKPIs } from '../hooks/useKPIs'
 import { useRefreshJobs } from '../hooks/useJobs'
 
@@ -45,18 +44,8 @@ export default function Dashboard() {
       {/* KPI Cards - Full width at top */}
       <KPICards />
 
-      {/* Main content grid - Better proportions */}
-      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-        {/* Recent Jobs - Takes 3/4 width on large screens */}
-        <div className="xl:col-span-3">
-          <JobTable />
-        </div>
-
-        {/* Quick Studio - Takes 1/4 width on large screens */}
-        <div className="xl:col-span-1">
-          <StudioPanel />
-        </div>
-      </div>
+      {/* Recent Jobs - Full width */}
+      <JobTable />
     </div>
   )
 }
