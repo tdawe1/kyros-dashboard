@@ -9,5 +9,9 @@ export default defineConfig({
     setupFiles: ['./src/test/setup.js'],
     exclude: ['**/node_modules/**', '**/e2e/**'],
     include: ['src/**/*.{test,spec}.{js,jsx}'],
+    coverage: {
+      provider: 'v8',
+      reporter: ['text', 'lcov']
+    },
   },
 })

@@ -28,31 +28,31 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: ui/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install Python dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r api/requirements.txt
+          pip install -r backend/requirements.txt
 
       - name: Install Node.js dependencies
         run: |
-          cd ui
+          cd frontend
           npm ci
 
       - name: Run Python tests
         run: |
-          cd api
+          cd backend
           python -m pytest --tb=short
 
       - name: Run frontend tests
         run: |
-          cd ui
+          cd frontend
           npm test -- --coverage --watchAll=false
 
       - name: Test API startup
         run: |
-          cd api
+          cd backend
           python -c "
           import main
           print('✅ API imports successfully')
@@ -61,14 +61,14 @@ jobs:
 
       - name: Build frontend (test)
         run: |
-          cd ui
+          cd frontend
           npm run build
         env:
           VITE_API_BASE_URL: http://localhost:8000
 
       - name: Test frontend build
         run: |
-          cd ui
+          cd frontend
           if [ -d "dist" ]; then
             echo "✅ Frontend build successful"
             echo "📁 Build output:"
@@ -83,17 +83,17 @@ jobs:
           echo "🔍 Validating build artifacts..."
 
           # Check if main files exist
-          if [ -f "ui/dist/index.html" ]; then
+          if [ -f "frontend/dist/index.html" ]; then
             echo "✅ index.html exists"
           else
             echo "❌ index.html missing"
             exit 1
           fi
 
-          if [ -d "ui/dist/assets" ]; then
+          if [ -d "frontend/dist/assets" ]; then
             echo "✅ Assets directory exists"
             echo "📦 Assets:"
-            ls -la ui/dist/assets/
+            ls -la frontend/dist/assets/
           else
             echo "❌ Assets directory missing"
             exit 1
@@ -101,7 +101,7 @@ jobs:
 
       - name: Test API health endpoint
         run: |
-          cd api
+          cd backend
           # Start API in background
           python -m uvicorn main:app --host 0.0.0.0 --port 8000 &
           API_PID=$!
@@ -133,8 +133,8 @@ jobs:
         with:
           name: build-artifacts
           path: |
-            ui/dist/
-            api/
+            frontend/dist/
+            backend/
           retention-days: 7
 
       - name: Build Summary
