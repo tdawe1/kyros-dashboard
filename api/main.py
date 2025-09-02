@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Dict, Any
@@ -16,12 +16,27 @@ from utils.token_utils import validate_input_limits, get_token_usage_stats
 from utils.token_storage import save_job_record, get_token_usage
 from middleware.rate_limiter import rate_limit_middleware
 from generator import generate_content
+from core.auth import User, get_current_user
+from core.input_validation import SecureGenerateRequest
+from core.database import check_database_health
+from core.error_handling import (
+    handle_kyros_exception,
+    handle_validation_error,
+    handle_http_exception,
+    handle_generic_exception,
+    KyrosException,
+)
+from core.config import get_settings, get_cors_origins
+from fastapi.exceptions import RequestValidationError
 
 # Import tools registry
 from tools.registry import load_tool_routers, get_tools_metadata, get_tool_metadata
 
 # Import scheduler
 from core.scheduler import scheduler_router
+
+# Import authentication
+from core.auth_router import router as auth_router
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -49,6 +64,12 @@ else:
 
 app = FastAPI(title="Kyros Repurposer API", version="1.0.0")
 
+# Add exception handlers
+app.add_exception_handler(KyrosException, handle_kyros_exception)
+app.add_exception_handler(RequestValidationError, handle_validation_error)
+app.add_exception_handler(HTTPException, handle_http_exception)
+app.add_exception_handler(Exception, handle_generic_exception)
+
 # Add rate limiting middleware
 app.middleware("http")(rate_limit_middleware)
 
@@ -61,13 +82,19 @@ for name, router in load_tool_routers():
 app.include_router(scheduler_router, prefix="/api/scheduler", tags=["scheduler"])
 logger.info("Registered scheduler router")
 
-# CORS middleware
+# Register authentication router
+app.include_router(auth_router)
+logger.info("Registered authentication router")
+
+# CORS middleware - secure configuration
+settings = get_settings()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://localhost:3000"],  # Vite dev server
+    allow_origins=get_cors_origins(),
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Requested-With"],
+    expose_headers=["X-RateLimit-Limit", "X-RateLimit-Remaining", "X-RateLimit-Reset"],
 )
 
 
@@ -77,7 +104,6 @@ class GenerateRequest(BaseModel):
     channels: List[str] = ["linkedin", "twitter"]
     tone: str = "professional"
     preset: str = "default"
-    user_id: str = "anonymous"  # Default for demo purposes
     model: str = None  # Optional model parameter
 
 
@@ -160,16 +186,28 @@ mock_presets = [
 # Routes
 @app.get("/api/health")
 async def health_check():
-    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+    """Comprehensive health check including database connectivity."""
+    db_healthy = check_database_health()
+
+    status = "ok" if db_healthy else "degraded"
+
+    return {
+        "status": status,
+        "timestamp": datetime.now().isoformat(),
+        "database": "healthy" if db_healthy else "unhealthy",
+        "version": "1.0.0",
+    }
 
 
 @app.get("/api/config")
 async def get_config():
     """Get API configuration for frontend"""
     return {
-        "api_mode": os.getenv("API_MODE", "demo"),
-        "default_model": os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
+        "api_mode": settings.api_mode,
+        "default_model": settings.default_model,
         "valid_models": ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini"],
+        "environment": settings.environment.value,
+        "version": settings.app_version,
     }
 
 
@@ -215,7 +253,9 @@ async def get_job(job_id: str):
 
 
 @app.post("/api/generate", response_model=GenerateResponse)
-async def generate_content_endpoint(request: GenerateRequest):
+async def generate_content_endpoint(
+    request: SecureGenerateRequest, current_user: User = Depends(get_current_user)
+):
     """
     Generate content variants with token and quota controls.
     """
@@ -243,11 +283,11 @@ async def generate_content_endpoint(request: GenerateRequest):
         )
 
     # 3. Check user quota
-    daily_limit = int(os.getenv("DAILY_JOB_LIMIT", "10"))
-    can_create, current_count = can_create_job(request.user_id, daily_limit)
+    daily_limit = settings.daily_job_limit
+    can_create, current_count = can_create_job(current_user.id, daily_limit)
 
     if not can_create:
-        quota_status = get_user_quota_status(request.user_id, daily_limit)
+        quota_status = get_user_quota_status(current_user.id, daily_limit)
         raise HTTPException(
             status_code=400,
             detail={
@@ -259,15 +299,13 @@ async def generate_content_endpoint(request: GenerateRequest):
 
     # 4. Generate job ID and process content
     job_id = str(uuid.uuid4())
-    logger.info(f"Processing job {job_id} for user {request.user_id}")
+    logger.info(f"Processing job {job_id} for user {current_user.id}")
 
     # Set Sentry context for this job
     with sentry_sdk.configure_scope() as scope:
         scope.set_tag("job_id", job_id)
-        scope.set_tag("user_id", request.user_id)
-        scope.set_tag(
-            "model", request.model or os.getenv("DEFAULT_MODEL", "gpt-4o-mini")
-        )
+        scope.set_tag("user_id", current_user.id)
+        scope.set_tag("model", request.model or settings.default_model)
         scope.set_context(
             "job_details",
             {
@@ -295,11 +333,11 @@ async def generate_content_endpoint(request: GenerateRequest):
         # Save job record
         job_record = {
             "job_id": job_id,
-            "user_id": request.user_id,
+            "user_id": current_user.id,
             "input_text": request.input_text,
             "channels": request.channels,
             "tone": request.tone,
-            "model": request.model or os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
+            "model": request.model or settings.default_model,
             "status": "completed",
             "variants": variants,
         }
@@ -332,9 +370,8 @@ async def generate_content_endpoint(request: GenerateRequest):
         total_cost = total_tokens * 0.0001  # Mock cost
 
     # Get the actual model used
-    api_mode = os.getenv("API_MODE", "demo")
-    default_model = os.getenv("DEFAULT_MODEL", "gpt-4o-mini")
-    used_model = request.model or default_model
+    api_mode = settings.api_mode
+    used_model = request.model or settings.default_model
 
     return GenerateResponse(
         job_id=job_id,
@@ -370,21 +407,29 @@ async def get_presets():
 # New endpoints for Phase B features
 
 
-@app.get("/api/quota/{user_id}")
-async def get_user_quota(user_id: str):
+@app.get("/api/quota/me")
+async def get_user_quota(current_user: User = Depends(get_current_user)):
     """
-    Get current quota status for a user.
+    Get current quota status for the authenticated user.
     """
-    daily_limit = int(os.getenv("DAILY_JOB_LIMIT", "10"))
-    quota_status = get_user_quota_status(user_id, daily_limit)
+    daily_limit = settings.daily_job_limit
+    quota_status = get_user_quota_status(current_user.id, daily_limit)
     return quota_status
 
 
 @app.post("/api/quota/{user_id}/reset")
-async def reset_user_quota_endpoint(user_id: str, date_str: str = None):
+async def reset_user_quota_endpoint(
+    user_id: str, date_str: str = None, current_user: User = Depends(get_current_user)
+):
     """
     Reset user quota for a specific date (admin function).
     """
+    from core.auth import UserRole
+
+    # Check if user is admin or resetting their own quota
+    if current_user.role != UserRole.ADMIN and current_user.id != user_id:
+        raise HTTPException(status_code=403, detail="Insufficient permissions")
+
     success = reset_user_quota(user_id, date_str)
     if success:
         return {"message": f"Quota reset successfully for user {user_id}"}
@@ -393,7 +438,9 @@ async def reset_user_quota_endpoint(user_id: str, date_str: str = None):
 
 
 @app.post("/api/token-stats")
-async def get_token_statistics(request: GenerateRequest):
+async def get_token_statistics(
+    request: SecureGenerateRequest, current_user: User = Depends(get_current_user)
+):
     """
     Get token usage statistics for input text without creating a job.
     """

@@ -23,22 +23,22 @@ from .schemas import (
 )
 from .models import JobRun
 from core.database import get_db
+from core.auth import User, get_current_user
 
 router = APIRouter()
 
 
-def get_current_user() -> str:
+def get_current_user_id(current_user: User = Depends(get_current_user)) -> str:
     """
-    Mock authentication - in a real app, this would extract user from JWT token.
-    For now, we'll use a default user ID.
+    Get current user ID from JWT token.
     """
-    return "demo_user"  # TODO: Implement real authentication
+    return current_user.id
 
 
 @router.post("/", response_model=CreateScheduleResponse)
 async def create_schedule(
     request: CreateScheduleRequest,
-    user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """Create a new scheduled job."""

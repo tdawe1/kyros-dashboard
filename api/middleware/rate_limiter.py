@@ -1,9 +1,9 @@
 import os
 import time
-import redis
 from fastapi import Request
 from fastapi.responses import JSONResponse
 import logging
+from core.security import get_secure_redis_client, secure_operation, SecurityMode
 
 logger = logging.getLogger(__name__)
 
@@ -23,12 +23,7 @@ class TokenBucketRateLimiter:
     """
 
     def __init__(self):
-        self.redis_client = self._get_redis_client()
-
-    def _get_redis_client(self):
-        """Get Redis client connection"""
-        redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
-        return redis.from_url(redis_url, decode_responses=True)
+        self.redis_client = get_secure_redis_client()
 
     def _get_client_identifier(self, request: Request) -> str:
         """
@@ -75,9 +70,11 @@ class TokenBucketRateLimiter:
 
         return f"rate_limit:{client_ip}"
 
+    @secure_operation(security_mode=SecurityMode.FAIL_CLOSED)
     def is_allowed(self, request: Request) -> tuple[bool, dict]:
         """
         Check if request is allowed based on token bucket algorithm.
+        FAILS CLOSED - denies requests if Redis is unavailable.
 
         Args:
             request: FastAPI request object
@@ -85,77 +82,62 @@ class TokenBucketRateLimiter:
         Returns:
             tuple: (is_allowed: bool, rate_limit_info: dict)
         """
-        try:
-            client_id = self._get_client_identifier(request)
-            current_time = time.time()
+        client_id = self._get_client_identifier(request)
+        current_time = time.time()
 
-            # Token bucket key
-            bucket_key = f"token_bucket:{client_id}"
+        # Token bucket key
+        bucket_key = f"token_bucket:{client_id}"
 
-            # Get current bucket state
-            bucket_data = self.redis_client.hgetall(bucket_key)
+        # Get current bucket state
+        bucket_data = self.redis_client.hgetall(bucket_key)
 
-            if not bucket_data:
-                # Initialize bucket
-                tokens = RATE_LIMIT_BURST
-                last_refill = current_time
-            else:
-                tokens = float(bucket_data.get("tokens", RATE_LIMIT_BURST))
-                last_refill = float(bucket_data.get("last_refill", current_time))
+        if not bucket_data:
+            # Initialize bucket
+            tokens = RATE_LIMIT_BURST
+            last_refill = current_time
+        else:
+            tokens = float(bucket_data.get("tokens", RATE_LIMIT_BURST))
+            last_refill = float(bucket_data.get("last_refill", current_time))
 
-            # Calculate tokens to add based on time elapsed
-            time_elapsed = current_time - last_refill
-            tokens_to_add = time_elapsed * (RATE_LIMIT_REQUESTS / RATE_LIMIT_WINDOW)
+        # Calculate tokens to add based on time elapsed
+        time_elapsed = current_time - last_refill
+        tokens_to_add = time_elapsed * (RATE_LIMIT_REQUESTS / RATE_LIMIT_WINDOW)
 
-            # Refill bucket (cap at burst size)
-            tokens = min(RATE_LIMIT_BURST, tokens + tokens_to_add)
+        # Refill bucket (cap at burst size)
+        tokens = min(RATE_LIMIT_BURST, tokens + tokens_to_add)
 
-            # Check if request can be processed
-            if tokens >= 1:
-                # Consume one token
-                tokens -= 1
-                is_allowed = True
-            else:
-                is_allowed = False
+        # Check if request can be processed
+        if tokens >= 1:
+            # Consume one token
+            tokens -= 1
+            is_allowed = True
+        else:
+            is_allowed = False
 
-            # Update bucket state
-            self.redis_client.hset(
-                bucket_key, mapping={"tokens": tokens, "last_refill": current_time}
-            )
+        # Use pipeline for atomic operations
+        pipe = self.redis_client._client.pipeline()
+        pipe.hset(bucket_key, mapping={"tokens": tokens, "last_refill": current_time})
+        pipe.expire(bucket_key, RATE_LIMIT_WINDOW * 2)
+        pipe.execute()
 
-            # Set expiration (cleanup old buckets)
-            self.redis_client.expire(bucket_key, RATE_LIMIT_WINDOW * 2)
+        # Calculate reset time
+        reset_time = current_time + (
+            (1 - tokens) * (RATE_LIMIT_WINDOW / RATE_LIMIT_REQUESTS)
+        )
 
-            # Calculate reset time
-            reset_time = current_time + (
-                (1 - tokens) * (RATE_LIMIT_WINDOW / RATE_LIMIT_REQUESTS)
-            )
+        rate_limit_info = {
+            "limit": RATE_LIMIT_REQUESTS,
+            "remaining": max(0, int(tokens)),
+            "reset": int(reset_time),
+            "window": RATE_LIMIT_WINDOW,
+            "burst": RATE_LIMIT_BURST,
+        }
 
-            rate_limit_info = {
-                "limit": RATE_LIMIT_REQUESTS,
-                "remaining": max(0, int(tokens)),
-                "reset": int(reset_time),
-                "window": RATE_LIMIT_WINDOW,
-                "burst": RATE_LIMIT_BURST,
-            }
+        logger.debug(
+            f"Rate limit check for {client_id}: allowed={is_allowed}, tokens={tokens:.2f}"
+        )
 
-            logger.debug(
-                f"Rate limit check for {client_id}: allowed={is_allowed}, tokens={tokens:.2f}"
-            )
-
-            return is_allowed, rate_limit_info
-
-        except Exception as e:
-            logger.error(f"Rate limiting error: {e}")
-            # Fail open - allow request if Redis is down
-            return True, {
-                "limit": RATE_LIMIT_REQUESTS,
-                "remaining": RATE_LIMIT_REQUESTS,
-                "reset": int(time.time() + RATE_LIMIT_WINDOW),
-                "window": RATE_LIMIT_WINDOW,
-                "burst": RATE_LIMIT_BURST,
-                "error": "Rate limiting temporarily disabled",
-            }
+        return is_allowed, rate_limit_info
 
 
 # Global rate limiter instance

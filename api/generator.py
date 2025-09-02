@@ -4,6 +4,7 @@ from typing import Dict, List, Any, Optional
 from openai import OpenAI
 import sentry_sdk
 from utils.token_storage import save_token_usage
+from core.security import with_circuit_breaker, openai_circuit_breaker
 
 logger = logging.getLogger(__name__)
 
@@ -139,18 +140,23 @@ Length: 600-1000 characters.
 Return as JSON array with objects containing: text, length, readability, tone"""
 
         try:
-            response = client.chat.completions.create(
-                model=model,
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a professional content creator. Return only valid JSON arrays.",
-                    },
-                    {"role": "user", "content": prompt},
-                ],
-                max_tokens=1000,
-                temperature=0.7,
-            )
+            # Use circuit breaker for OpenAI API calls
+            @with_circuit_breaker(openai_circuit_breaker)
+            def make_openai_call():
+                return client.chat.completions.create(
+                    model=model,
+                    messages=[
+                        {
+                            "role": "system",
+                            "content": "You are a professional content creator. Return only valid JSON arrays.",
+                        },
+                        {"role": "user", "content": prompt},
+                    ],
+                    max_tokens=1000,
+                    temperature=0.7,
+                )
+
+            response = make_openai_call()
 
             # Log token usage to Sentry and database
             if hasattr(response, "usage") and response.usage:
@@ -186,8 +192,8 @@ Return as JSON array with objects containing: text, length, readability, tone"""
         except Exception as e:
             logger.error(f"OpenAI API error for {channel}: {str(e)}")
             sentry_sdk.capture_exception(e)
-            # Fallback to demo content if API fails
-            variants[channel] = get_demo_variants(input_text, [channel], tone)[channel]
+            # Fail closed - raise exception instead of falling back to demo content
+            raise Exception(f"Content generation failed for {channel}: {str(e)}")
 
     return variants
 

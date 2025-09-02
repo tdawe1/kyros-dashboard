@@ -1,22 +1,16 @@
-import os
-import redis
 from datetime import date
 from typing import Optional
 import logging
+from core.security import get_secure_redis_client, secure_operation, SecurityMode
 
 logger = logging.getLogger(__name__)
 
 
-# Redis connection
-def get_redis_client():
-    """Get Redis client connection"""
-    redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
-    return redis.from_url(redis_url, decode_responses=True)
-
-
+@secure_operation(security_mode=SecurityMode.FAIL_CLOSED)
 def can_create_job(user_id: str, daily_limit: int = 10) -> tuple[bool, int]:
     """
-    Check if user can create a job based on daily quota.
+    Check if user can create a job based on daily quota using atomic Redis transactions.
+    FAILS CLOSED - denies job creation if Redis is unavailable.
 
     Args:
         user_id: User identifier
@@ -25,37 +19,37 @@ def can_create_job(user_id: str, daily_limit: int = 10) -> tuple[bool, int]:
     Returns:
         tuple: (can_create: bool, current_count: int)
     """
-    try:
-        r = get_redis_client()
-        today = date.today().isoformat()
-        key = f"jobs:{user_id}:{today}"
+    r = get_secure_redis_client()
+    today = date.today().isoformat()
+    key = f"jobs:{user_id}:{today}"
 
-        # Atomic increment-first approach
-        new_count = r.incr(key)
+    # Use Redis pipeline for atomic operations
+    pipe = r._client.pipeline()
 
-        # Set expiration only when the returned counter equals 1 (first increment sets TTL)
-        if new_count == 1:
-            r.expire(key, 86400)  # 24 hours
+    # Check current count first
+    pipe.get(key)
+    pipe.incr(key)
+    pipe.expire(key, 86400)  # Set TTL
 
-        # Check if limit exceeded after increment
-        if new_count > daily_limit:
-            logger.warning(
-                f"User {user_id} exceeded daily limit: {new_count}/{daily_limit}"
-            )
-            return False, new_count
+    results = pipe.execute()
+    new_count = results[1]
 
-        logger.info(f"User {user_id} job count: {new_count}/{daily_limit}")
-        return True, new_count
+    # Check if limit exceeded after increment
+    if new_count > daily_limit:
+        logger.warning(
+            f"User {user_id} exceeded daily limit: {new_count}/{daily_limit}"
+        )
+        return False, new_count
 
-    except Exception as e:
-        logger.error(f"Error checking quota for user {user_id}: {e}")
-        # Fail open - allow job creation if Redis is down
-        return True, 0
+    logger.info(f"User {user_id} job count: {new_count}/{daily_limit}")
+    return True, new_count
 
 
+@secure_operation(security_mode=SecurityMode.FAIL_CLOSED)
 def get_user_quota_status(user_id: str, daily_limit: int = 10) -> dict:
     """
     Get current quota status for a user.
+    FAILS CLOSED - raises exception if Redis is unavailable.
 
     Args:
         user_id: User identifier
@@ -64,39 +58,28 @@ def get_user_quota_status(user_id: str, daily_limit: int = 10) -> dict:
     Returns:
         dict: Quota status information
     """
-    try:
-        r = get_redis_client()
-        today = date.today().isoformat()
-        key = f"jobs:{user_id}:{today}"
+    r = get_secure_redis_client()
+    today = date.today().isoformat()
+    key = f"jobs:{user_id}:{today}"
 
-        count = r.get(key)
-        current_count = int(count) if count else 0
+    count = r.get(key)
+    current_count = int(count) if count else 0
 
-        return {
-            "user_id": user_id,
-            "date": today,
-            "current_count": current_count,
-            "daily_limit": daily_limit,
-            "remaining": max(0, daily_limit - current_count),
-            "can_create": current_count < daily_limit,
-        }
-
-    except Exception as e:
-        logger.error(f"Error getting quota status for user {user_id}: {e}")
-        return {
-            "user_id": user_id,
-            "date": date.today().isoformat(),
-            "current_count": 0,
-            "daily_limit": daily_limit,
-            "remaining": daily_limit,
-            "can_create": True,
-            "error": str(e),
-        }
+    return {
+        "user_id": user_id,
+        "date": today,
+        "current_count": current_count,
+        "daily_limit": daily_limit,
+        "remaining": max(0, daily_limit - current_count),
+        "can_create": current_count < daily_limit,
+    }
 
 
+@secure_operation(security_mode=SecurityMode.FAIL_CLOSED)
 def reset_user_quota(user_id: str, date_str: Optional[str] = None) -> bool:
     """
     Reset user quota for a specific date (admin function).
+    FAILS CLOSED - raises exception if Redis is unavailable.
 
     Args:
         user_id: User identifier
@@ -105,15 +88,10 @@ def reset_user_quota(user_id: str, date_str: Optional[str] = None) -> bool:
     Returns:
         bool: Success status
     """
-    try:
-        r = get_redis_client()
-        target_date = date_str or date.today().isoformat()
-        key = f"jobs:{user_id}:{target_date}"
+    r = get_secure_redis_client()
+    target_date = date_str or date.today().isoformat()
+    key = f"jobs:{user_id}:{target_date}"
 
-        r.delete(key)
-        logger.info(f"Reset quota for user {user_id} on {target_date}")
-        return True
-
-    except Exception as e:
-        logger.error(f"Error resetting quota for user {user_id}: {e}")
-        return False
+    r.delete(key)
+    logger.info(f"Reset quota for user {user_id} on {target_date}")
+    return True
