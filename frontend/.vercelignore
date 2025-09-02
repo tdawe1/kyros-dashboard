@@ -1,2 +1,10 @@
-# Ignore all files to prevent Vercel deployment
-*
+# Ignore test files and development files
+e2e/
+*.test.js
+*.test.jsx
+*.spec.js
+test/
+Dockerfile.test
+env.test
+playwright.config.js
+vitest.config.js
