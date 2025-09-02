@@ -1,0 +1,164 @@
+// @ts-check
+const { test, expect } = require('@playwright/test');
+
+test.describe('Kyros Dashboard - Navigation', () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto('/');
+  });
+
+  test('navigation between main pages', async ({ page }) => {
+    // Test Dashboard page
+    await page.click('text=Dashboard');
+    await expect(page).toHaveURL(/.*dashboard|.*\/$/);
+    await expect(page.locator('h1, [data-testid="page-title"]').first()).toBeVisible();
+
+    // Test Studio page
+    await page.click('text=Studio');
+    await expect(page).toHaveURL(/.*studio/);
+    await expect(page.locator('textarea, [data-testid="content-input"]').first()).toBeVisible();
+
+    // Test Jobs page
+    await page.click('text=Jobs');
+    await expect(page).toHaveURL(/.*jobs/);
+    await expect(page.locator('table, [data-testid="jobs-table"], .job-list').first()).toBeVisible();
+
+    // Test Settings page
+    await page.click('text=Settings');
+    await expect(page).toHaveURL(/.*settings/);
+    await expect(page.locator('form, [data-testid="settings-form"]').first()).toBeVisible();
+  });
+
+  test('sidebar navigation', async ({ page }) => {
+    // Check if sidebar exists
+    const sidebar = page.locator('nav, [data-testid="sidebar"], .sidebar').first();
+
+    if (await sidebar.isVisible()) {
+      // Test sidebar navigation items
+      const navItems = ['Dashboard', 'Studio', 'Jobs', 'Settings'];
+
+      for (const item of navItems) {
+        const navLink = sidebar.locator(`text=${item}, a:has-text("${item}")`).first();
+        if (await navLink.isVisible()) {
+          await navLink.click();
+          await expect(page.locator('h1, [data-testid="page-title"]').first()).toBeVisible();
+        }
+      }
+    }
+  });
+
+  test('theme toggle functionality', async ({ page }) => {
+    // Look for theme toggle button
+    const themeToggle = page.locator('button[aria-label*="theme"], button:has-text("Dark"), button:has-text("Light"), [data-testid="theme-toggle"]').first();
+
+    if (await themeToggle.isVisible()) {
+      // Get initial theme
+      const initialTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme') ||
+        (document.documentElement.classList.contains('dark') ? 'dark' : 'light'));
+
+      // Toggle theme
+      await themeToggle.click();
+
+      // Wait for theme change
+      await page.waitForTimeout(500);
+
+      // Check if theme changed
+      const newTheme = await page.evaluate(() => document.documentElement.getAttribute('data-theme') ||
+        (document.documentElement.classList.contains('dark') ? 'dark' : 'light'));
+
+      expect(newTheme).not.toBe(initialTheme);
+    }
+  });
+
+  test('mobile navigation menu', async ({ page }) => {
+    // Set mobile viewport
+    await page.setViewportSize({ width: 375, height: 667 });
+
+    // Look for mobile menu button
+    const mobileMenuButton = page.locator('button[aria-label*="menu"], button:has-text("Menu"), [data-testid="mobile-menu"]').first();
+
+    if (await mobileMenuButton.isVisible()) {
+      // Open mobile menu
+      await mobileMenuButton.click();
+
+      // Check if menu is open
+      const mobileMenu = page.locator('[data-testid="mobile-menu"], .mobile-menu, nav[aria-expanded="true"]').first();
+      await expect(mobileMenu).toBeVisible();
+
+      // Test navigation in mobile menu
+      const navItems = ['Dashboard', 'Studio', 'Jobs', 'Settings'];
+
+      for (const item of navItems) {
+        const navLink = mobileMenu.locator(`text=${item}, a:has-text("${item}")`).first();
+        if (await navLink.isVisible()) {
+          await navLink.click();
+          await expect(page.locator('h1, [data-testid="page-title"]').first()).toBeVisible();
+          break; // Just test one navigation to avoid too many page changes
+        }
+      }
+    }
+  });
+
+  test('breadcrumb navigation', async ({ page }) => {
+    // Navigate to a sub-page
+    await page.click('text=Studio');
+
+    // Look for breadcrumbs
+    const breadcrumbs = page.locator('[data-testid="breadcrumbs"], .breadcrumbs, nav[aria-label*="breadcrumb"]').first();
+
+    if (await breadcrumbs.isVisible()) {
+      // Check if breadcrumbs show current page
+      await expect(breadcrumbs).toContainText('Studio');
+
+      // Test clicking on breadcrumb items
+      const breadcrumbLinks = breadcrumbs.locator('a');
+      const linkCount = await breadcrumbLinks.count();
+
+      if (linkCount > 0) {
+        // Click on first breadcrumb link (usually home)
+        await breadcrumbLinks.first().click();
+        await expect(page).toHaveURL(/.*dashboard|.*\/$/);
+      }
+    }
+  });
+
+  test('keyboard navigation', async ({ page }) => {
+    // Test Tab navigation
+    await page.keyboard.press('Tab');
+
+    // Check if focus is visible
+    const focusedElement = page.locator(':focus');
+    await expect(focusedElement).toBeVisible();
+
+    // Test Enter key on focused element
+    await page.keyboard.press('Enter');
+
+    // Test Escape key (should close modals/menus)
+    await page.keyboard.press('Escape');
+  });
+
+  test('page loading states', async ({ page }) => {
+    // Test that pages load without errors
+    const pages = [
+      { name: 'Dashboard', url: '/' },
+      { name: 'Studio', url: '/studio' },
+      { name: 'Jobs', url: '/jobs' },
+      { name: 'Settings', url: '/settings' }
+    ];
+
+    for (const pageInfo of pages) {
+      await page.goto(pageInfo.url);
+
+      // Wait for page to load
+      await page.waitForLoadState('networkidle');
+
+      // Check for error messages
+      const errorMessages = page.locator('text=Error, text=Failed, text=404, text=500').first();
+      if (await errorMessages.isVisible()) {
+        console.warn(`Error found on ${pageInfo.name} page`);
+      }
+
+      // Check that main content is visible
+      await expect(page.locator('main, [data-testid="main-content"], .main-content').first()).toBeVisible();
+    }
+  });
+});
