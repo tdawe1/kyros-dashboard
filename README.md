@@ -254,3 +254,4 @@ See [Deployment Guide](docs/DEPLOYMENT.md) for complete setup instructions inclu
 ## 📄 License
 
 This project is part of the kyros Repurposer suite. All rights reserved.
+# Test change for branch protection setup
