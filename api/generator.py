@@ -11,93 +11,61 @@ logger = logging.getLogger(__name__)
 VALID_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini"]
 
 
+def demo_responses():
+    return {
+        "linkedin": [
+            "💡 Want to save 4 hours a week on content? Our repurposer turns a single blog into LinkedIn-ready posts in seconds. #AI #Productivity",
+            "Consistency builds trust. With our tool, one draft = weeks of content. Simple, efficient, effective.",
+            "From blog to boardroom: see how automation can keep your message aligned across every platform.",
+        ],
+        "twitter": [
+            "Turn 1 blog into 10 posts. Time saved = 4 hrs/week. #AItools #SmallBusiness",
+            "Consistency is trust. Automation makes it easy. 🚀",
+            "Stop staring at a blank screen. Repurpose instead.",
+            "AI that works behind the scenes → more focus on what matters.",
+            "One draft → multiple platforms. That's leverage.",
+        ],
+        "newsletter": [
+            """**This week's tip: Work smarter with your content**
+
+Most small businesses spend too long rewriting the same idea for multiple channels.
+Our new tool takes one blog post and transforms it into LinkedIn updates, tweets, and even a newsletter draft.
+
+👉 Save hours. Stay consistent. Focus on growth."""
+        ],
+    }
+
+
 def get_demo_variants(
     input_text: str, channels: List[str], tone: str
 ) -> Dict[str, List[Dict[str, Any]]]:
     """
     Generate canned demo variants for testing purposes.
     """
+    demo_content = demo_responses()
     variants = {}
 
     for channel in channels:
-        if channel == "linkedin":
+        if channel in demo_content:
+            channel_variants = []
+            for i, text in enumerate(demo_content[channel], 1):
+                channel_variants.append(
+                    {
+                        "id": f"demo_{channel}_{i}",
+                        "text": text,
+                        "length": len(text),
+                        "readability": "Excellent",
+                        "tone": tone,
+                    }
+                )
+            variants[channel] = channel_variants
+        else:
+            # Fallback for unsupported channels
             variants[channel] = [
                 {
-                    "id": "demo_linkedin_1",
-                    "text": f"🚀 Exciting insights from our latest research: {input_text[:100]}... This represents a significant shift in how we approach innovation. #Innovation #TechTrends",
-                    "length": 150,
-                    "readability": "Good",
-                    "tone": tone,
-                },
-                {
-                    "id": "demo_linkedin_2",
-                    "text": f"💡 Key takeaway: {input_text[50:150]}... The implications for our industry are profound. What are your thoughts on this development?",
-                    "length": 200,
-                    "readability": "Excellent",
-                    "tone": tone,
-                },
-                {
-                    "id": "demo_linkedin_3",
-                    "text": f"📊 Data shows: {input_text[100:200]}... This trend is reshaping the landscape. Time to adapt and innovate!",
-                    "length": 180,
-                    "readability": "Good",
-                    "tone": tone,
-                },
-            ]
-        elif channel == "twitter":
-            variants[channel] = [
-                {
-                    "id": "demo_twitter_1",
-                    "text": f"Thread: {input_text[:50]}... 1/5",
-                    "length": 280,
-                    "readability": "Good",
-                    "tone": tone,
-                },
-                {
-                    "id": "demo_twitter_2",
-                    "text": f"Hot take: {input_text[25:75]}... Thoughts?",
-                    "length": 150,
-                    "readability": "Excellent",
-                    "tone": tone,
-                },
-                {
-                    "id": "demo_twitter_3",
-                    "text": f"Breaking: {input_text[75:125]}... This changes everything.",
-                    "length": 200,
-                    "readability": "Good",
-                    "tone": tone,
-                },
-                {
-                    "id": "demo_twitter_4",
-                    "text": f"Insight: {input_text[125:175]}... The future is here.",
-                    "length": 180,
-                    "readability": "Excellent",
-                    "tone": tone,
-                },
-                {
-                    "id": "demo_twitter_5",
-                    "text": f"Update: {input_text[175:225]}... Stay tuned for more.",
-                    "length": 160,
-                    "readability": "Good",
-                    "tone": tone,
-                },
-            ]
-        elif channel == "newsletter":
-            variants[channel] = [
-                {
-                    "id": "demo_newsletter_1",
-                    "text": f"## Weekly Insights\n\n{input_text[:200]}...\n\nThis week's analysis reveals several key trends that are worth your attention. The data suggests we're entering a new phase of innovation that will reshape our industry.\n\n**Key Takeaways:**\n- Trend 1: {input_text[200:300]}...\n- Trend 2: {input_text[300:400]}...\n- Trend 3: {input_text[400:500]}...\n\nStay ahead of the curve by understanding these developments.",
-                    "length": 500,
-                    "readability": "Excellent",
-                    "tone": tone,
-                }
-            ]
-        elif channel == "blog":
-            variants[channel] = [
-                {
-                    "id": "demo_blog_1",
-                    "text": f"# {input_text[:50]}...\n\n{input_text[:300]}...\n\n## Introduction\n\nIn today's rapidly evolving landscape, understanding these trends is crucial for success. This comprehensive analysis explores the key factors driving change.\n\n## Key Insights\n\n{input_text[300:600]}...\n\n## Conclusion\n\nThe implications are clear: we must adapt to thrive in this new environment.",
-                    "length": 800,
+                    "id": f"demo_{channel}_1",
+                    "text": f"Demo content for {channel}: {input_text[:100]}...",
+                    "length": 100,
                     "readability": "Good",
                     "tone": tone,
                 }
