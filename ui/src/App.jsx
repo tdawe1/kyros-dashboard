@@ -6,6 +6,7 @@ import AppShell from './layouts/AppShell'
 import Dashboard from './pages/Dashboard'
 import Jobs from './pages/Jobs'
 import Studio from './pages/Studio'
+import Scheduler from './pages/Scheduler'
 import Settings from './pages/Settings'
 import ToolLoader from './components/ToolLoader'
 import ErrorBoundary from './components/ErrorBoundary'
@@ -38,6 +39,7 @@ function App() {
                   <Route index element={<Dashboard />} />
                   <Route path="jobs" element={<Jobs />} />
                   <Route path="studio" element={<Studio />} />
+                  <Route path="scheduler" element={<Scheduler />} />
                   <Route path="settings" element={<Settings />} />
                   {/* Tool routes */}
                   <Route path="tools/:toolName" element={<ToolLoader />} />
