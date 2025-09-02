@@ -1,5 +1,6 @@
 import axios from 'axios'
 import { API_CONFIG } from '../constants'
+import { captureException, setSentryJobContext } from './sentry'
 
 const api = axios.create({
   baseURL: API_CONFIG.BASE_URL,
@@ -28,13 +29,30 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    const { response } = error
+    const { response, config } = error
 
     if (response?.status === 401) {
       // Handle unauthorized access
       localStorage.removeItem('auth_token')
       window.location.href = '/login'
     }
+
+    // Capture API errors in Sentry
+    captureException(error, {
+      api: {
+        url: config?.url,
+        method: config?.method,
+        status: response?.status,
+        statusText: response?.statusText,
+      },
+      request: {
+        data: config?.data,
+        params: config?.params,
+      },
+      response: {
+        data: response?.data,
+      },
+    })
 
     // Transform error for consistent handling
     const errorMessage = response?.data?.detail ||
@@ -75,8 +93,35 @@ export const getJob = async (jobId) => {
 
 // Generate content
 export const generateContent = async (data) => {
-  const response = await api.post('/api/generate', data)
-  return response.data
+  try {
+    const response = await api.post('/api/generate', data)
+
+    // Set job context in Sentry for successful generation
+    if (response.data?.job_id) {
+      setSentryJobContext(response.data.job_id, {
+        channels: data.channels,
+        tone: data.tone,
+        model: data.model,
+        user_id: data.user_id,
+        status: response.data.status,
+        token_usage: response.data.token_usage,
+      })
+    }
+
+    return response.data
+  } catch (error) {
+    // Additional context for generation errors
+    captureException(error, {
+      generation: {
+        channels: data.channels,
+        tone: data.tone,
+        model: data.model,
+        user_id: data.user_id,
+        input_length: data.input_text?.length,
+      },
+    })
+    throw error
+  }
 }
 
 // Export content

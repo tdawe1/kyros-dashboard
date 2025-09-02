@@ -5,6 +5,13 @@ export const API_CONFIG = {
   RETRY_ATTEMPTS: 3
 }
 
+// Sentry Configuration
+export const SENTRY_CONFIG = {
+  DSN: import.meta.env.VITE_SENTRY_DSN,
+  ENVIRONMENT: import.meta.env.VITE_ENVIRONMENT || 'development',
+  RELEASE: import.meta.env.VITE_RELEASE_VERSION || '1.0.0'
+}
+
 // Content Generation
 export const CHANNELS = [
   { id: 'linkedin', name: 'LinkedIn', icon: '💼', maxLength: 3000 },
