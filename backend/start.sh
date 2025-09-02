@@ -4,10 +4,17 @@
 set -e
 
 echo "Starting Kyros Dashboard backend..."
+echo "Current directory: $(pwd)"
+echo "Python version: $(python --version)"
+echo "Port: $PORT"
 
-# Run database migrations
-echo "Running database migrations..."
-alembic upgrade head
+# Check if alembic is available
+if command -v alembic &> /dev/null; then
+    echo "Running database migrations..."
+    alembic upgrade head
+else
+    echo "Alembic not found, skipping migrations"
+fi
 
 # Start the application
 echo "Starting FastAPI application..."

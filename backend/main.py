@@ -184,10 +184,25 @@ mock_presets = [
 
 
 # Routes
+@app.get("/")
+async def root():
+    """Root endpoint for Railway healthcheck."""
+    return {"status": "ok", "message": "Kyros Dashboard API"}
+
+
+@app.get("/health")
+async def health_simple():
+    """Simple health check without /api prefix."""
+    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+
+
 @app.get("/api/health")
 async def health_check():
     """Simple health check for Railway deployment."""
-    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+    try:
+        return {"status": "ok", "timestamp": datetime.now().isoformat()}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
 
 
 @app.get("/api/health/detailed")

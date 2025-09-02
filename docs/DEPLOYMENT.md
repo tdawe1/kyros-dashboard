@@ -2,13 +2,15 @@
 
 This guide covers the complete deployment setup for the Kyros Dashboard, including automatic deployment after merging to the main branch.
 
-## 🚀 Automatic Deployment Overview
+## 🚀 CI/CD Pipeline Overview
 
 The project uses GitHub Actions for CI/CD with the following workflow:
 
-1. **Quality Checks**: Run on every PR and push to main/develop
-2. **Staging Deployment**: Automatic deployment to staging environment for feature branches
-3. **Production Deployment**: Automatic deployment to production when merging to main
+1. **Pull Request Checks**: Comprehensive testing and validation on every PR
+2. **Code Review**: Required approval before merging to main
+3. **Branch Protection**: Prevents direct pushes to main branch
+4. **Staging Deployment**: Automatic deployment to staging environment for feature branches
+5. **Production Deployment**: Automatic deployment to production only after PR approval and all checks pass
 
 ## 📋 Prerequisites
 
@@ -109,10 +111,21 @@ SLACK_WEBHOOK=your-slack-webhook-url
 
 ## 🔄 Deployment Workflows
 
+### Pull Request Process
+- **Trigger**: Pull request to `main` or `develop` branches
+- **Required Actions**:
+  1. **Backend Tests**: Python unit tests, linting, formatting, security scan
+  2. **Frontend Tests**: JavaScript/React unit tests, linting, formatting
+  3. **E2E Tests**: End-to-end tests with Playwright
+  4. **Security Scan**: Vulnerability scanning with Bandit
+  5. **Build Verification**: Ensure both frontend and backend build successfully
+  6. **Code Review**: Required approval from code owners
+- **Result**: PR cannot be merged until all checks pass and review is approved
+
 ### Main Branch (Production)
-- **Trigger**: Push to `main` branch
+- **Trigger**: Merge to `main` branch (after PR approval and all checks pass)
 - **Actions**:
-  1. Run all tests and quality checks
+  1. Run all tests and quality checks (already passed in PR)
   2. Deploy frontend to Vercel (production)
   3. Deploy backend to Railway/Render (production)
   4. Send notification (if configured)
@@ -124,32 +137,82 @@ SLACK_WEBHOOK=your-slack-webhook-url
   2. Deploy to staging environment
   3. Comment on PR with staging URLs
 
-### Pull Requests
-- **Trigger**: Open/update PR to `main` or `develop`
-- **Actions**:
-  1. Run comprehensive quality checks
-  2. Security scanning
-  3. Performance analysis
-  4. Build verification
+### Branch Protection
+- **Direct pushes to main**: ❌ Blocked
+- **Required status checks**: ✅ All must pass
+- **Required reviews**: ✅ At least 1 approval
+- **Required conversation resolution**: ✅ All discussions resolved
+
+## 🛡️ Branch Protection Setup
+
+To enable branch protection and require code review:
+
+1. **Follow the setup guide**: See `.github/BRANCH_PROTECTION_SETUP.md` for detailed instructions
+2. **Configure required status checks**:
+   - `Backend Tests`
+   - `Frontend Tests`
+   - `E2E Tests`
+   - `Security Scan`
+   - `Build Verification`
+   - `PR Checks Summary`
+3. **Set up code owners**: The `.github/CODEOWNERS` file automatically assigns reviewers
+
+## 📝 Development Workflow
+
+### For Contributors:
+1. **Create feature branch**: `git checkout -b feature/your-feature-name`
+2. **Make changes**: Commit frequently with clear messages [[memory:7940605]]
+3. **Push branch**: `git push origin feature/your-feature-name`
+4. **Create pull request**: Target the `main` branch
+5. **Wait for checks**: All automated tests must pass
+6. **Request review**: Code owners will be automatically assigned
+7. **Address feedback**: Make requested changes and push updates
+8. **Merge after approval**: Once approved and all checks pass
+
+### For Reviewers:
+- Review code quality, logic, and security
+- Check that tests cover new functionality
+- Ensure documentation is updated
+- Approve only when satisfied with the changes
 
 ## 🛠️ Workflow Files
 
 The following GitHub Actions workflows are configured:
 
+### `.github/workflows/pr-checks.yml`
+- **Purpose**: Comprehensive testing and validation for pull requests
+- **Triggers**: Pull requests to `main` or `develop` branches
+- **Jobs**:
+  - Backend Tests (Python unit tests, linting, security)
+  - Frontend Tests (JavaScript/React unit tests, linting)
+  - E2E Tests (End-to-end testing with Playwright)
+  - Security Scan (Vulnerability scanning)
+  - Build Verification (Ensures both frontend and backend build)
+  - PR Checks Summary (Overall status summary)
+
 ### `.github/workflows/deploy.yml`
-- Main deployment workflow
-- Handles production deployments
-- Includes testing, building, and deployment steps
+- **Purpose**: Production deployment after PR approval
+- **Triggers**: Push to `main` branch (after merge)
+- **Jobs**:
+  - Test (Re-runs all tests for final verification)
+  - Deploy Frontend (Vercel production deployment)
+  - Deploy Backend (Railway/Render production deployment)
+  - Notify (Slack notifications)
 
 ### `.github/workflows/quality-checks.yml`
-- Quality assurance workflow
-- Security scanning, linting, and testing
-- Runs on PRs and pushes
+- **Purpose**: Additional quality assurance checks
+- **Triggers**: Pull requests and pushes to main/develop
+- **Jobs**: Security scanning, linting, build verification, performance checks
+
+### `.github/workflows/test.yml`
+- **Purpose**: Comprehensive test suite execution
+- **Triggers**: Pull requests and pushes to main/develop/feature branches
+- **Jobs**: Backend tests, frontend tests, E2E tests, security scanning
 
 ### `.github/workflows/staging.yml`
-- Staging deployment workflow
-- Deploys feature branches to staging
-- Comments on PRs with staging URLs
+- **Purpose**: Staging deployment for feature branches
+- **Triggers**: Push to develop or feature/* branches
+- **Jobs**: Deploy to staging environment, comment on PR with staging URLs
 
 ## 🔍 Monitoring and Notifications
 

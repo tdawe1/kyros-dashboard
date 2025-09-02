@@ -1,0 +1,32 @@
+# Global code owners - these users will be requested for review on all changes
+* @thomas
+
+# Backend code
+/backend/ @thomas
+/backend/**/*.py @thomas
+
+# Frontend code
+/frontend/ @thomas
+/frontend/**/*.js @thomas
+/frontend/**/*.jsx @thomas
+/frontend/**/*.ts @thomas
+/frontend/**/*.tsx @thomas
+
+# Documentation
+/docs/ @thomas
+*.md @thomas
+
+# GitHub workflows and configuration
+/.github/ @thomas
+/.github/**/* @thomas
+
+# Docker and deployment files
+Dockerfile* @thomas
+docker-compose*.yml @thomas
+*.yaml @thomas
+*.yml @thomas
+
+# Configuration files
+package.json @thomas
+requirements.txt @thomas
+pyproject.toml @thomas
