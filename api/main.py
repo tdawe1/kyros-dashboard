@@ -17,6 +17,9 @@ from utils.token_storage import save_job_record, get_token_usage
 from middleware.rate_limiter import rate_limit_middleware
 from generator import generate_content
 
+# Import tool routers
+from tools.repurposer.router import router as repurposer_router
+
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -45,6 +48,13 @@ app = FastAPI(title="Kyros Repurposer API", version="1.0.0")
 
 # Add rate limiting middleware
 app.middleware("http")(rate_limit_middleware)
+
+# Register tool routers
+app.include_router(
+    repurposer_router, prefix="/api/tools/repurposer", tags=["repurposer"]
+)
+# Backwards compatibility - keep the old /api/generate endpoint
+app.include_router(repurposer_router, prefix="/api", tags=["repurposer"])
 
 # CORS middleware
 app.add_middleware(
