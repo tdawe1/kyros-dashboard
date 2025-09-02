@@ -6,6 +6,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import and_
+from uuid import UUID
 
 from .service import SchedulerService
 from .schemas import (
@@ -80,8 +81,13 @@ async def get_schedule_detail(
     job_id: str, user_id: str = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """Get detailed information about a scheduled job."""
+    try:
+        job_uuid = UUID(job_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid job ID format")
+
     service = SchedulerService(db)
-    detail = service.get_schedule_detail(job_id, user_id)
+    detail = service.get_schedule_detail(job_uuid, user_id)
 
     if not detail:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -97,8 +103,13 @@ async def update_schedule(
     db: Session = Depends(get_db),
 ):
     """Update a scheduled job."""
+    try:
+        job_uuid = UUID(job_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid job ID format")
+
     service = SchedulerService(db)
-    job, error = service.update_scheduled_job(job_id, user_id, request)
+    job, error = service.update_scheduled_job(job_uuid, user_id, request)
 
     if error:
         raise HTTPException(status_code=400, detail=error)
@@ -114,8 +125,13 @@ async def delete_schedule(
     job_id: str, user_id: str = Depends(get_current_user), db: Session = Depends(get_db)
 ):
     """Delete a scheduled job."""
+    try:
+        job_uuid = UUID(job_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid job ID format")
+
     service = SchedulerService(db)
-    success = service.delete_scheduled_job(job_id, user_id)
+    success = service.delete_scheduled_job(job_uuid, user_id)
 
     if not success:
         raise HTTPException(status_code=404, detail="Job not found")
@@ -131,8 +147,13 @@ async def run_job_now(
     db: Session = Depends(get_db),
 ):
     """Run a scheduled job immediately."""
+    try:
+        job_uuid = UUID(job_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid job ID format")
+
     service = SchedulerService(db)
-    run, error = service.run_job_now(job_id, user_id, request.idempotency_key)
+    run, error = service.run_job_now(job_uuid, user_id, request.idempotency_key)
 
     if error:
         raise HTTPException(status_code=400, detail=error)
@@ -141,7 +162,7 @@ async def run_job_now(
         raise HTTPException(status_code=404, detail="Job not found")
 
     return RunNowResponse(
-        run_id=str(run.id),
+        run_id=run.id,
         status=run.status,
         message="Job queued for immediate execution",
         estimated_completion=None,  # TODO: Calculate based on queue length
@@ -157,8 +178,13 @@ async def list_job_runs(
     db: Session = Depends(get_db),
 ):
     """List runs for a specific scheduled job."""
+    try:
+        job_uuid = UUID(job_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid job ID format")
+
     service = SchedulerService(db)
-    runs, total = service.get_job_runs(job_id, user_id, page, page_size)
+    runs, total = service.get_job_runs(job_uuid, user_id, page, page_size)
 
     return JobRunsListResponse(
         runs=[JobRunResponse.model_validate(run) for run in runs],
@@ -176,17 +202,23 @@ async def get_job_run(
     db: Session = Depends(get_db),
 ):
     """Get details of a specific job run."""
+    try:
+        job_uuid = UUID(job_id)
+        run_uuid = UUID(run_id)
+    except ValueError:
+        raise HTTPException(status_code=400, detail="Invalid ID format")
+
     service = SchedulerService(db)
 
     # Verify the job belongs to the user
-    job = service.get_scheduled_job(job_id, user_id)
+    job = service.get_scheduled_job(job_uuid, user_id)
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
 
     # Get the run
     run = (
         db.query(JobRun)
-        .filter(and_(JobRun.id == run_id, JobRun.scheduled_job_id == job_id))
+        .filter(and_(JobRun.id == run_uuid, JobRun.scheduled_job_id == job_uuid))
         .first()
     )
 

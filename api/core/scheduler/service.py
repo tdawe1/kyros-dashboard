@@ -5,7 +5,8 @@ Business logic service for the scheduler system.
 from datetime import datetime, timedelta
 from typing import Optional, List, Tuple
 from sqlalchemy.orm import Session
-from sqlalchemy import and_, desc, func
+from sqlalchemy import and_, desc, func, case
+from uuid import UUID
 
 from .models import ScheduledJob, JobRun, IdempotencyKey
 from .schemas import (
@@ -130,7 +131,7 @@ class SchedulerService:
 
         return jobs, total
 
-    def get_scheduled_job(self, job_id: str, user_id: str) -> Optional[ScheduledJob]:
+    def get_scheduled_job(self, job_id: UUID, user_id: str) -> Optional[ScheduledJob]:
         """Get a specific scheduled job."""
         return (
             self.db.query(ScheduledJob)
@@ -141,7 +142,7 @@ class SchedulerService:
         )
 
     def update_scheduled_job(
-        self, job_id: str, user_id: str, request: UpdateScheduleRequest
+        self, job_id: UUID, user_id: str, request: UpdateScheduleRequest
     ) -> Tuple[Optional[ScheduledJob], Optional[str]]:
         """Update a scheduled job."""
         job = self.get_scheduled_job(job_id, user_id)
@@ -175,7 +176,7 @@ class SchedulerService:
         self.db.commit()
         return job, None
 
-    def delete_scheduled_job(self, job_id: str, user_id: str) -> bool:
+    def delete_scheduled_job(self, job_id: UUID, user_id: str) -> bool:
         """Delete a scheduled job."""
         job = self.get_scheduled_job(job_id, user_id)
         if not job:
@@ -186,7 +187,7 @@ class SchedulerService:
         return True
 
     def run_job_now(
-        self, job_id: str, user_id: str, idempotency_key: Optional[str] = None
+        self, job_id: UUID, user_id: str, idempotency_key: Optional[str] = None
     ) -> Tuple[Optional[JobRun], Optional[str]]:
         """Run a scheduled job immediately."""
         job = self.get_scheduled_job(job_id, user_id)
@@ -232,7 +233,7 @@ class SchedulerService:
         return run, None
 
     def get_job_runs(
-        self, job_id: str, user_id: str, page: int = 1, page_size: int = 20
+        self, job_id: UUID, user_id: str, page: int = 1, page_size: int = 20
     ) -> Tuple[List[JobRun], int]:
         """Get paginated list of job runs."""
         query = (
@@ -254,7 +255,7 @@ class SchedulerService:
         return runs, total
 
     def get_schedule_detail(
-        self, job_id: str, user_id: str
+        self, job_id: UUID, user_id: str
     ) -> Optional[ScheduleDetailResponse]:
         """Get detailed information about a scheduled job."""
         job = self.get_scheduled_job(job_id, user_id)
@@ -269,10 +270,10 @@ class SchedulerService:
             self.db.query(
                 func.count(JobRun.id).label("total_runs"),
                 func.sum(
-                    func.case([(JobRun.status == RunStatus.SUCCESS.value, 1)], else_=0)
+                    case((JobRun.status == RunStatus.SUCCESS.value, 1), else_=0)
                 ).label("successful_runs"),
                 func.sum(
-                    func.case([(JobRun.status == RunStatus.FAILED.value, 1)], else_=0)
+                    case((JobRun.status == RunStatus.FAILED.value, 1), else_=0)
                 ).label("failed_runs"),
                 func.sum(JobRun.token_usage).label("total_tokens"),
             )
