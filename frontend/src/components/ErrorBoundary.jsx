@@ -1,6 +1,6 @@
 import React from 'react'
 import { AlertTriangle, RefreshCw } from 'lucide-react'
-import { captureException } from '../lib/sentry'
+import { captureException } from '../lib/sentry.js'
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
