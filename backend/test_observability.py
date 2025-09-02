@@ -4,24 +4,26 @@ Test script for observability features:
 - Sentry error reporting with job_id context
 - Token usage logging and persistence
 """
-import os
-import sys
 import asyncio
 import logging
+import os
+import sys
+
+import sentry_sdk
 
 # Add the api directory to the path
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-from utils.token_storage import (
-    save_token_usage,
-    get_token_usage,
-    save_job_record,
-    get_job_record,
-    get_token_usage_stats,
+# Import after path modification
+from generator import generate_content  # noqa: E402
+from utils.token_storage import (  # noqa: E402
     clear_all_data,
+    get_job_record,
+    get_token_usage,
+    get_token_usage_stats,
+    save_job_record,
+    save_token_usage,
 )
-from generator import generate_content
-import sentry_sdk
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
