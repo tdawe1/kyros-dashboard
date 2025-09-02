@@ -22,6 +22,7 @@ const iconMap = {
 // Static navigation items
 const staticNavigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
+  { name: 'Studio', href: '/studio', icon: FileText },
   { name: 'Job Monitor', href: '/jobs', icon: Monitor },
   { name: 'Analytics', href: '/analytics', icon: BarChart3 },
   { name: 'Settings', href: '/settings', icon: Settings },

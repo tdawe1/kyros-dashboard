@@ -35,11 +35,11 @@ class TestToolsRegistry:
 
     def test_get_tool_metadata_existing(self):
         """Test getting metadata for an existing tool."""
-        metadata = get_tool_metadata("repurposer")
+        metadata = get_tool_metadata("hello")
 
         assert metadata is not None
-        assert metadata["name"] == "repurposer"
-        assert metadata["title"] == "Content Repurposer"
+        assert metadata["name"] == "hello"
+        assert metadata["title"] == "Hello World"
         assert metadata["enabled"] is True
 
     def test_get_tool_metadata_nonexistent(self):
@@ -49,7 +49,7 @@ class TestToolsRegistry:
 
     def test_is_tool_enabled_existing(self):
         """Test checking if an existing tool is enabled."""
-        assert is_tool_enabled("repurposer") is True
+        assert is_tool_enabled("hello") is True
 
     def test_is_tool_enabled_nonexistent(self):
         """Test checking if a non-existent tool is enabled."""
@@ -58,13 +58,13 @@ class TestToolsRegistry:
     def test_enable_tool_existing(self):
         """Test enabling an existing tool."""
         # First disable it
-        disable_tool("repurposer")
-        assert is_tool_enabled("repurposer") is False
+        disable_tool("hello")
+        assert is_tool_enabled("hello") is False
 
         # Then enable it
-        result = enable_tool("repurposer")
+        result = enable_tool("hello")
         assert result is True
-        assert is_tool_enabled("repurposer") is True
+        assert is_tool_enabled("hello") is True
 
     def test_enable_tool_nonexistent(self):
         """Test enabling a non-existent tool."""
@@ -73,12 +73,12 @@ class TestToolsRegistry:
 
     def test_disable_tool_existing(self):
         """Test disabling an existing tool."""
-        result = disable_tool("repurposer")
+        result = disable_tool("hello")
         assert result is True
-        assert is_tool_enabled("repurposer") is False
+        assert is_tool_enabled("hello") is False
 
         # Re-enable for other tests
-        enable_tool("repurposer")
+        enable_tool("hello")
 
     def test_disable_tool_nonexistent(self):
         """Test disabling a non-existent tool."""
@@ -110,10 +110,10 @@ class TestToolsRegistry:
     def test_add_tool_duplicate(self):
         """Test adding a tool that already exists."""
         tool_config = {
-            "name": "repurposer",  # Already exists
-            "module": "tools.repurposer",
+            "name": "hello",  # Already exists
+            "module": "tools.hello",
             "router": "router",
-            "title": "Duplicate Repurposer",
+            "title": "Duplicate Hello",
             "description": "A duplicate tool",
         }
 
@@ -190,17 +190,17 @@ class TestToolsRegistry:
     @patch("tools.registry.importlib.import_module")
     def test_load_tool_routers_disabled_tool(self, mock_import):
         """Test that disabled tools are not loaded."""
-        # Disable repurposer tool
-        disable_tool("repurposer")
+        # Disable hello tool
+        disable_tool("hello")
 
         routers = load_tool_routers()
 
-        # Check that repurposer router is not in the list
+        # Check that hello router is not in the list
         router_names = [name for name, _ in routers]
-        assert "repurposer" not in router_names
+        assert "hello" not in router_names
 
         # Re-enable for other tests
-        enable_tool("repurposer")
+        enable_tool("hello")
 
     def test_tools_constant_structure(self):
         """Test that TOOLS constant has the expected structure."""

@@ -14,7 +14,7 @@ VALID_MODELS = ["gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-4o-mini"]
 def demo_responses():
     return {
         "linkedin": [
-            "💡 Want to save 4 hours a week on content? Our repurposer turns a single blog into LinkedIn-ready posts in seconds. #AI #Productivity",
+            "💡 Want to save 4 hours a week on content? Our Studio turns a single blog into LinkedIn-ready posts in seconds. #AI #Productivity",
             "Consistency builds trust. With our tool, one draft = weeks of content. Simple, efficient, effective.",
             "From blog to boardroom: see how automation can keep your message aligned across every platform.",
         ],
