@@ -146,3 +146,7 @@ dump.rdb
 config.local.js
 config.local.json
 .vercel
+
+# Project archives
+*.zip
+kyros-dashboard-project.zip
