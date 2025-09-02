@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import { FileText, Settings, Download, Sparkles } from 'lucide-react'
 import { useGenerate } from '../hooks/useGenerate'
+import { useToast } from '../hooks/useToast'
 import VariantsGallery from '../ui/VariantsGallery'
+import { CHANNELS, TONES, PRESETS, VALIDATION_RULES } from '../constants'
 
 export default function Studio() {
   const [inputText, setInputText] = useState('')
@@ -9,28 +11,10 @@ export default function Studio() {
   const [selectedTone, setSelectedTone] = useState('professional')
   const [selectedPreset, setSelectedPreset] = useState('default')
   const [generatedVariants, setGeneratedVariants] = useState(null)
+  const [errors, setErrors] = useState({})
+  
   const generateMutation = useGenerate()
-
-  const channels = [
-    { id: 'linkedin', name: 'LinkedIn', icon: '💼' },
-    { id: 'twitter', name: 'Twitter', icon: '🐦' },
-    { id: 'newsletter', name: 'Newsletter', icon: '📧' },
-    { id: 'blog', name: 'Blog', icon: '📝' }
-  ]
-
-  const tones = [
-    { id: 'professional', name: 'Professional' },
-    { id: 'casual', name: 'Casual' },
-    { id: 'technical', name: 'Technical' },
-    { id: 'creative', name: 'Creative' }
-  ]
-
-  const presets = [
-    { id: 'default', name: 'Default' },
-    { id: 'marketing', name: 'Marketing' },
-    { id: 'technical', name: 'Technical' },
-    { id: 'newsletter', name: 'Newsletter' }
-  ]
+  const toast = useToast()
 
   const handleChannelToggle = (channelId) => {
     setSelectedChannels(prev => 
@@ -40,9 +24,28 @@ export default function Studio() {
     )
   }
 
+  const validateForm = () => {
+    const newErrors = {}
+    
+    if (inputText.length < VALIDATION_RULES.MIN_INPUT_LENGTH) {
+      newErrors.inputText = `Please enter at least ${VALIDATION_RULES.MIN_INPUT_LENGTH} characters for better results.`
+    }
+    
+    if (inputText.length > VALIDATION_RULES.MAX_INPUT_LENGTH) {
+      newErrors.inputText = `Input text cannot exceed ${VALIDATION_RULES.MAX_INPUT_LENGTH} characters.`
+    }
+    
+    if (selectedChannels.length === 0) {
+      newErrors.channels = 'Please select at least one channel.'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleGenerate = async () => {
-    if (inputText.length < 100) {
-      alert('Please enter at least 100 characters for better results.')
+    if (!validateForm()) {
+      toast.error('Please fix the errors before generating content.')
       return
     }
     
@@ -59,9 +62,15 @@ export default function Studio() {
         job_id: result.job_id,
         variants: result.variants
       }])
+      
+      toast.success('Content generated successfully!', {
+        description: `Created variants for ${selectedChannels.length} channel(s)`
+      })
     } catch (error) {
       console.error('Generation failed:', error)
-      alert('Failed to generate content. Please try again.')
+      toast.error('Failed to generate content. Please try again.', {
+        description: error.message
+      })
     }
   }
 
@@ -93,7 +102,7 @@ export default function Studio() {
           <div className="bg-navy-800 rounded-lg p-6 border border-navy-700">
             <h3 className="text-lg font-semibold text-white mb-4">Target Channels</h3>
             <div className="grid grid-cols-2 gap-3">
-              {channels.map((channel) => (
+              {CHANNELS.map((channel) => (
                 <button
                   key={channel.id}
                   onClick={() => handleChannelToggle(channel.id)}
@@ -119,7 +128,7 @@ export default function Studio() {
           <div className="bg-navy-800 rounded-lg p-6 border border-navy-700">
             <h3 className="text-lg font-semibold text-white mb-4">Tone & Style</h3>
             <div className="space-y-2">
-              {tones.map((tone) => (
+              {TONES.map((tone) => (
                 <button
                   key={tone.id}
                   onClick={() => setSelectedTone(tone.id)}
@@ -139,7 +148,7 @@ export default function Studio() {
           <div className="bg-navy-800 rounded-lg p-6 border border-navy-700">
             <h3 className="text-lg font-semibold text-white mb-4">Preset</h3>
             <div className="space-y-2">
-              {presets.map((preset) => (
+              {PRESETS.map((preset) => (
                 <button
                   key={preset.id}
                   onClick={() => setSelectedPreset(preset.id)}
