@@ -1,14 +1,12 @@
 import os
 import logging
 from typing import Dict, List, Any, Optional
-from openai import OpenAI
-import sentry_sdk
+from core.openai_client import get_openai_client, OpenAIError
+from core.logging import get_job_logger
 from utils.token_storage import save_token_usage
 
 logger = logging.getLogger(__name__)
-
-# Valid models whitelist
-VALID_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini"]
+job_logger = get_job_logger()
 
 
 def demo_responses():
@@ -84,8 +82,7 @@ async def generate_content_real(
     """
     Generate real content using OpenAI API.
     """
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-
+    client = get_openai_client()
     variants = {}
 
     for channel in channels:
@@ -126,8 +123,7 @@ Requirements:
         )
 
         try:
-            response = client.chat.completions.create(
-                model=model,
+            response = client.chat_completion(
                 messages=[
                     {
                         "role": "system",
@@ -135,12 +131,15 @@ Requirements:
                     },
                     {"role": "user", "content": prompt},
                 ],
+                model=model,
                 max_tokens=1000,
                 temperature=0.7,
+                job_id=job_id,
+                tool_name="repurposer",
             )
 
             # Parse the response and create variants
-            content = response.choices[0].message.content
+            content = response["content"]
             channel_variants = []
 
             # Split content by common separators and create variants
@@ -174,21 +173,23 @@ Requirements:
             variants[channel] = channel_variants
 
             # Save token usage
-            if response.usage:
+            if response.get("usage"):
                 save_token_usage(
                     job_id=job_id,
-                    token_usage={
-                        "prompt_tokens": response.usage.prompt_tokens,
-                        "completion_tokens": response.usage.completion_tokens,
-                        "total_tokens": response.usage.total_tokens,
-                    },
+                    token_usage=response["usage"],
                     model=model,
                     channel=channel,
                 )
 
-        except Exception as e:
+        except OpenAIError as e:
             logger.error(f"OpenAI API error for channel {channel}: {str(e)}")
-            sentry_sdk.capture_exception(e)
+            job_logger.log_job_error(
+                job_id=job_id,
+                tool_name="repurposer",
+                user_id="unknown",
+                error=e,
+                error_context={"channel": channel, "model": model},
+            )
             # Fallback to demo content
             variants[channel] = get_demo_variants(input_text, [channel], tone)[channel]
 
@@ -211,10 +212,11 @@ async def generate_content(
     # Use provided model or fallback to default
     selected_model = model or default_model
 
-    # Validate model
-    if selected_model not in VALID_MODELS:
+    # Validate model using core service
+    client = get_openai_client()
+    if not client.validate_model(selected_model):
         raise ValueError(
-            f"Invalid model: {selected_model}. Must be one of {VALID_MODELS}"
+            f"Invalid model: {selected_model}. Must be one of {client.VALID_MODELS}"
         )
 
     if api_mode == "demo":

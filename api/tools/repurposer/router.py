@@ -3,8 +3,8 @@ from typing import List
 import uuid
 import os
 import logging
-import sentry_sdk
 from datetime import datetime
+from core.logging import get_job_logger
 
 from .schemas import (
     GenerateRequest,
@@ -20,6 +20,7 @@ from utils.token_utils import validate_input_limits, get_token_usage_stats
 from utils.token_storage import save_job_record, get_token_usage
 
 logger = logging.getLogger(__name__)
+job_logger = get_job_logger()
 
 router = APIRouter()
 
@@ -91,24 +92,19 @@ async def generate_content_endpoint(request: GenerateRequest):
 
     # 4. Generate job ID and process content
     job_id = str(uuid.uuid4())
-    logger.info(f"Processing repurposer job {job_id} for user {request.user_id}")
 
-    # Set Sentry context for this job
-    with sentry_sdk.configure_scope() as scope:
-        scope.set_tag("job_id", job_id)
-        scope.set_tag("user_id", request.user_id)
-        scope.set_tag("tool", "repurposer")
-        scope.set_tag(
-            "model", request.model or os.getenv("DEFAULT_MODEL", "gpt-4o-mini")
-        )
-        scope.set_context(
-            "job_details",
-            {
-                "channels": request.channels,
-                "tone": request.tone,
-                "input_length": len(request.input_text),
-            },
-        )
+    # Log job start using core logging service
+    job_logger.log_job_start(
+        job_id=job_id,
+        tool_name="repurposer",
+        user_id=request.user_id,
+        job_details={
+            "channels": request.channels,
+            "tone": request.tone,
+            "input_length": len(request.input_text),
+            "model": request.model or os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
+        },
+    )
 
     # Generate content using the repurposer generator
     try:
@@ -139,9 +135,32 @@ async def generate_content_endpoint(request: GenerateRequest):
         }
         save_job_record(job_id, job_record)
 
+        # Log successful job completion
+        job_logger.log_job_success(
+            job_id=job_id,
+            tool_name="repurposer",
+            user_id=request.user_id,
+            result_summary={
+                "channels_processed": len(variants),
+                "total_variants": sum(len(v) for v in variants.values()),
+                "model_used": request.model
+                or os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
+            },
+        )
+
     except Exception as e:
         logger.error(f"Content generation failed for repurposer job {job_id}: {str(e)}")
-        sentry_sdk.capture_exception(e)
+        job_logger.log_job_error(
+            job_id=job_id,
+            tool_name="repurposer",
+            user_id=request.user_id,
+            error=e,
+            error_context={
+                "channels": request.channels,
+                "tone": request.tone,
+                "input_length": len(request.input_text),
+            },
+        )
         raise HTTPException(
             status_code=500,
             detail={"error": "Content generation failed", "message": str(e)},
