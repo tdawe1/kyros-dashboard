@@ -205,7 +205,12 @@ cd api && python -c "import main; print('API imports successfully')"
 
 # Check environment variables
 echo $VITE_API_BASE_URL
-echo $OPENAI_API_KEY
+# Check if OPENAI_API_KEY is set (without exposing the value)
+if [ -n "$OPENAI_API_KEY" ]; then
+  echo "✅ OPENAI_API_KEY is configured"
+else
+  echo "❌ OPENAI_API_KEY is not set"
+fi
 
 # Test API locally
 cd api && uvicorn main:app --reload
@@ -227,6 +232,10 @@ cd api && uvicorn main:app --reload
 - Pre-commit hooks prevent accidental secret commits
 - Security scanning runs on every PR
 - Production deployments require main branch merge
+- **Important**: VITE_* values are baked into the client bundle and must never contain secrets
+- Store sensitive values only on the server or in backend-only environment variables
+- Use server-side endpoints, GitHub secrets, or runtime server envs for secrets
+- Use .env.local for local development only (never commit to version control)
 
 ## 📈 Performance Optimization
 

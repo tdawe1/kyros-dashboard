@@ -8,7 +8,7 @@ from utils.token_storage import save_token_usage
 logger = logging.getLogger(__name__)
 
 # Valid models whitelist
-VALID_MODELS = ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini"]
+VALID_MODELS = ["gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-4o-mini"]
 
 
 def demo_responses():
@@ -32,6 +32,20 @@ Most small businesses spend too long rewriting the same idea for multiple channe
 Our new tool takes one blog post and transforms it into LinkedIn updates, tweets, and even a newsletter draft.
 
 👉 Save hours. Stay consistent. Focus on growth."""
+        ],
+        "blog": [
+            """# The Future of Content Creation: How AI is Transforming Marketing
+
+## Introduction
+In today's fast-paced digital landscape, content creators face an unprecedented challenge: producing high-quality, engaging content across multiple platforms while maintaining consistency and brand voice.
+
+## Key Points
+- **Efficiency**: AI-powered tools can reduce content creation time by up to 70%
+- **Consistency**: Automated repurposing ensures brand voice remains consistent across channels
+- **Scalability**: One piece of content can generate dozens of variations for different platforms
+
+## Conclusion
+The integration of AI in content creation isn't about replacing human creativity—it's about amplifying it. By leveraging these tools, creators can focus on strategy and storytelling while AI handles the repetitive tasks."""
         ],
     }
 
@@ -74,7 +88,7 @@ def get_demo_variants(
     return variants
 
 
-async def generate_content_real(
+def generate_content_real(
     input_text: str, channels: List[str], tone: str, model: str, job_id: str
 ) -> Dict[str, List[Dict[str, Any]]]:
     """
@@ -178,7 +192,7 @@ Return as JSON array with objects containing: text, length, readability, tone"""
     return variants
 
 
-async def generate_content(
+def generate_content(
     input_text: str,
     channels: List[str],
     tone: str,
@@ -207,7 +221,7 @@ async def generate_content(
         logger.info(
             f"Generating real content using model {selected_model} for channels: {channels}"
         )
-        return await generate_content_real(
+        return generate_content_real(
             input_text, channels, tone, selected_model, job_id or "unknown"
         )
     else:

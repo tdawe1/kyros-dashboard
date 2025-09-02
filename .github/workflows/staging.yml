@@ -14,7 +14,6 @@ jobs:
   # Deploy to staging environment
   deploy-staging:
     runs-on: ubuntu-latest
-    if: github.event_name == 'push'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -39,7 +38,7 @@ jobs:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL_STAGING }}
 
       - name: Deploy frontend to Vercel (Preview)
-        uses: amondnet/vercel-action@v25
+        uses: amondnet/vercel-action@v41.1.4
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
@@ -69,11 +68,11 @@ jobs:
               comment.user.type === 'Bot' && comment.body.includes('Staging deployment')
             );
 
-            const stagingUrl = `https://${process.env.VERCEL_PREVIEW_URL || 'staging.kyros-dashboard.vercel.app'}`;
+            const stagingUrl = `https://${process.env.VERCEL_PREVIEW_URL || '${{ vars.STAGING_FRONTEND_URL }}'}`;
             const commentBody = `🚀 **Staging Deployment Ready!**
 
             **Frontend**: ${stagingUrl}
-            **Backend**: ${process.env.RAILWAY_STAGING_URL || 'staging-api.kyros-dashboard.railway.app'}
+            **Backend**: ${process.env.RAILWAY_STAGING_URL || '${{ vars.STAGING_BACKEND_URL }}'}
 
             This deployment will be automatically updated when you push new commits to this branch.`;
 

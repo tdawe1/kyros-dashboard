@@ -37,11 +37,41 @@ class TokenBucketRateLimiter:
         For now, we'll use IP address.
         """
         # Get real IP address (considering proxies)
-        forwarded_for = request.headers.get("X-Forwarded-For")
+        client_ip = "unknown"
+
+        # Check X-Forwarded-For header (case-insensitive)
+        forwarded_for = None
+        for header_name, header_value in request.headers.items():
+            if header_name.lower() == "x-forwarded-for":
+                forwarded_for = header_value
+                break
+
         if forwarded_for:
-            client_ip = forwarded_for.split(",")[0].strip()
+            # Split on commas, trim whitespace and quotes, take first non-empty token
+            ips = [ip.strip().strip("\"'") for ip in forwarded_for.split(",")]
+            for ip in ips:
+                if ip and ip.lower() != "unknown":
+                    client_ip = ip
+                    break
         else:
-            client_ip = request.client.host if request.client else "unknown"
+            # Check X-Real-IP header
+            real_ip = None
+            for header_name, header_value in request.headers.items():
+                if header_name.lower() == "x-real-ip":
+                    real_ip = header_value
+                    break
+
+            if real_ip and real_ip.lower() != "unknown":
+                client_ip = real_ip
+            else:
+                # Fall back to request.client.host
+                client_ip = request.client.host if request.client else "unknown"
+
+        # Normalize IP string (strip surrounding brackets/zone if present)
+        if client_ip.startswith("[") and "]" in client_ip:
+            client_ip = client_ip[1 : client_ip.index("]")]
+        elif "%" in client_ip:
+            client_ip = client_ip.split("%")[0]
 
         return f"rate_limit:{client_ip}"
 

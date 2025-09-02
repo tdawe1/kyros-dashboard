@@ -106,20 +106,27 @@ jobs:
           python -m uvicorn main:app --host 0.0.0.0 --port 8000 &
           API_PID=$!
 
-          # Wait for API to start
-          sleep 5
+          # Cleanup function
+          cleanup() {
+            if [ ! -z "$API_PID" ]; then
+              kill $API_PID 2>/dev/null || true
+            fi
+          }
+          trap cleanup EXIT INT TERM
 
-          # Test health endpoint
-          if curl -f http://localhost:8000/api/health; then
-            echo "✅ API health check passed"
-          else
-            echo "❌ API health check failed"
-            kill $API_PID
-            exit 1
-          fi
-
-          # Clean up
-          kill $API_PID
+          # Wait for API to start with retry loop
+          echo "Waiting for API to start..."
+          for i in {1..30}; do
+            if curl -fsS http://localhost:8000/api/health >/dev/null 2>&1; then
+              echo "✅ API health check passed"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "❌ API health check failed - timeout after 30 attempts"
+              exit 1
+            fi
+            sleep 1
+          done
 
       - name: Upload build artifacts
         uses: actions/upload-artifact@v3

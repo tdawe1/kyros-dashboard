@@ -144,7 +144,7 @@ if [ "$RUN_BACKEND" = true ]; then
     # Install Python dependencies
     print_status "Installing Python dependencies..."
     if [ -f requirements.txt ]; then
-        pip install -r requirements.txt
+        python3 -m pip install -r requirements.txt
     else
         print_error "requirements.txt not found in api directory"
         exit 1
@@ -223,8 +223,18 @@ fi
 if [ "$RUN_E2E" = true ]; then
     print_status "Running E2E tests..."
 
-    # Check if Playwright is installed
+    # Install API dependencies for E2E
+    print_status "Installing API dependencies for E2E tests..."
+    cd api
+    python3 -m pip install -r requirements.txt
+    cd ..
+
+    # Install UI dependencies for E2E
+    print_status "Installing UI dependencies for E2E tests..."
     cd ui
+    npm ci || npm install
+
+    # Check if Playwright is installed
     if ! npm list @playwright/test >/dev/null 2>&1; then
         print_status "Installing Playwright..."
         npm install @playwright/test

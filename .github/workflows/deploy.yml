@@ -48,7 +48,7 @@ jobs:
       - name: Run frontend tests
         run: |
           cd ui
-          npm test -- --coverage --watchAll=false
+          npm test -- --coverage --watchAll=false --run
 
       - name: Run linting
         run: |
@@ -96,7 +96,7 @@ jobs:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL }}
 
       - name: Deploy to Vercel
-        uses: amondnet/vercel-action@v25
+        uses: amondnet/vercel-action@v41.1.4
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
@@ -137,7 +137,7 @@ jobs:
 
   # Notify deployment status
   notify:
-    needs: [deploy-frontend, deploy-backend]
+    needs: [deploy-frontend, deploy-backend, deploy-backend-render]
     runs-on: ubuntu-latest
     if: always() && github.ref == 'refs/heads/main'
     steps:

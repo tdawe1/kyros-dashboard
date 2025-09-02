@@ -1,6 +1,6 @@
 import React from 'react'
 import { useParams } from 'react-router-dom'
-import { getTool } from '../toolRegistry'
+import { getTool, listTools } from '../toolRegistry'
 
 /**
  * ToolLoader Component
@@ -24,7 +24,7 @@ export default function ToolLoader({ ...props }) {
             The tool "{toolName}" could not be found or is not available.
           </p>
           <div className="text-sm text-gray-500 dark:text-gray-500">
-            Available tools: {getTool ? 'repurposer' : 'none'}
+            Available tools: {listTools().filter(tool => tool.enabled).map(tool => tool.title).join(', ') || 'none'}
           </div>
         </div>
       </div>

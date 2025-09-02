@@ -7,6 +7,7 @@ It includes Sentry integration, structured logging, and job tracking.
 
 import os
 import logging
+import threading
 from typing import Dict, Any, Optional
 import sentry_sdk
 
@@ -68,11 +69,12 @@ class JobLogger:
         )
 
         # Set Sentry context
-        with sentry_sdk.configure_scope() as scope:
-            scope.set_tag("job_id", job_id)
-            scope.set_tag("tool_name", tool_name)
-            scope.set_tag("user_id", user_id)
-            scope.set_context("job_details", job_details)
+        if sentry_sdk.Hub.current.client is not None:
+            with sentry_sdk.configure_scope() as scope:
+                scope.set_tag("job_id", job_id)
+                scope.set_tag("tool_name", tool_name)
+                scope.set_tag("user_id", user_id)
+                scope.set_context("job_details", job_details)
 
     def log_job_success(
         self,
@@ -134,15 +136,16 @@ class JobLogger:
         )
 
         # Capture in Sentry
-        with sentry_sdk.configure_scope() as scope:
-            scope.set_tag("job_id", job_id)
-            scope.set_tag("tool_name", tool_name)
-            scope.set_tag("user_id", user_id)
-            scope.set_tag("error_type", type(error).__name__)
-            if error_context:
-                scope.set_context("error_context", error_context)
+        if sentry_sdk.Hub.current.client is not None:
+            with sentry_sdk.configure_scope() as scope:
+                scope.set_tag("job_id", job_id)
+                scope.set_tag("tool_name", tool_name)
+                scope.set_tag("user_id", user_id)
+                scope.set_tag("error_type", type(error).__name__)
+                if error_context:
+                    scope.set_context("error_context", error_context)
 
-        sentry_sdk.capture_exception(error)
+            sentry_sdk.capture_exception(error)
 
     def log_tool_usage(
         self,
@@ -194,6 +197,11 @@ class StructuredLogger:
         self.logger.debug(message, extra=kwargs)
 
 
+# Global job logger
+_job_logger: Optional[JobLogger] = None
+_job_logger_lock = threading.Lock()
+
+
 def get_job_logger() -> JobLogger:
     """
     Get the global job logger instance.
@@ -202,8 +210,10 @@ def get_job_logger() -> JobLogger:
         JobLogger instance.
     """
     global _job_logger
-    if "_job_logger" not in globals():
-        _job_logger = JobLogger()
+    if _job_logger is None:
+        with _job_logger_lock:
+            if _job_logger is None:
+                _job_logger = JobLogger()
     return _job_logger
 
 

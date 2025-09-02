@@ -54,7 +54,8 @@ test.describe('Kyros Dashboard - Full Flow', () => {
 
     // Step 7: Verify variants are displayed
     const variantCards = page.locator('[data-testid="variant-card"], .variant-card, [class*="variant"]');
-    await expect(variantCards).toHaveCount.greaterThan(0);
+    const variantCount = await variantCards.count();
+    expect(variantCount).toBeGreaterThan(0);
 
     // Step 8: Select a variant (click accept or select button)
     const firstVariant = variantCards.first();
@@ -92,7 +93,15 @@ test.describe('Kyros Dashboard - Full Flow', () => {
 
     for (const channel of channels) {
       // Clear previous selections
-      await page.uncheck('input[type="checkbox"]');
+      // Uncheck specific checkboxes by targeting the channel selection area
+      const channelCheckboxes = page.locator('[data-testid="channel-select"] input[type="checkbox"], .channel-selection input[type="checkbox"]');
+      const checkboxCount = await channelCheckboxes.count();
+      for (let i = 0; i < checkboxCount; i++) {
+        const checkbox = channelCheckboxes.nth(i);
+        if (await checkbox.isChecked()) {
+          await checkbox.uncheck();
+        }
+      }
 
       // Select current channel
       await page.check(`input[type="checkbox"][value="${channel}"]`);

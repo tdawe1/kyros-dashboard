@@ -1,9 +1,10 @@
 import os
 import logging
+from datetime import datetime
 from typing import Dict, List, Any, Optional
-from core.openai_client import get_openai_client, OpenAIError
-from core.logging import get_job_logger
-from utils.token_storage import save_token_usage
+from ...core.openai_client import get_openai_client, OpenAIError
+from ...core.logging import get_job_logger
+from ...utils.token_storage import save_token_usage
 
 logger = logging.getLogger(__name__)
 job_logger = get_job_logger()
@@ -42,6 +43,7 @@ def get_demo_variants(
     """
     demo_data = demo_responses()
     variants = {}
+    current_utc = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
 
     for channel in channels:
         if channel in demo_data:
@@ -55,7 +57,7 @@ def get_demo_variants(
                     "tone": tone,
                     "word_count": len(content.split()),
                     "character_count": len(content),
-                    "created_at": "2024-01-15T10:30:00Z",
+                    "created_at": current_utc,
                 }
                 channel_variants.append(variant)
             variants[channel] = channel_variants
@@ -69,7 +71,7 @@ def get_demo_variants(
                     "tone": tone,
                     "word_count": 8,
                     "character_count": 50,
-                    "created_at": "2024-01-15T10:30:00Z",
+                    "created_at": current_utc,
                 }
             ]
 
@@ -84,6 +86,7 @@ async def generate_content_real(
     """
     client = get_openai_client()
     variants = {}
+    current_utc = datetime.utcnow().replace(microsecond=0).isoformat() + "Z"
 
     for channel in channels:
         # Channel-specific prompts
@@ -154,7 +157,7 @@ Requirements:
                         "tone": tone,
                         "word_count": len(post.split()),
                         "character_count": len(post),
-                        "created_at": "2024-01-15T10:30:00Z",
+                        "created_at": current_utc,
                     }
                     channel_variants.append(variant)
             else:

@@ -6,6 +6,7 @@ It includes support for docx, pptx, xlsx, and other common formats.
 """
 
 import logging
+import threading
 from typing import Dict, Any, Optional, List, Union
 from pathlib import Path
 
@@ -127,9 +128,28 @@ class TextFileHandler(FileHandler):
             with open(file_path, "r", encoding="utf-8") as f:
                 return f.read()
         except UnicodeDecodeError:
-            # Try with different encoding
-            with open(file_path, "r", encoding="latin-1") as f:
-                return f.read()
+            # Try to detect encoding
+            try:
+                import chardet
+
+                with open(file_path, "rb") as f:
+                    raw_data = f.read()
+                detected = chardet.detect(raw_data)
+                encoding = detected.get("encoding", "latin-1")
+                confidence = detected.get("confidence", 0)
+
+                logger.warning(
+                    f"UTF-8 decode failed for {file_path}, detected encoding: {encoding} (confidence: {confidence:.2f})"
+                )
+
+                with open(file_path, "r", encoding=encoding) as f:
+                    return f.read()
+            except (ImportError, Exception) as detect_error:
+                logger.warning(
+                    f"Encoding detection failed for {file_path}: {detect_error}, falling back to latin-1"
+                )
+                with open(file_path, "r", encoding="latin-1") as f:
+                    return f.read()
 
 
 class DocumentHandler(FileHandler):
@@ -311,6 +331,7 @@ class FileHandlerManager:
 
 # Global file handler manager
 _file_handler_manager = None
+_file_handler_manager_lock = threading.Lock()
 
 
 def get_file_handler_manager() -> FileHandlerManager:
@@ -322,7 +343,9 @@ def get_file_handler_manager() -> FileHandlerManager:
     """
     global _file_handler_manager
     if _file_handler_manager is None:
-        _file_handler_manager = FileHandlerManager()
+        with _file_handler_manager_lock:
+            if _file_handler_manager is None:
+                _file_handler_manager = FileHandlerManager()
     return _file_handler_manager
 
 
