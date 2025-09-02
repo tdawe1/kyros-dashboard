@@ -17,7 +17,8 @@ from utils.token_storage import save_job_record, get_token_usage
 from middleware.rate_limiter import rate_limit_middleware
 from generator import generate_content
 
-# Import tool routers
+# Import tools registry
+from tools.registry import load_tool_routers, get_tools_metadata, get_tool_metadata
 from tools.repurposer.router import router as repurposer_router
 
 # Configure logging
@@ -49,11 +50,12 @@ app = FastAPI(title="Kyros Repurposer API", version="1.0.0")
 # Add rate limiting middleware
 app.middleware("http")(rate_limit_middleware)
 
-# Register tool routers
-app.include_router(
-    repurposer_router, prefix="/api/tools/repurposer", tags=["repurposer"]
-)
-# Backwards compatibility - keep the old /api/generate endpoint
+# Register tool routers dynamically
+for name, router in load_tool_routers():
+    app.include_router(router, prefix=f"/api/tools/{name}", tags=[name])
+    logger.info(f"Registered tool router: {name}")
+
+# Backwards compatibility - keep the old /api/generate endpoint for repurposer
 app.include_router(repurposer_router, prefix="/api", tags=["repurposer"])
 
 # CORS middleware
@@ -166,6 +168,24 @@ async def get_config():
         "default_model": os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
         "valid_models": ["gpt-4o-mini", "gpt-4o", "gpt-4.1", "gpt-4.1-mini"],
     }
+
+
+@app.get("/api/tools")
+async def get_tools():
+    """Get list of available tools"""
+    return {
+        "tools": get_tools_metadata(),
+        "total": len(get_tools_metadata()),
+    }
+
+
+@app.get("/api/tools/{tool_name}")
+async def get_tool(tool_name: str):
+    """Get metadata for a specific tool"""
+    tool_metadata = get_tool_metadata(tool_name)
+    if not tool_metadata:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    return tool_metadata
 
 
 @app.get("/api/kpis")
