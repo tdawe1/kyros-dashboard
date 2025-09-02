@@ -76,6 +76,7 @@ export default {
           900: '#134e4a',
           950: '#042f2e',
         },
+        accent: '#0ea5e9',
       },
       backgroundImage: {
         'gradient-kyros': 'linear-gradient(to right, #0ea5e9, #0284c7, #0369a1)',

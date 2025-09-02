@@ -7,8 +7,8 @@ export default function Dashboard() {
     <div className="space-y-6">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">Dashboard</h1>
-        <p className="text-gray-600 dark:text-gray-300">Welcome to your Kyros Repurposer dashboard</p>
+        <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
+        <p className="text-navy-300">Welcome to your Kyros Repurposer dashboard</p>
       </div>
 
       {/* KPI Cards - Full width at top */}
