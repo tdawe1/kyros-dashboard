@@ -8,6 +8,23 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react()],
-    // Remove the define block to let Vite handle env variables naturally
+    build: {
+      outDir: 'dist',
+      assetsDir: 'assets',
+      sourcemap: false,
+      rollupOptions: {
+        output: {
+          manualChunks: undefined,
+        },
+      },
+    },
+    server: {
+      port: 3000,
+      host: true,
+    },
+    preview: {
+      port: 3000,
+      host: true,
+    },
   }
 })
