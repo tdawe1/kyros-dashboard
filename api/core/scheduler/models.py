@@ -92,6 +92,7 @@ class JobRun(Base):
     run_result = Column(JSON, nullable=True)  # Output data from the run
     token_usage = Column(Integer, nullable=True)  # Token count for this run
     error = Column(Text, nullable=True)  # Error message if failed
+    task_id = Column(String(255), nullable=True, index=True)  # Celery task ID
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships

@@ -227,8 +227,44 @@ class SchedulerService:
         self.db.add(run)
         self.db.commit()
 
-        # TODO: Queue the job for execution via Celery
-        # This will be implemented when we add Celery integration
+        # Queue the job for execution via Celery
+        try:
+            from .celery_app import celery_app
+            
+            # Determine which task to queue based on the tool
+            if job.tool == "repurposer":
+                task = celery_app.send_task(
+                    "core.scheduler.tasks.repurposer.execute_repurposer_job",
+                    args=[str(job.id), job.input_source, job.options],
+                    task_id=str(run.id)
+                )
+            elif job.tool == "translator":
+                task = celery_app.send_task(
+                    "core.scheduler.tasks.translator.execute_translator_job",
+                    args=[str(job.id), job.input_source, job.options],
+                    task_id=str(run.id)
+                )
+            else:
+                # Default task for other tools
+                task = celery_app.send_task(
+                    "core.scheduler.tasks.execute_scheduled_job",
+                    args=[str(job.id), job.input_source, job.options],
+                    task_id=str(run.id)
+                )
+            
+            # Update run with task ID
+            run.task_id = task.id
+            self.db.commit()
+            
+        except Exception as e:
+            # Log error but don't fail the job creation
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.error(f"Failed to queue job {job.id} for execution: {e}")
+            # Update run status to failed
+            run.status = RunStatus.FAILED.value
+            run.error = f"Failed to queue job: {str(e)}"
+            self.db.commit()
 
         return run, None
 

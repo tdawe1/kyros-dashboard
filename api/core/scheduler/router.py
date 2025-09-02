@@ -61,7 +61,7 @@ async def list_schedules(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Page size"),
     status: Optional[str] = Query(None, description="Filter by status"),
-    user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """List scheduled jobs for the current user."""
@@ -99,7 +99,7 @@ async def get_schedule_detail(
 async def update_schedule(
     job_id: str,
     request: UpdateScheduleRequest,
-    user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """Update a scheduled job."""
@@ -143,7 +143,7 @@ async def delete_schedule(
 async def run_job_now(
     job_id: str,
     request: RunNowRequest,
-    user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """Run a scheduled job immediately."""
@@ -174,7 +174,7 @@ async def list_job_runs(
     job_id: str,
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Page size"),
-    user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """List runs for a specific scheduled job."""
@@ -198,7 +198,7 @@ async def list_job_runs(
 async def get_job_run(
     job_id: str,
     run_id: str,
-    user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """Get details of a specific job run."""

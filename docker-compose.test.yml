@@ -1,54 +1,131 @@
-version: '3.8'
-
+version: "3.8"
 services:
-  # Test API service
-  api-test:
-    build:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: kyros
+      POSTGRES_PASSWORD: kyros_pass
+      POSTGRES_DB: kyros
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
+
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+
+  backend:
+    build: 
       context: ./api
       dockerfile: Dockerfile.test
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - DATABASE_URL=postgresql://kyros:kyros_pass@postgres:5432/kyros
+      - REDIS_URL=redis://redis:6379/0
+      - API_MODE=demo
+      - DEFAULT_MODEL=gpt-4o-mini
+      - JWT_SECRET_KEY=test-secret-key-for-testing-only
+      - ENVIRONMENT=development
+      - RELEASE_VERSION=1.0.0
+      - DEBUG=true
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - RATE_LIMIT_REQUESTS=1000
+      - RATE_LIMIT_WINDOW=3600
+      - RATE_LIMIT_BURST=50
+      - DAILY_JOB_LIMIT=50
+      - MAX_INPUT_CHARACTERS=100000
+      - MAX_TOKENS_PER_JOB=20000
+      - TOKEN_ESTIMATION_FACTOR=1.3
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+    depends_on:
+      - postgres
+      - redis
     ports:
       - "8000:8000"
-    environment:
-      - PYTHONPATH=/app
-      - OPENAI_API_KEY=test-key
-      - DATABASE_URL=sqlite:///./test.db
-      - JWT_SECRET=test-secret-key-for-testing-only
     volumes:
       - ./api:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # Test UI service
-  ui-test:
+  celery_worker:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.test
+    command: celery -A core.scheduler.celery_app worker -Q tool.repurposer,tool.translator -l info --concurrency=2
+    environment:
+      - DATABASE_URL=postgresql://kyros:kyros_pass@postgres:5432/kyros
+      - REDIS_URL=redis://redis:6379/0
+      - API_MODE=demo
+      - DEFAULT_MODEL=gpt-4o-mini
+      - JWT_SECRET_KEY=test-secret-key-for-testing-only
+      - ENVIRONMENT=development
+      - RELEASE_VERSION=1.0.0
+      - DEBUG=true
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - RATE_LIMIT_REQUESTS=1000
+      - RATE_LIMIT_WINDOW=3600
+      - RATE_LIMIT_BURST=50
+      - DAILY_JOB_LIMIT=50
+      - MAX_INPUT_CHARACTERS=100000
+      - MAX_TOKENS_PER_JOB=20000
+      - TOKEN_ESTIMATION_FACTOR=1.3
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+    depends_on:
+      - redis
+      - backend
+    volumes:
+      - ./api:/app
+
+  celery_beat:
+    build:
+      context: ./api
+      dockerfile: Dockerfile.test
+    command: celery -A core.scheduler.celery_app beat -l info
+    environment:
+      - DATABASE_URL=postgresql://kyros:kyros_pass@postgres:5432/kyros
+      - REDIS_URL=redis://redis:6379/0
+      - API_MODE=demo
+      - DEFAULT_MODEL=gpt-4o-mini
+      - JWT_SECRET_KEY=test-secret-key-for-testing-only
+      - ENVIRONMENT=development
+      - RELEASE_VERSION=1.0.0
+      - DEBUG=true
+      - API_HOST=0.0.0.0
+      - API_PORT=8000
+      - RATE_LIMIT_REQUESTS=1000
+      - RATE_LIMIT_WINDOW=3600
+      - RATE_LIMIT_BURST=50
+      - DAILY_JOB_LIMIT=50
+      - MAX_INPUT_CHARACTERS=100000
+      - MAX_TOKENS_PER_JOB=20000
+      - TOKEN_ESTIMATION_FACTOR=1.3
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+    depends_on:
+      - redis
+      - backend
+    volumes:
+      - ./api:/app
+
+  frontend:
     build:
       context: ./ui
       dockerfile: Dockerfile.test
-    ports:
-      - "3000:3000"
+    command: npm run dev -- --host 0.0.0.0
     environment:
       - VITE_API_BASE_URL=http://localhost:8000
+      - VITE_DEBUG=true
+    ports:
+      - "5173:5173"
     volumes:
       - ./ui:/app
       - /app/node_modules
-    command: npm run dev -- --host 0.0.0.0
-    depends_on:
-      - api-test
-
-  # Test database (optional)
-  db-test:
-    image: postgres:15-alpine
-    environment:
-      - POSTGRES_DB=kyros_test
-      - POSTGRES_USER=test
-      - POSTGRES_PASSWORD=test
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_test_data:/var/lib/postgresql/data
 
 volumes:
-  postgres_test_data:
+  pgdata:

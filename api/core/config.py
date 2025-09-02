@@ -5,7 +5,8 @@ Implements secure configuration loading with validation and environment-specific
 
 import logging
 from typing import List, Optional
-from pydantic import BaseSettings, validator, Field
+from pydantic import field_validator, Field
+from pydantic_settings import BaseSettings
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -84,8 +85,8 @@ class Settings(BaseSettings):
     default_model: str = Field(default="gpt-4o-mini", env="DEFAULT_MODEL")
 
     # CORS settings
-    allowed_origins: List[str] = Field(
-        default=["http://localhost:5173", "http://localhost:3000"],
+    allowed_origins: str = Field(
+        default="http://localhost:5173,http://localhost:3000",
         env="ALLOWED_ORIGINS",
     )
 
@@ -101,14 +102,10 @@ class Settings(BaseSettings):
         default=60, env="CIRCUIT_BREAKER_RECOVERY_TIMEOUT"
     )
 
-    @validator("allowed_origins", pre=True)
-    def parse_allowed_origins(cls, v):
-        """Parse comma-separated origins."""
-        if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
-        return v
 
-    @validator("environment", pre=True)
+
+    @field_validator("environment", mode="before")
+    @classmethod
     def validate_environment(cls, v):
         """Validate environment setting."""
         if isinstance(v, str):
@@ -119,7 +116,8 @@ class Settings(BaseSettings):
                 return Environment.DEVELOPMENT
         return v
 
-    @validator("jwt_secret_key")
+    @field_validator("jwt_secret_key")
+    @classmethod
     def validate_jwt_secret(cls, v):
         """Validate JWT secret key."""
         if not v or len(v) < 32:
@@ -129,7 +127,8 @@ class Settings(BaseSettings):
             return secrets.token_urlsafe(32)
         return v
 
-    @validator("openai_api_key")
+    @field_validator("openai_api_key")
+    @classmethod
     def validate_openai_key(cls, v):
         """Validate OpenAI API key format."""
         if v and not v.startswith("sk-"):
@@ -184,12 +183,15 @@ def get_redis_url() -> str:
 
 def get_cors_origins() -> List[str]:
     """Get CORS origins based on environment."""
+    # Parse comma-separated origins
+    origins = [origin.strip() for origin in settings.allowed_origins.split(",")]
+    
     if is_production():
         # In production, only allow specific domains
-        return settings.allowed_origins
+        return origins
     else:
         # In development, allow localhost origins
-        return settings.allowed_origins + [
+        return origins + [
             "http://localhost:3000",
             "http://localhost:5173",
             "http://127.0.0.1:3000",

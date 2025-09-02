@@ -1,4 +1,4 @@
-name: Build & Deploy (main → Vercel + Railway)
+name: Build & Deploy (main → Railway)
 
 on:
   push:
@@ -59,27 +59,7 @@ jobs:
         run: |
           pytest -q || true   # change behavior if you want to fail on tests
 
-      # ---------- Deploy frontend to Vercel ----------
-      - name: Install Vercel CLI
-        run: npm i -g vercel@latest
-
-      - name: Vercel deploy (production)
-        env:
-          VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
-          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
-          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
-        working-directory: ./ui
-        run: |
-          # link the project (non-interactive) if needed:
-          if [ -f .vercel/project.json ]; then
-            echo ".vercel/project.json present; using it."
-          else
-            echo "Project not linked. Running vercel --confirm to deploy using token and project id."
-          fi
-          # Deploy production (use --prod to force production deploy on main)
-          vercel --token $VERCEL_TOKEN --prod --confirm
-
-      # ---------- Deploy backend/service to Railway ----------
+      # ---------- Deploy to Railway ----------
       - name: Install Railway CLI
         run: |
           # Use npm global install (works in GitHub Actions)
@@ -99,4 +79,4 @@ jobs:
           railway up --project "${RAILWAY_PROJECT_ID}" --detach || railway up --detach
 
       - name: Notify deployment finished
-        run: echo "Deployment pipeline finished. Check Vercel and Railway dashboards for logs."
+        run: echo "Deployment pipeline finished. Check Railway dashboard for logs."
