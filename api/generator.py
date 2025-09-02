@@ -2,6 +2,7 @@ import os
 import logging
 from typing import Dict, List, Any, Optional
 from openai import OpenAI
+import sentry_sdk
 
 logger = logging.getLogger(__name__)
 
@@ -168,6 +169,23 @@ Return as JSON array with objects containing: text, length, readability, tone"""
                 temperature=0.7,
             )
 
+            # Log token usage to Sentry and database
+            if hasattr(response, "usage") and response.usage:
+                token_usage = {
+                    "prompt_tokens": response.usage.prompt_tokens,
+                    "completion_tokens": response.usage.completion_tokens,
+                    "total_tokens": response.usage.total_tokens,
+                    "model": model,
+                    "channel": channel,
+                }
+
+                # Log to Sentry for monitoring
+                sentry_sdk.set_context("token_usage", token_usage)
+                logger.info(f"Token usage for {channel}: {token_usage}")
+
+                # TODO: In a real implementation, save to database
+                # await save_token_usage_to_db(job_id, token_usage)
+
             # Parse the response and create variants
             content = response.choices[0].message.content
             # For now, we'll create mock variants with the AI-generated content
@@ -184,6 +202,7 @@ Return as JSON array with objects containing: text, length, readability, tone"""
 
         except Exception as e:
             logger.error(f"OpenAI API error for {channel}: {str(e)}")
+            sentry_sdk.capture_exception(e)
             # Fallback to demo content if API fails
             variants[channel] = get_demo_variants(input_text, [channel], tone)[channel]
 

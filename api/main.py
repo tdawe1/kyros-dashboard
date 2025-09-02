@@ -6,6 +6,9 @@ import uuid
 from datetime import datetime
 import os
 import logging
+import sentry_sdk
+from sentry_sdk.integrations.fastapi import FastApiIntegration
+from sentry_sdk.integrations.logging import LoggingIntegration
 
 # Import our new utilities
 from utils.quotas import can_create_job, get_user_quota_status, reset_user_quota
@@ -16,6 +19,26 @@ from generator import generate_content
 # Configure logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+# Initialize Sentry
+sentry_dsn = os.getenv("SENTRY_DSN")
+if sentry_dsn:
+    sentry_sdk.init(
+        dsn=sentry_dsn,
+        traces_sample_rate=0.1,
+        integrations=[
+            FastApiIntegration(auto_enable=True),
+            LoggingIntegration(
+                level=logging.INFO,  # Capture info and above as breadcrumbs
+                event_level=logging.ERROR,  # Send errors as events
+            ),
+        ],
+        environment=os.getenv("ENVIRONMENT", "development"),
+        release=os.getenv("RELEASE_VERSION", "1.0.0"),
+    )
+    logger.info("Sentry initialized successfully")
+else:
+    logger.warning("SENTRY_DSN not found, Sentry monitoring disabled")
 
 app = FastAPI(title="Kyros Repurposer API", version="1.0.0")
 
@@ -204,6 +227,22 @@ async def generate_content_endpoint(request: GenerateRequest):
     job_id = str(uuid.uuid4())
     logger.info(f"Processing job {job_id} for user {request.user_id}")
 
+    # Set Sentry context for this job
+    with sentry_sdk.configure_scope() as scope:
+        scope.set_tag("job_id", job_id)
+        scope.set_tag("user_id", request.user_id)
+        scope.set_tag(
+            "model", request.model or os.getenv("DEFAULT_MODEL", "gpt-4o-mini")
+        )
+        scope.set_context(
+            "job_details",
+            {
+                "channels": request.channels,
+                "tone": request.tone,
+                "input_length": len(request.input_text),
+            },
+        )
+
     # Generate content using the new generator
     try:
         variants = await generate_content(
@@ -219,7 +258,8 @@ async def generate_content_endpoint(request: GenerateRequest):
                 variant["id"] = f"{job_id}_{channel}_{i+1}"
 
     except Exception as e:
-        logger.error(f"Content generation failed: {str(e)}")
+        logger.error(f"Content generation failed for job {job_id}: {str(e)}")
+        sentry_sdk.capture_exception(e)
         raise HTTPException(
             status_code=500,
             detail={"error": "Content generation failed", "message": str(e)},
