@@ -4,24 +4,25 @@ import StudioPanel from '../ui/StudioPanel'
 
 export default function Dashboard() {
   return (
-    <div className="space-y-8">
-      <div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="mb-8">
         <h1 className="text-3xl font-bold text-white mb-2">Dashboard</h1>
-        <p className="text-navy-300">Welcome to your kyros Repurposer dashboard</p>
+        <p className="text-navy-300">Welcome to your Kyros Repurposer dashboard</p>
       </div>
 
-      {/* KPI Cards */}
+      {/* KPI Cards - Full width at top */}
       <KPICards />
 
-      {/* Main content grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Job Table - takes 2/3 of the width */}
-        <div className="lg:col-span-2">
+      {/* Main content grid - Better proportions */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Recent Jobs - Takes 3/4 width on large screens */}
+        <div className="xl:col-span-3">
           <JobTable />
         </div>
 
-        {/* Studio Panel - takes 1/3 of the width */}
-        <div className="lg:col-span-1">
+        {/* Quick Studio - Takes 1/4 width on large screens */}
+        <div className="xl:col-span-1">
           <StudioPanel />
         </div>
       </div>

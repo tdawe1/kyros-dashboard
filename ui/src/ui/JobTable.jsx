@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronUp, ChevronDown, MoreHorizontal, Play, Pause, Trash2 } from 'lucide-react'
+import { ChevronUp, ChevronDown, MoreHorizontal, Play, Pause, Trash2, FileText } from 'lucide-react'
 import { useJobs } from '../hooks/useJobs'
 
 const statusColors = {
@@ -76,8 +76,15 @@ export default function JobTable() {
           <h3 className="text-lg font-semibold text-white">Recent Jobs</h3>
         </div>
         <div className="p-6">
-          <div className="bg-red-900/20 border border-red-500/20 rounded-lg p-4">
-            <p className="text-red-400">Failed to load jobs</p>
+          <div className="text-center py-12">
+            <div className="w-16 h-16 mx-auto mb-4 bg-navy-700 rounded-full flex items-center justify-center">
+              <FileText className="w-8 h-8 text-navy-400" />
+            </div>
+            <h3 className="text-lg font-medium text-white mb-2">No jobs yet</h3>
+            <p className="text-navy-300 mb-4">Start by creating your first content repurposing job</p>
+            <button className="bg-accent hover:bg-accent/80 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors">
+              Create Job
+            </button>
           </div>
         </div>
       </div>

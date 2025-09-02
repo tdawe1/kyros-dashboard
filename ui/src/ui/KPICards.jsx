@@ -61,8 +61,24 @@ export default function KPICards() {
 
   if (error) {
     return (
-      <div className="bg-red-900/20 border border-red-500/20 rounded-lg p-6 mb-8">
-        <p className="text-red-400">Failed to load KPI data</p>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        {kpiConfig.map((kpi) => {
+          const Icon = kpi.icon
+          return (
+            <div key={kpi.title} className="bg-navy-800 rounded-lg p-6 border border-navy-700">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="text-navy-300 text-sm font-medium">{kpi.title}</p>
+                  <p className="text-2xl font-bold text-white mt-1">--</p>
+                  <p className="text-sm mt-1 text-navy-400">No data available</p>
+                </div>
+                <div className={`${kpi.color} p-3 rounded-lg opacity-50`}>
+                  <Icon className="w-6 h-6 text-white" />
+                </div>
+              </div>
+            </div>
+          )
+        })}
       </div>
     )
   }
