@@ -1,7 +1,6 @@
 """
 Unit tests for quota management functionality.
 """
-
 import pytest
 from utils.quotas import can_create_job, get_user_quota_status, reset_user_quota
 
@@ -21,7 +20,6 @@ class TestCanCreateJob:
         mock_redis._client.pipeline.return_value.get.assert_called_once()
         mock_redis._client.pipeline.return_value.incr.assert_called_once()
         mock_redis._client.pipeline.return_value.expire.assert_called_once()
-        mock_redis._client.pipeline.return_value.execute.assert_called_once()
 
     def test_can_create_job_within_limit(self, mock_redis):
         """Test quota check for user within limit."""

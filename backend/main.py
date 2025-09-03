@@ -214,72 +214,80 @@ except Exception as e:
 @app.post("/api/generate")
 async def generate_simple(request: dict):
     """Simple generate endpoint for basic functionality"""
-    from fastapi.responses import JSONResponse
-
-    def create_error_response(
-        status_code: int, code: str, message: str
-    ) -> JSONResponse:
-        """Helper function to create standardized error responses."""
-        return JSONResponse(
-            status_code=status_code,
-            content={
-                "error": {
-                    "code": code,
-                    "message": message,
-                    "details": {},
-                }
-            },
-        )
-
     try:
-        if not generator:
-            return {"error": "Generator module not available", "status": "demo"}
+        if generator:
+            from generator import generate_content
+            from utils.token_storage import get_token_usage
 
-        # Validate input text
-        input_text = request.get("input_text")
-        if not input_text or len(input_text) < 20:
-            return create_error_response(
-                400, "VALIDATION_ERROR", "Input text too short"
+            input_text = request.get("input_text")
+            if not input_text or len(input_text) < 20:
+                from fastapi.responses import JSONResponse
+
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": {
+                            "code": "VALIDATION_ERROR",
+                            "message": "Input text too short",
+                            "details": {},
+                        }
+                    },
+                )
+            if len(input_text) > 100000:
+                from fastapi.responses import JSONResponse
+
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": {
+                            "code": "VALIDATION_ERROR",
+                            "message": "Input text too long",
+                            "details": {},
+                        }
+                    },
+                )
+
+            if utils_quotas:
+                from utils.quotas import can_create_job
+
+                can_create, _ = can_create_job(request.get("user_id", "anonymous"))
+                if not can_create:
+                    from fastapi.responses import JSONResponse
+
+                    return JSONResponse(
+                        status_code=400,
+                        content={
+                            "error": {
+                                "code": "QUOTA_EXCEEDED",
+                                "message": "Quota exceeded",
+                                "details": {},
+                            }
+                        },
+                    )
+
+            job_id = f"job_{uuid.uuid4()}"
+            variants = await generate_content(
+                input_text=input_text,
+                channels=request.get("channels", ["linkedin"]),
+                tone=request.get("tone", "professional"),
+                model=request.get("model"),
+                job_id=job_id,
             )
-
-        if len(input_text) > 100000:
-            return create_error_response(400, "VALIDATION_ERROR", "Input text too long")
-
-        # Check quotas if available
-        if utils_quotas:
-            from utils.quotas import can_create_job
-
-            can_create, _ = can_create_job(request.get("user_id", "anonymous"))
-            if not can_create:
-                return create_error_response(400, "QUOTA_EXCEEDED", "Quota exceeded")
-
-        # Generate content
-        from generator import generate_content
-        from utils.token_storage import get_token_usage
-
-        job_id = f"job_{uuid.uuid4()}"
-        variants = await generate_content(
-            input_text=input_text,
-            channels=request.get("channels", ["linkedin"]),
-            tone=request.get("tone", "professional"),
-            model=request.get("model"),
-            job_id=job_id,
-        )
-
-        token_usage = get_token_usage(job_id)
-        return {
-            "job_id": job_id,
-            "status": "completed",
-            "variants": variants,
-            "token_usage": token_usage,
-            "model": request.get("model") or os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
-            "api_mode": os.getenv("API_MODE", "demo"),
-        }
-
+            token_usage = get_token_usage(job_id)
+            return {
+                "job_id": job_id,
+                "status": "completed",
+                "variants": variants,
+                "token_usage": token_usage,
+                "model": request.get("model")
+                or os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
+                "api_mode": os.getenv("API_MODE", "demo"),
+            }
+        else:
+            return {"error": "Generator module not available", "status": "demo"}
     except HTTPException as e:
         raise e
     except Exception as e:
-        logger.error(f"Error in generate_simple: {e}")
         return {"error": str(e), "status": "error"}
 
 
