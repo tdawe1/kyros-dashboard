@@ -285,7 +285,7 @@ if [ "$RUN_E2E" = true ]; then
 
     # Run Playwright tests
     print_status "Running Playwright E2E tests..."
-    npx playwright test
+    SKIP_WEBSERVER=1 PLAYWRIGHT_BASE_URL="http://localhost:3001" npx playwright test
 
     if [ $? -eq 0 ]; then
         print_success "E2E tests passed"
