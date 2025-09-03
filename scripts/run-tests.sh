@@ -168,21 +168,29 @@ if [ "$RUN_BACKEND" = true ]; then
 
     # Run tests
     print_status "Running pytest..."
-    if [ "$RUN_COVERAGE" = true ]; then
-        if [ -f "../venv/bin/python" ]; then
-            ../venv/bin/python -m pytest --cov=. --cov-report=term-missing --cov-report=html -v
-        elif [ -f "../venv/bin/pytest" ]; then
-            ../venv/bin/pytest --cov=. --cov-report=term-missing --cov-report=html -v
+    if command_exists poetry && [ -f pyproject.toml ]; then
+        if [ "$RUN_COVERAGE" = true ]; then
+            poetry run pytest --cov=. --cov-report=term-missing --cov-report=html -v
         else
-            python3 -m pytest --cov=. --cov-report=term-missing --cov-report=html -v
+            poetry run pytest -v
         fi
     else
-        if [ -f "../venv/bin/python" ]; then
-            ../venv/bin/python -m pytest -v
-        elif [ -f "../venv/bin/pytest" ]; then
-            ../venv/bin/pytest -v
+        if [ "$RUN_COVERAGE" = true ]; then
+            if [ -f "../venv/bin/python" ]; then
+                ../venv/bin/python -m pytest --cov=. --cov-report=term-missing --cov-report=html -v
+            elif [ -f "../venv/bin/pytest" ]; then
+                ../venv/bin/pytest --cov=. --cov-report=term-missing --cov-report=html -v
+            else
+                python3 -m pytest --cov=. --cov-report=term-missing --cov-report=html -v
+            fi
         else
-            python3 -m pytest -v
+            if [ -f "../venv/bin/python" ]; then
+                ../venv/bin/python -m pytest -v
+            elif [ -f "../venv/bin/pytest" ]; then
+                ../venv/bin/pytest -v
+            else
+                python3 -m pytest -v
+            fi
         fi
     fi
 
@@ -273,7 +281,11 @@ if [ "$RUN_E2E" = true ]; then
         exit 1
     fi
 
-    uvicorn main:app --host 0.0.0.0 --port 8000 &
+    if command_exists poetry && [ -f pyproject.toml ]; then
+        poetry run uvicorn main:app --host 0.0.0.0 --port 8000 &
+    else
+        uvicorn main:app --host 0.0.0.0 --port 8000 &
+    fi
     BACKEND_PID=$!
     sleep 5
 

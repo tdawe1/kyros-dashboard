@@ -67,25 +67,37 @@ fi
 
 print_success "Python 3 found: $(python3 --version)"
 
-# Test virtual environment
-if [ ! -d "../venv" ]; then
-    print_warning "Virtual environment not found. Creating one..."
-    python3 -m venv ../venv
+# Decide dependency manager
+USE_POETRY=false
+PYRUN="python"
+if command -v poetry &> /dev/null && [ -f pyproject.toml ]; then
+    USE_POETRY=true
+    PYRUN="poetry run"
 fi
 
-# Activate virtual environment
-source ../venv/bin/activate
-print_success "Virtual environment activated"
-
-# Install Python dependencies
-print_status "Installing Python dependencies..."
-pip install --upgrade pip
-pip install -r requirements.txt
+# Setup environment and install deps
+if [ "$USE_POETRY" = true ]; then
+    print_status "Installing Python dependencies with Poetry..."
+    poetry install --no-interaction --no-ansi
+else
+    # Test virtual environment
+    if [ ! -d "../venv" ]; then
+        print_warning "Virtual environment not found. Creating one..."
+        python3 -m venv ../venv
+    fi
+    # Activate virtual environment
+    source ../venv/bin/activate
+    print_success "Virtual environment activated"
+    # Install Python dependencies via pip
+    print_status "Installing Python dependencies with pip..."
+    pip install --upgrade pip
+    pip install -r requirements.txt
+fi
 print_success "Python dependencies installed"
 
 # Test API imports
 print_status "Testing API imports..."
-python -c "
+$PYRUN python -c "
 import main
 print('✅ API imports successfully')
 print('✅ All dependencies are available')
@@ -94,7 +106,7 @@ print_success "API imports test passed"
 
 # Test API startup (briefly)
 print_status "Testing API startup..."
-python -c "
+$PYRUN python -c "
 import uvicorn
 from main import app
 print('✅ API can be imported and configured')
@@ -158,7 +170,7 @@ cd ../backend
 
 # Test Python tests
 print_status "Running Python tests..."
-python -m pytest --tb=short
+$PYRUN python -m pytest --tb=short
 print_success "Python tests passed"
 
 # Test API health endpoint (if possible)
@@ -167,7 +179,7 @@ cd ../backend
 
 # Start API in background for testing
 print_status "Starting API server for health check..."
-python -m uvicorn main:app --host 127.0.0.1 --port 8000 &
+$PYRUN uvicorn main:app --host 127.0.0.1 --port 8000 &
 API_PID=$!
 
 # Wait for API to start
