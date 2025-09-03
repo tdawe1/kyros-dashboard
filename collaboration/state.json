@@ -25,7 +25,7 @@
     {
       "id": "task-004",
       "description": "Audit frontend E2E setup (Playwright baseURL, port 3001) and test coverage; propose improvements.",
-      "status": "todo",
+      "status": "done",
       "assignee": "gemini-cli",
       "dependencies": []
     },

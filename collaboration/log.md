@@ -29,3 +29,10 @@ This log is used by the LLM agents to record their progress, findings, and decis
 - Completed task-002: Update documentation to reflect Poetry usage.
 - Updated `README.md`, `docs/TEST_USER_GUIDE.md`, `docs/TESTING.md`, and `docs/DEPLOYMENT.md`.
 - Replaced `pip` and `requirements.txt` instructions with `poetry` commands.
+
+---
+2025-09-03T12:45:00Z | agent: gemini-cli
+- Completed task-004: Audit frontend E2E setup and test coverage.
+- Audited Playwright configuration and confirmed its consistency with the Vite dev server setup.
+- Reviewed E2E test files (`full-flow.spec.js`, `navigation.spec.js`, `studio.spec.js`).
+- Created `E2E_AUDIT.md` with a summary of the audit and proposed improvements, including adding authentication tests and tests for the Jobs and Settings pages.
