@@ -85,10 +85,7 @@ export default function Studio() {
   return (
     <div className="space-y-8">
       <div>
-        <h1
-          data-testid="page-title"
-          className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2"
-        >
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
           Repurposer Studio
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
@@ -110,11 +107,9 @@ export default function Studio() {
               </span>
             </div>
             <textarea
-              data-testid="content-input"
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Paste your source content here... (minimum 100 characters for best results)"
-              aria-label="Source content input"
               className={`w-full h-64 p-4 bg-white dark:bg-gray-700 border rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent resize-none ${
                 errors.inputText
                   ? "border-red-500 focus:ring-red-500"
@@ -137,7 +132,6 @@ export default function Studio() {
               {CHANNELS.map((channel) => (
                 <button
                   key={channel.id}
-                  data-testid={`channel-${channel.id}`}
                   onClick={() => handleChannelToggle(channel.id)}
                   className={`p-3 rounded-lg border transition-colors ${
                     selectedChannels.includes(channel.id)
@@ -166,7 +160,6 @@ export default function Studio() {
               {TONES.map((tone) => (
                 <button
                   key={tone.id}
-                  data-testid={`tone-${tone.id}`}
                   onClick={() => setSelectedTone(tone.id)}
                   className={`w-full p-2 rounded-lg border transition-colors text-sm ${
                     selectedTone === tone.id
@@ -204,7 +197,6 @@ export default function Studio() {
 
           {/* Generate Button */}
           <button
-            data-testid="generate-button"
             onClick={handleGenerate}
             disabled={
               generateMutation.isPending ||

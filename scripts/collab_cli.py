@@ -9,10 +9,7 @@ Usage examples:
   python scripts/collab_cli.py release-lease <lock_id> codex-cli
   python scripts/collab_cli.py generate-log
 """
-<<<<<<< HEAD
 
-=======
->>>>>>> develop
 import argparse
 import hashlib
 import json

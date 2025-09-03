@@ -5,20 +5,13 @@
       "id": "task-001",
       "title": "Auth package refactor",
       "description": "Refactor authentication to package-based structure and update imports.",
-<<<<<<< HEAD
-      "status": "in_progress",
+      "status": "done",
       "assignee": "codex-cli",
       "priority": "P2",
       "labels": [
         "backend",
         "auth"
       ],
-=======
-      "status": "done",
-      "assignee": "codex-cli",
-      "priority": "P2",
-      "labels": ["backend", "auth"],
->>>>>>> develop
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
@@ -38,25 +31,17 @@
       "status": "done",
       "assignee": "gemini-cli",
       "priority": "P2",
-<<<<<<< HEAD
       "labels": [
         "docs"
       ],
-=======
-      "labels": ["docs"],
->>>>>>> develop
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
-<<<<<<< HEAD
       "dod": [
         "Docs updated"
       ],
-=======
-      "dod": ["Docs updated"],
->>>>>>> develop
       "needs": null
     },
     {
@@ -66,26 +51,18 @@
       "status": "done",
       "assignee": "codex-cli",
       "priority": "P1",
-<<<<<<< HEAD
       "labels": [
         "ci"
       ],
-=======
-      "labels": ["ci"],
->>>>>>> develop
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
-<<<<<<< HEAD
       "dod": [
         "CI green",
         "Docs updated"
       ],
-=======
-      "dod": ["CI green", "Docs updated"],
->>>>>>> develop
       "needs": null
     },
     {
@@ -95,26 +72,18 @@
       "status": "done",
       "assignee": "gemini-cli",
       "priority": "P2",
-<<<<<<< HEAD
       "labels": [
         "frontend",
         "e2e"
       ],
-=======
-      "labels": ["frontend", "e2e"],
->>>>>>> develop
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
-<<<<<<< HEAD
       "dod": [
         "Playwright config consistent"
       ],
-=======
-      "dod": ["Playwright config consistent"],
->>>>>>> develop
       "needs": null
     },
     {
@@ -124,26 +93,18 @@
       "status": "done",
       "assignee": "gemini-cli",
       "priority": "P3",
-<<<<<<< HEAD
       "labels": [
         "docs",
         "collab"
       ],
-=======
-      "labels": ["docs", "collab"],
->>>>>>> develop
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
-<<<<<<< HEAD
       "dod": [
         "Docs updated"
       ],
-=======
-      "dod": ["Docs updated"],
->>>>>>> develop
       "needs": null
     },
     {
@@ -151,23 +112,16 @@
       "title": "Audit report & initial docs",
       "description": "Generate audit report and initial documentation as per Axiom's audit.",
       "status": "in_progress",
-<<<<<<< HEAD
-      "assignee": "gemini-cli-1",
+      "assignee": "gemini-cli",
       "priority": "P3",
       "labels": [
         "docs"
       ],
-=======
-      "assignee": "gemini-cli",
-      "priority": "P3",
-      "labels": ["docs"],
->>>>>>> develop
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
-<<<<<<< HEAD
       "dod": [
         "Docs updated"
       ],
@@ -189,248 +143,6 @@
       "created_at": "2025-09-03T15:02:19Z",
       "updated_at": "2025-09-03T15:02:57Z",
       "dod": [],
-      "needs": null
-    },
-    {
-      "id": "task-008",
-      "title": "Stabilize develop with recent CI and structural updates",
-      "description": "Batch-merge stabilization for develop: ensure CI green, secret scan clean, Poetry backend flow, frontend dev port 3001 alignment, and critic review.",
-      "status": "in_progress",
-      "assignee": "codex-cli-1",
-      "priority": "P1",
-      "labels": [
-        "ci",
-        "collab",
-        "infra"
-      ],
-      "dependencies": [],
-      "blockers": [],
-      "branch": "merge/batch-develop-20250903-162907",
-      "created_at": "2025-09-03T16:08:55Z",
-      "updated_at": "2025-09-03T16:08:55Z",
-      "dod": [
-        "All CI workflows pass",
-        "Secret scan clean",
-        "Backend uses Poetry and docs reflect it",
-        "Frontend/dev and E2E use port 3001 consistently",
-        "PR reviewed and approved by critic agent"
-      ],
-      "needs": null
-    },
-    {
-      "id": "task-008-01",
-      "title": "Open PR to merge stabilization branch into develop",
-      "description": "Create PR from merge/batch-develop-20250903-162907 to develop using PR_BODY_MERGE_BATCH.md.",
-      "status": "review",
-      "assignee": "codex-cli-1",
-      "priority": "P1",
-      "labels": [
-        "ci",
-        "collab"
-      ],
-      "dependencies": ["task-008"],
-      "blockers": [],
-      "branch": "merge/batch-develop-20250903-162907",
-      "created_at": "2025-09-03T16:08:55Z",
-      "updated_at": "2025-09-03T16:15:48Z",
-      "dod": [
-        "PR opened with correct base/head",
-        "Body matches PR_BODY_MERGE_BATCH.md"
-      ],
-      "needs": null
-    },
-    {
-      "id": "task-008-02",
-      "title": "Critic: run gates and review",
-      "description": "Run format/lint/tests/secret-scan; verify Playwright/E2E on port 3001 and backend Poetry flow; request changes or approve.",
-      "status": "approved",
-      "assignee": "gemini-cli-1",
-      "priority": "P1",
-      "labels": [
-        "review",
-        "security",
-        "tests"
-      ],
-      "dependencies": ["task-008-01"],
-      "blockers": [],
-      "branch": "merge/batch-develop-20250903-162907",
-      "created_at": "2025-09-03T16:08:55Z",
-      "updated_at": "2025-09-03T17:10:30Z",
-      "dod": [
-        "Quality gates executed",
-        "Review submitted with approve or actionable feedback"
-      ],
-      "needs": null
-    },
-    {
-      "id": "task-008-03",
-      "title": "Implementer: address CI/test feedback and align ports/docs",
-      "description": "Fix any CI/test failures; ensure README/scripts show Poetry for backend and port 3001 for frontend/dev/E2E.",
-      "status": "done",
-      "assignee": "codex-cli-1",
-      "priority": "P1",
-      "labels": [
-        "frontend",
-        "backend",
-        "docs"
-      ],
-      "dependencies": ["task-008-02"],
-      "blockers": [],
-      "branch": "merge/batch-develop-20250903-162907",
-      "created_at": "2025-09-03T16:08:55Z",
-      "updated_at": "2025-09-03T16:58:01Z",
-      "dod": [
-        "CI green after fixes",
-        "Docs/scripts updated for Poetry and port 3001"
-      ],
-      "needs": null
-    },
-    {
-      "id": "task-008-04",
-      "title": "Integrator: merge PR and update changelog",
-      "description": "On approval and green checks, merge PR into develop and update CHANGELOG.md if maintained.",
-      "status": "blocked",
-      "assignee": "codex-cli-2",
-      "priority": "P2",
-      "labels": [
-        "integrate",
-        "release"
-      ],
-      "dependencies": ["task-008-02", "task-008-03"],
-      "blockers": [],
-      "branch": "merge/batch-develop-20250903-162907",
-      "created_at": "2025-09-03T16:08:55Z",
-      "updated_at": "2025-09-03T17:10:30Z",
-      "dod": [
-        "PR merged into develop",
-        "Changelog updated (if applicable)",
-        "Events/log regenerated"
-      ],
-      "needs": "PR #9 checks green (CI + security)"
-    },
-    {
-      "id": "task-008-05",
-      "title": "Watchdog: monitor flakiness and plan deploy-main refresh",
-      "description": "Monitor CI/E2E flakiness post-merge and create follow-up tasks to modernize ci/deploy-main on current develop.",
-      "status": "queued",
-      "assignee": "gemini-cli-1",
-      "priority": "P3",
-      "labels": [
-        "watchdog",
-        "ci"
-      ],
-      "dependencies": ["task-008-04"],
-      "blockers": [],
-      "branch": "develop",
-      "created_at": "2025-09-03T16:08:55Z",
-      "updated_at": "2025-09-03T16:08:55Z",
-      "dod": [
-        "Follow-up tasks created as needed"
-      ],
-      "needs": null
-    },
-    {
-      "id": "task-009",
-      "title": "E2E: Authentication flows",
-      "description": "Add Playwright tests for login/logout, protected routes, and post-auth redirects.",
-      "status": "queued",
-      "assignee": "cursor-ide",
-      "priority": "P1",
-      "labels": ["frontend", "e2e", "tests"],
-      "dependencies": [],
-      "blockers": [],
-      "branch": "develop",
-      "created_at": "2025-09-03T17:42:00Z",
-      "updated_at": "2025-09-03T17:42:00Z",
-      "dod": [
-        "Auth: login/logout covered",
-        "Protected routes enforced",
-        "Redirects validated",
-        "Tests pass in CI"
-      ],
-      "needs": null
-    },
-    {
-      "id": "task-010",
-      "title": "E2E: Jobs page interactions",
-      "description": "Add tests for Jobs search/filter, details view, and pagination.",
-      "status": "queued",
-      "assignee": "cursor-ide-2",
-      "priority": "P2",
-      "labels": ["frontend", "e2e", "tests"],
-      "dependencies": [],
-      "blockers": [],
-      "branch": "develop",
-      "created_at": "2025-09-03T17:42:00Z",
-      "updated_at": "2025-09-03T17:42:00Z",
-      "dod": [
-        "Search/filter covered",
-        "Job detail verified",
-        "Pagination works in CI"
-      ],
-      "needs": null
-    },
-    {
-      "id": "task-011",
-      "title": "E2E: Settings presets CRUD",
-      "description": "Add tests for creating, updating, and deleting presets on Settings page.",
-      "status": "queued",
-      "assignee": "cursor-ide-2",
-      "priority": "P2",
-      "labels": ["frontend", "e2e", "tests"],
-      "dependencies": [],
-      "blockers": [],
-      "branch": "develop",
-      "created_at": "2025-09-03T17:42:00Z",
-      "updated_at": "2025-09-03T17:42:00Z",
-      "dod": [
-        "Preset create/update/delete covered",
-        "Form validation assertions added",
-        "Tests pass in CI"
-      ],
-      "needs": null
-    },
-    {
-      "id": "task-012",
-      "title": "E2E: Stabilize selectors with data-testid",
-      "description": "Introduce data-testid attributes for key elements and refactor brittle text-based selectors.",
-      "status": "done",
-      "assignee": "cursor-ide",
-      "priority": "P3",
-      "labels": ["frontend", "e2e", "tests", "refactor"],
-      "dependencies": [],
-      "blockers": [],
-      "branch": "develop",
-      "created_at": "2025-09-03T17:42:00Z",
-      "updated_at": "2025-09-03T18:02:00Z",
-      "dod": [
-        "data-testid added for key UI",
-        "Tests refactored to stable selectors",
-        "No regressions in E2E"
-      ],
-      "needs": null
-    },
-    {
-      "id": "task-013",
-      "title": "E2E: Visual regression testing POC",
-      "description": "Prototype visual regression tests (Percy or Applitools) and provide a go/no-go recommendation.",
-      "status": "queued",
-      "assignee": "cursor-ide",
-      "priority": "P3",
-      "labels": ["frontend", "e2e", "visual"],
-      "dependencies": [],
-      "blockers": [],
-      "branch": "develop",
-      "created_at": "2025-09-03T17:42:00Z",
-      "updated_at": "2025-09-03T17:42:00Z",
-      "dod": [
-        "POC runs locally",
-        "CI feasibility noted",
-        "Recommendation documented"
-      ],
-=======
-      "dod": ["Docs updated"],
->>>>>>> develop
       "needs": null
     }
   ]
