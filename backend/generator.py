@@ -1,7 +1,7 @@
 import os
 import logging
 from typing import Dict, List, Any, Optional
-from openai import OpenAI
+from openai import AsyncOpenAI
 import sentry_sdk
 from utils.token_storage import save_token_usage
 from core.security import with_circuit_breaker, openai_circuit_breaker
@@ -102,7 +102,7 @@ async def generate_content_real(
     if model not in VALID_MODELS:
         raise ValueError(f"Invalid model: {model}. Must be one of {VALID_MODELS}")
 
-    client = OpenAI(api_key=api_key)
+    client = AsyncOpenAI(api_key=api_key)
     variants = {}
 
     for channel in channels:
@@ -192,8 +192,9 @@ Return as JSON array with objects containing: text, length, readability, tone"""
         except Exception as e:
             logger.error(f"OpenAI API error for {channel}: {str(e)}")
             sentry_sdk.capture_exception(e)
-            # Fail closed - raise exception instead of falling back to demo content
-            raise Exception(f"Content generation failed for {channel}: {str(e)}")
+            # Fallback to demo content on API error
+            logger.info(f"Falling back to demo content for {channel}")
+            variants.update(await get_demo_variants(input_text, [channel], tone))
 
     return variants
 

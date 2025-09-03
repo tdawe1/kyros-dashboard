@@ -9,7 +9,7 @@ class TestOpenAIClient:
     def test_init_with_api_key(self):
         """Test client initialization with API key."""
         client = OpenAIClient(api_key="test-key-12345")
-        assert client.api_key == "test-key"
+        assert client.api_key == "test-key-12345"
 
     @patch.dict("os.environ", {"OPENAI_API_KEY": "env-key"})
     def test_init_with_env_key(self):

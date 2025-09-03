@@ -141,17 +141,18 @@ if [ "$RUN_BACKEND" = true ]; then
 
     cd backend
 
-    # Install Python dependencies
+    # Install Python dependencies (prefer Poetry if available)
     print_status "Installing Python dependencies..."
-    if [ -f requirements.txt ]; then
-        # Use virtual environment if it exists, otherwise use system python
+    if command_exists poetry && [ -f pyproject.toml ]; then
+        poetry install --no-interaction --no-ansi
+    elif [ -f requirements.txt ]; then
         if [ -f "../venv/bin/pip" ]; then
             ../venv/bin/pip install -r requirements.txt
         else
             python3 -m pip install -r requirements.txt
         fi
     else
-        print_error "requirements.txt not found in backend directory"
+        print_error "No dependency manifest found (pyproject.toml or requirements.txt)"
         exit 1
     fi
 
@@ -243,7 +244,9 @@ if [ "$RUN_E2E" = true ]; then
     # Install API dependencies for E2E
     print_status "Installing API dependencies for E2E tests..."
     cd backend
-    if [ -f "../venv/bin/pip" ]; then
+    if command_exists poetry && [ -f pyproject.toml ]; then
+        poetry install --no-interaction --no-ansi
+    elif [ -f "../venv/bin/pip" ]; then
         ../venv/bin/pip install -r requirements.txt
     else
         python3 -m pip install -r requirements.txt

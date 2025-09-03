@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 import os
 import logging
+import uuid
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO)
@@ -199,19 +200,13 @@ if tools_registry:
 
 
 # Add basic endpoints that work even without other modules
-@app.get("/api/config")
-async def get_config():
-    """Get API configuration for frontend"""
-    try:
-        return {
-            "api_mode": os.getenv("API_MODE", "demo"),
-            "default_model": os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
-            "max_input_characters": int(os.getenv("MAX_INPUT_CHARACTERS", "100000")),
-            "max_tokens_per_job": int(os.getenv("MAX_TOKENS_PER_JOB", "50000")),
-            "daily_job_limit": int(os.getenv("DAILY_JOB_LIMIT", "10")),
-        }
-    except Exception as e:
-        return {"error": str(e)}
+try:
+    from api import router as api_router
+
+    app.include_router(api_router, prefix="/api", tags=["api"])
+    logger.info("API router added successfully")
+except Exception as e:
+    logger.warning(f"Failed to add API router: {e}")
 
 
 # Add a simple generate endpoint that works without full functionality
@@ -221,10 +216,49 @@ async def generate_simple(request: dict):
     try:
         if generator:
             from generator import generate_content
+            from utils.token_storage import get_token_usage
 
-            return await generate_content(request)
+            input_text = request.get("input_text")
+            if not input_text or len(input_text) < 20:
+                raise HTTPException(
+                    status_code=400, detail={"error": "Input text too short"}
+                )
+            if len(input_text) > 100000:
+                raise HTTPException(
+                    status_code=400, detail={"error": "Input text too long"}
+                )
+
+            if utils_quotas:
+                from utils.quotas import can_create_job
+
+                can_create, _ = can_create_job(request.get("user_id", "anonymous"))
+                if not can_create:
+                    raise HTTPException(
+                        status_code=400, detail={"error": "Quota exceeded"}
+                    )
+
+            job_id = f"job_{uuid.uuid4()}"
+            variants = await generate_content(
+                input_text=input_text,
+                channels=request.get("channels", ["linkedin"]),
+                tone=request.get("tone", "professional"),
+                model=request.get("model"),
+                job_id=job_id,
+            )
+            token_usage = get_token_usage(job_id)
+            return {
+                "job_id": job_id,
+                "status": "completed",
+                "variants": variants,
+                "token_usage": token_usage,
+                "model": request.get("model")
+                or os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
+                "api_mode": os.getenv("API_MODE", "demo"),
+            }
         else:
             return {"error": "Generator module not available", "status": "demo"}
+    except HTTPException as e:
+        raise e
     except Exception as e:
         return {"error": str(e), "status": "error"}
 

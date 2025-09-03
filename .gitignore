@@ -156,3 +156,4 @@ kyros-dashboard-project.zip
 htmlcov/
 backend/.coverage
 backend/htmlcov/
+audit_prompt.txt
