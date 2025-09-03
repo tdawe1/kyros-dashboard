@@ -80,6 +80,7 @@ jobs:
     - name: Run unit tests with pytest
       working-directory: ./backend
       env:
+        ENVIRONMENT: testing
         REDIS_URL: redis://localhost:6379
         API_MODE: demo
         DEFAULT_MODEL: gpt-4o-mini
@@ -198,6 +199,7 @@ jobs:
     - name: Start backend server
       working-directory: ./backend
       env:
+        ENVIRONMENT: testing
         REDIS_URL: redis://localhost:6379
         API_MODE: demo
         DEFAULT_MODEL: gpt-4o-mini
