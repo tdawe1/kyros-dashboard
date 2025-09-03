@@ -124,8 +124,8 @@ class TestJobsEndpoints:
 
         assert response.status_code == 404
         data = response.json()
-        assert "detail" in data
-        assert "not found" in data["detail"].lower()
+        assert "error" in data
+        assert "not found" in data["error"]["message"].lower()
 
 
 class TestGenerateEndpoint:
@@ -135,7 +135,9 @@ class TestGenerateEndpoint:
         self, client, sample_generate_request, mock_redis
     ):
         """Test successful content generation."""
-        response = client.post("/api/generate", json=sample_generate_request)
+        with patch("utils.token_storage.get_token_usage") as mock_get_token_usage:
+            mock_get_token_usage.return_value = {"input_tokens": 1, "output_tokens": 1, "total_tokens": 2, "total_cost": 0.0001}
+            response = client.post("/api/generate", json=sample_generate_request)
 
         assert response.status_code == 200
         data = response.json()
@@ -177,8 +179,8 @@ class TestGenerateEndpoint:
 
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
-        assert "too short" in data["detail"]["message"].lower()
+        assert "error" in data
+        assert "too short" in data["error"]["message"].lower()
 
     def test_generate_content_input_too_large(self, client, mock_redis):
         """Test content generation with input too large."""
@@ -193,8 +195,8 @@ class TestGenerateEndpoint:
 
         assert response.status_code == 400
         data = response.json()
-        assert "detail" in data
-        assert "validation failed" in data["detail"]["error"].lower()
+        assert "error" in data
+        assert "input text too long" in data["error"]["message"].lower()
 
     def test_generate_content_quota_exceeded(
         self, client, sample_generate_request, mock_redis
@@ -208,8 +210,8 @@ class TestGenerateEndpoint:
 
             assert response.status_code == 400
             data = response.json()
-            assert "detail" in data
-            assert "quota exceeded" in data["detail"]["error"].lower()
+            assert "error" in data
+            assert "quota exceeded" in data["error"]["message"].lower()
 
     def test_generate_content_invalid_channels(self, client, mock_redis):
         """Test content generation with invalid channels."""
@@ -330,8 +332,8 @@ class TestPresetsEndpoints:
 
         assert response.status_code == 404
         data = response.json()
-        assert "detail" in data
-        assert "not found" in data["detail"].lower()
+        assert "error" in data
+        assert "not found" in data["error"]["message"].lower()
 
     def test_create_preset(self, client):
         """Test create preset endpoint."""

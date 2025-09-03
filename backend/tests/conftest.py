@@ -90,7 +90,7 @@ def mock_redis():
         mock_pipeline.get.return_value = mock_pipeline
         mock_pipeline.incr.return_value = mock_pipeline
         mock_pipeline.expire.return_value = mock_pipeline
-        mock_pipeline.execute.return_value = [
+        mock_pipeline.execute.side_effect = lambda: [
             mock_redis_instance.get.return_value,
             mock_redis_instance.incr.return_value,
         ]

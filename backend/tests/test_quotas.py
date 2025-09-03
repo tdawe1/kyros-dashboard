@@ -17,8 +17,9 @@ class TestCanCreateJob:
 
         assert can_create is True
         assert count == 1
-        mock_redis.incr.assert_called_once()
-        mock_redis.expire.assert_called_once()
+        mock_redis._client.pipeline.return_value.get.assert_called_once()
+        mock_redis._client.pipeline.return_value.incr.assert_called_once()
+        mock_redis._client.pipeline.return_value.expire.assert_called_once()
 
     def test_can_create_job_within_limit(self, mock_redis):
         """Test quota check for user within limit."""
@@ -32,27 +33,27 @@ class TestCanCreateJob:
 
     def test_can_create_job_at_limit(self, mock_redis):
         """Test quota check for user at limit."""
-        mock_redis.get.return_value = "10"
+        mock_redis.get.return_value = "9"
+        mock_redis.incr.return_value = 10
 
         can_create, count = can_create_job("limit_user", 10)
 
-        assert can_create is False
+        assert can_create is True
         assert count == 10
-        mock_redis.incr.assert_not_called()
 
     def test_can_create_job_exceeds_limit(self, mock_redis):
         """Test quota check for user exceeding limit."""
-        mock_redis.get.return_value = "15"
+        mock_redis.get.return_value = "10"
+        mock_redis.incr.return_value = 11
 
         can_create, count = can_create_job("exceeded_user", 10)
 
         assert can_create is False
-        assert count == 15
-        mock_redis.incr.assert_not_called()
+        assert count == 11
 
     def test_can_create_job_redis_error(self, mock_redis):
         """Test quota check with Redis error (fail closed)."""
-        mock_redis.get.side_effect = Exception("Redis connection failed")
+        mock_redis._client.pipeline.return_value.execute.side_effect = Exception("Redis connection failed")
 
         with pytest.raises(Exception, match="Operation failed - failing closed for security"):
             can_create_job("error_user", 10)
@@ -153,9 +154,8 @@ class TestResetUserQuota:
         """Test reset quota with Redis error."""
         mock_redis.delete.side_effect = Exception("Redis connection failed")
 
-        result = reset_user_quota("error_user")
-
-        assert result is False
+        with pytest.raises(Exception, match="Operation failed - failing closed for security"):
+            reset_user_quota("error_user")
 
     def test_reset_user_quota_nonexistent_key(self, mock_redis):
         """Test resetting quota for nonexistent key."""
