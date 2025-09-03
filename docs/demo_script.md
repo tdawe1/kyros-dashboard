@@ -10,7 +10,7 @@ This demo showcases the complete kyros Repurposer dashboard, demonstrating the t
 ## 📋 Pre-Demo Setup
 
 1. **Start the application**:
-   - Frontend: `http://localhost:5173`
+   - Frontend: `http://localhost:3001`
    - Backend: `http://localhost:8000`
    - Ensure both services are running
 

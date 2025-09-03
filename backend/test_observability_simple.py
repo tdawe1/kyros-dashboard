@@ -2,14 +2,12 @@
 """
 Simple test script for observability features that doesn't require external dependencies.
 """
+
 import os
 import sys
 import logging
 
-# Add the api directory to the path
-sys.path.append(os.path.dirname(os.path.abspath(__file__)))
-
-from utils.token_storage import (  # noqa: E402
+from utils.token_storage import (
     save_token_usage,
     get_token_usage,
     save_job_record,
@@ -111,9 +109,9 @@ def test_multiple_jobs():
     # Check statistics
     stats = get_token_usage_stats()
     assert stats["total_jobs"] == 3, f"Expected 3 jobs, got {stats['total_jobs']}"
-    assert (
-        stats["total_tokens"] == 150 + 165 + 180
-    ), f"Token count mismatch: {stats['total_tokens']}"
+    assert stats["total_tokens"] == 150 + 165 + 180, (
+        f"Token count mismatch: {stats['total_tokens']}"
+    )
 
     print("✅ Multiple jobs handled correctly")
     print("🎉 Multiple jobs tests passed!")

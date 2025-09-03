@@ -13,7 +13,7 @@ Successfully implemented Phase 3 of the Kyros Dashboard, replacing mock generati
 
 ### 2. Backend Implementation
 
-#### New Generator Module (`api/generator.py`)
+#### New Generator Module (`backend/generator.py`)
 - **Demo Mode**: Returns canned sample outputs (3 LinkedIn posts, 5 tweets, 1 newsletter)
 - **Real Mode**: Makes actual OpenAI API calls with chosen model
 - **Model Validation**: Whitelist validation for allowed models:
@@ -22,7 +22,7 @@ Successfully implemented Phase 3 of the Kyros Dashboard, replacing mock generati
   - `gpt-4.1`
   - `gpt-4.1-mini`
 
-#### Updated API Endpoint (`api/main.py`)
+#### Updated API Endpoint (`backend/main.py`)
 - **Enhanced `/api/generate`** to accept `model` parameter in request body
 - **New `/api/config`** endpoint exposes API configuration to frontend
 - **Response includes** model and API mode information
@@ -30,20 +30,20 @@ Successfully implemented Phase 3 of the Kyros Dashboard, replacing mock generati
 
 ### 3. Frontend Implementation
 
-#### Configuration Management (`ui/src/hooks/useConfig.js`)
+#### Configuration Management (`frontend/src/hooks/useConfig.js`)
 - **`useConfig()`** hook fetches API configuration from backend
 - **`useModelSelection()`** hook manages model selection with localStorage persistence
 - **Real-time API mode detection** for UI state management
 
-#### Settings Page Updates (`ui/src/pages/Settings.jsx`)
+#### Settings Page Updates (`frontend/src/pages/Settings.jsx`)
 - **Model Selection Dropdown** with all valid models
 - **Demo Mode Badge** clearly indicates when in demo mode
 - **API Mode Display** shows current mode (demo vs real)
 - **Persistent Settings** saved in localStorage
 
 #### UI Enhancements
-- **Topbar Badge** (`ui/src/ui/Topbar.jsx`) shows "Demo Mode" when active
-- **Studio Integration** (`ui/src/pages/Studio.jsx`) includes selected model in requests
+- **Topbar Badge** (`frontend/src/ui/Topbar.jsx`) shows "Demo Mode" when active
+- **Studio Integration** (`frontend/src/pages/Studio.jsx`) includes selected model in requests
 - **Consistent Styling** following user's minimal design preferences
 
 ### 4. Request Integration
@@ -70,7 +70,7 @@ All Phase 3 tests passed successfully:
 ## 🚀 Usage Instructions
 
 ### Backend Setup
-1. Copy `api/env.example` to `api/.env`
+1. Copy `backend/.env.example` to `backend/.env`
 2. Set `API_MODE=demo` for testing or `API_MODE=real` for production
 3. Set `DEFAULT_MODEL=gpt-4o-mini` (or preferred model)
 4. For real mode, set `OPENAI_API_KEY=your_actual_api_key`
@@ -99,17 +99,17 @@ All Phase 3 tests passed successfully:
 ## 📁 Files Modified/Created
 
 ### Backend
-- `api/env.example` - Updated with new environment variables
-- `api/generator.py` - New generator module with demo/real modes
-- `api/main.py` - Updated API endpoints and request handling
+- `backend/.env.example` - Updated with new environment variables
+- `backend/generator.py` - New generator module with demo/real modes
+- `backend/main.py` - Updated API endpoints and request handling
 
 ### Frontend
-- `ui/vite.config.js` - Environment variable exposure
-- `ui/src/hooks/useConfig.js` - New configuration management hooks
-- `ui/src/pages/Settings.jsx` - Enhanced settings with model selection
-- `ui/src/ui/Topbar.jsx` - Added demo mode badge
-- `ui/src/pages/Studio.jsx` - Integrated model selection
-- `ui/src/ui/StudioPanel.jsx` - Integrated model selection
+- `frontend/vite.config.js` - Environment variable exposure
+- `frontend/src/hooks/useConfig.js` - New configuration management hooks
+- `frontend/src/pages/Settings.jsx` - Enhanced settings with model selection
+- `frontend/src/ui/Topbar.jsx` - Added demo mode badge
+- `frontend/src/pages/Studio.jsx` - Integrated model selection
+- `frontend/src/ui/StudioPanel.jsx` - Integrated model selection
 
 ## 🎉 Phase 3 Complete
 

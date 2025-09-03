@@ -7,13 +7,13 @@
 
 import hello from "./tools/hello";
 
-// Static registry of available tools
-export const tools = [
+// Static registry of available tools (immutable)
+export const tools = Object.freeze([
   hello,
   // Future tools will be added here
   // summarizer,
   // etc.
-];
+]);
 
 /**
  * Get all enabled tools
@@ -56,7 +56,7 @@ export const getCategories = () => {
  */
 export const isToolEnabled = toolName => {
   const tool = getTool(toolName);
-  return tool && tool.enabled !== false;
+  return Boolean(tool && tool.enabled !== false);
 };
 
 /**

@@ -1,0 +1,137 @@
+# Kyros Dashboard – Codex CLI configuration (collaboration workspace)
+
+# Default model/provider
+model = "gpt-5"
+model_provider = "openai"
+
+# Execution posture
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+# Editor integration and auth
+file_opener = "cursor"
+preferred_auth_method = "chatgpt"
+
+[sandbox_workspace_write]
+network_access = false
+exclude_tmpdir_env_var = false
+exclude_slash_tmp = false
+writable_roots = []
+
+[shell_environment_policy]
+inherit = "core"
+ignore_default_excludes = false
+exclude = []
+set = {}
+include_only = ["HOME", "PATH", "USER", "SHELL"]
+
+[history]
+persistence = "save-all"
+
+[projects."/home/thomas/kyros-dashboard/collaboration"]
+trust_level = "trusted"
+
+# Profiles
+profile = "gpt5_high"
+
+[profiles.safe]
+approval_policy = "untrusted"
+sandbox_mode = "read-only"
+
+[profiles.dev]
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.deep]
+model = "o3"
+model_provider = "openai"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+model_reasoning_effort = "high"
+model_reasoning_summary = "concise"
+
+[profiles.gpt5_high]
+model = "gpt-5"
+model_provider = "openai"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+model_reasoning_effort = "high"
+model_reasoning_summary = "concise"
+
+[profiles.impl_a]
+model = "gpt-5"
+model_provider = "openai"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.impl_b]
+model = "gpt-5"
+model_provider = "openai"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.review_strict]
+model = "gpt-5"
+model_provider = "openai"
+approval_policy = "untrusted"
+sandbox_mode = "read-only"
+model_reasoning_summary = "concise"
+
+# MCP servers (same as project root)
+[mcp_servers.kyros_collab]
+command = "python3"
+args = ["-m", "mcp.kyros_collab_server"]
+
+[mcp_servers.linear]
+command = "python3"
+args = ["-m", "mcp.linear_server"]
+
+[mcp_servers.railway]
+command = "python3"
+args = ["-m", "mcp.railway_server"]
+
+[mcp_servers.vercel]
+command = "python3"
+args = ["-m", "mcp.vercel_server"]
+
+[mcp_servers.coderabbit]
+command = "python3"
+args = ["-m", "mcp.coderabbit_server"]
+
+# Optional switches
+# disable_response_storage = true
+# model_supports_reasoning_summaries = true
+# model_verbosity = "low"
+
+# Non-OpenAI providers via proxies (if configured)
+[model_providers.claude_proxy]
+name = "Anthropic via Proxy"
+base_url = "http://localhost:4000/v1"
+env_key = "ANTHROPIC_API_KEY"
+wire_api = "chat"
+
+[model_providers.gemini_proxy]
+name = "Gemini via Proxy"
+base_url = "http://localhost:4001/v1"
+env_key = "GOOGLE_API_KEY"
+wire_api = "chat"
+
+[profiles.architect_sonnet]
+model = "claude-4.1-sonnet"
+model_provider = "claude_proxy"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+model_reasoning_effort = "high"
+model_reasoning_summary = "concise"
+
+[profiles.impl_gemini_pro]
+model = "gemini-2.5-pro"
+model_provider = "gemini_proxy"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+[profiles.speed_gemini_flash]
+model = "gemini-2.5-flash"
+model_provider = "gemini_proxy"
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"

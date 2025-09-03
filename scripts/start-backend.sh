@@ -1,43 +1,50 @@
 #!/bin/bash
 
+#!/bin/bash
+
 # Kyros Dashboard - Backend Quick Start Script
 echo "🚀 Starting Kyros Dashboard Backend..."
 
-# Check if we're in the right directory
-if [ ! -f "api/main.py" ]; then
+# Ensure we're at repo root and backend exists
+if [ ! -d "backend" ]; then
     echo "❌ Error: Please run this script from the project root directory"
     exit 1
 fi
 
-# Navigate to API directory
-cd api
+cd backend
 
-# Check if virtual environment exists
-if [ ! -d "venv" ]; then
-    echo "📦 Creating virtual environment..."
-    python -m venv venv
+# Prefer Poetry if available
+if [ -f pyproject.toml ]; then
+    if ! command -v poetry >/dev/null 2>&1; then
+        echo "⚠️  Poetry not found. Installing Poetry locally..."
+        curl -sSL https://install.python-poetry.org | python3 - >/dev/null 2>&1 || true
+        export PATH="$HOME/.local/bin:$PATH"
+    fi
+    if command -v poetry >/dev/null 2>&1; then
+        echo "📥 Installing dependencies with Poetry..."
+        poetry install --no-interaction --no-ansi
+        echo "🌟 Starting FastAPI server on http://localhost:8000"
+        echo "📚 API docs: http://localhost:8000/docs"
+        poetry run uvicorn main:app --reload --port 8000
+    else
+        echo "❌ Poetry is required but could not be installed automatically."
+        exit 1
+    fi
+else
+    # Fallback to venv + pip if requirements.txt exists
+    if [ ! -f requirements.txt ]; then
+        echo "❌ No pyproject.toml or requirements.txt found in backend/"
+        exit 1
+    fi
+    if [ ! -d "venv" ]; then
+        echo "📦 Creating virtual environment..."
+        python3 -m venv venv
+    fi
+    echo "🔧 Activating virtual environment..."
+    source venv/bin/activate
+    echo "📥 Installing dependencies with pip..."
+    pip install -r requirements.txt
+    echo "🌟 Starting FastAPI server on http://localhost:8000"
+    echo "📚 API docs: http://localhost:8000/docs"
+    uvicorn main:app --reload --port 8000
 fi
-
-# Activate virtual environment
-echo "🔧 Activating virtual environment..."
-source venv/bin/activate
-
-# Install dependencies
-echo "📥 Installing dependencies..."
-pip install -r requirements.txt
-
-# Copy test environment if .env doesn't exist
-if [ ! -f ".env" ]; then
-    echo "⚙️ Setting up test environment..."
-    cp env.test .env
-    echo "✅ Created .env file from test configuration"
-fi
-
-# Start the server
-echo "🌟 Starting FastAPI server on http://localhost:8000"
-echo "📚 API docs available at: http://localhost:8000/docs"
-echo ""
-echo "Press Ctrl+C to stop the server"
-echo ""
-
-uvicorn main:app --reload --port 8000

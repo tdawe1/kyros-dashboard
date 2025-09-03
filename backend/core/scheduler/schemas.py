@@ -2,11 +2,61 @@
 Pydantic schemas for the scheduler API.
 """
 
+import re
 from datetime import datetime
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 from uuid import UUID
+
+
+def validate_cron_expression(cron_expr: str) -> bool:
+    """
+    Validate a cron expression format.
+
+    Args:
+        cron_expr: The cron expression to validate
+
+    Returns:
+        True if valid, False otherwise
+    """
+    # Remove 'cron:' prefix if present
+    if cron_expr.startswith("cron:"):
+        cron_expr = cron_expr[5:]
+
+    # Split into 5 parts (minute, hour, day, month, weekday)
+    parts = cron_expr.strip().split()
+    if len(parts) != 5:
+        return False
+
+    # Basic validation for each part
+    for part in parts:
+        if not re.match(r"^[\d\*\/\-\,]+$", part):
+            return False
+
+        # Check for valid ranges
+        if "*" in part and len(part) > 1:
+            return False
+
+        # Check for valid numbers and ranges
+        if part != "*":
+            for subpart in part.split(","):
+                if "/" in subpart:
+                    range_part, step = subpart.split("/", 1)
+                    if not step.isdigit():
+                        return False
+                    if range_part != "*" and "-" in range_part:
+                        start, end = range_part.split("-", 1)
+                        if not (start.isdigit() and end.isdigit()):
+                            return False
+                elif "-" in subpart:
+                    start, end = subpart.split("-", 1)
+                    if not (start.isdigit() and end.isdigit()):
+                        return False
+                elif not subpart.isdigit():
+                    return False
+
+    return True
 
 
 class JobStatus(str, Enum):
@@ -58,7 +108,7 @@ class CreateScheduleRequest(BaseModel):
         None, description="Idempotency key to prevent duplicates"
     )
 
-    @validator("tool")
+    @field_validator("tool")
     def validate_tool(cls, v):
         """Validate that the tool exists in the registry."""
         from tools.registry import is_tool_enabled
@@ -67,18 +117,24 @@ class CreateScheduleRequest(BaseModel):
             raise ValueError(f"Tool '{v}' is not available or enabled")
         return v
 
-    @validator("recurrence")
+    @field_validator("recurrence")
     def validate_recurrence(cls, v):
         """Validate recurrence pattern."""
         if v is None:
             return v
 
         valid_patterns = ["daily", "weekly", "monthly"]
-        if v not in valid_patterns and not v.startswith("cron:"):
-            raise ValueError(
-                f"Invalid recurrence pattern. Must be one of {valid_patterns} or start with 'cron:'"
-            )
-        return v
+        if v in valid_patterns:
+            return v
+
+        if v.startswith("cron:"):
+            if not validate_cron_expression(v):
+                raise ValueError("Invalid cron expression format")
+            return v
+
+        raise ValueError(
+            f"Invalid recurrence pattern. Must be one of {valid_patterns} or a valid cron expression starting with 'cron:'"
+        )
 
 
 class UpdateScheduleRequest(BaseModel):
@@ -93,18 +149,24 @@ class UpdateScheduleRequest(BaseModel):
     status: Optional[JobStatus] = None
     max_runs: Optional[int] = None
 
-    @validator("recurrence")
+    @field_validator("recurrence")
     def validate_recurrence(cls, v):
         """Validate recurrence pattern."""
         if v is None:
             return v
 
         valid_patterns = ["daily", "weekly", "monthly"]
-        if v not in valid_patterns and not v.startswith("cron:"):
-            raise ValueError(
-                f"Invalid recurrence pattern. Must be one of {valid_patterns} or start with 'cron:'"
-            )
-        return v
+        if v in valid_patterns:
+            return v
+
+        if v.startswith("cron:"):
+            if not validate_cron_expression(v):
+                raise ValueError("Invalid cron expression format")
+            return v
+
+        raise ValueError(
+            f"Invalid recurrence pattern. Must be one of {valid_patterns} or a valid cron expression starting with 'cron:'"
+        )
 
 
 class RunNowRequest(BaseModel):

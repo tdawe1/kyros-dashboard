@@ -2,6 +2,8 @@
 Unit tests for rate limiting functionality.
 """
 
+import os
+import pytest
 import time
 from unittest.mock import Mock, patch
 from fastapi.responses import JSONResponse
@@ -62,7 +64,6 @@ class TestTokenBucketRateLimiter:
     def test_is_allowed_new_bucket(self, mock_redis):
         """Test rate limiting with new bucket."""
         limiter = TokenBucketRateLimiter()
-        limiter.redis_client = mock_redis
 
         request = Mock()
         request.headers = {}
@@ -81,10 +82,13 @@ class TestTokenBucketRateLimiter:
         assert rate_info["window"] == RATE_LIMIT_WINDOW
         assert rate_info["burst"] == RATE_LIMIT_BURST
 
-    def test_is_allowed_existing_bucket_with_tokens(self, mock_redis):
+    @patch("time.time")
+    def test_is_allowed_existing_bucket_with_tokens(self, mock_time, mock_redis):
         """Test rate limiting with existing bucket that has tokens."""
+        # Mock time to be deterministic
+        mock_time.return_value = 1000.0
+
         limiter = TokenBucketRateLimiter()
-        limiter.redis_client = mock_redis
 
         request = Mock()
         request.headers = {}
@@ -94,7 +98,7 @@ class TestTokenBucketRateLimiter:
         # Mock existing bucket with tokens
         mock_redis.hgetall.return_value = {
             "tokens": "5.0",
-            "last_refill": str(time.time() - 10),
+            "last_refill": "990.0",  # 10 seconds ago
         }
         mock_redis.hset.return_value = True
         mock_redis.expire.return_value = True
@@ -104,10 +108,13 @@ class TestTokenBucketRateLimiter:
         assert is_allowed is True
         assert rate_info["remaining"] >= 0
 
-    def test_is_allowed_existing_bucket_no_tokens(self, mock_redis):
+    @patch("time.time")
+    def test_is_allowed_existing_bucket_no_tokens(self, mock_time, mock_redis):
         """Test rate limiting with existing bucket that has no tokens."""
+        # Mock time to be deterministic
+        mock_time.return_value = 1000.0
+
         limiter = TokenBucketRateLimiter()
-        limiter.redis_client = mock_redis
 
         request = Mock()
         request.headers = {}
@@ -117,7 +124,7 @@ class TestTokenBucketRateLimiter:
         # Mock existing bucket with no tokens
         mock_redis.hgetall.return_value = {
             "tokens": "0.0",
-            "last_refill": str(time.time() - 1),
+            "last_refill": "999.0",  # 1 second ago
         }
         mock_redis.hset.return_value = True
         mock_redis.expire.return_value = True
@@ -128,9 +135,8 @@ class TestTokenBucketRateLimiter:
         assert rate_info["remaining"] == 0
 
     def test_is_allowed_redis_error(self, mock_redis):
-        """Test rate limiting with Redis error (fail open)."""
+        """Test rate limiting with Redis error (fail closed)."""
         limiter = TokenBucketRateLimiter()
-        limiter.redis_client = mock_redis
 
         request = Mock()
         request.headers = {}
@@ -140,17 +146,18 @@ class TestTokenBucketRateLimiter:
         # Mock Redis error
         mock_redis.hgetall.side_effect = Exception("Redis connection failed")
 
-        is_allowed, rate_info = limiter.is_allowed(request)
+        with pytest.raises(
+            Exception, match="Operation failed - failing closed for security"
+        ):
+            limiter.is_allowed(request)
 
-        # Should fail open - allow request
-        assert is_allowed is True
-        assert "error" in rate_info
-        assert rate_info["error"] == "Rate limiting temporarily disabled"
-
-    def test_token_refill_calculation(self, mock_redis):
+    @patch("time.time")
+    def test_token_refill_calculation(self, mock_time, mock_redis):
         """Test token refill calculation based on time elapsed."""
+        # Mock time to be deterministic
+        mock_time.return_value = 1000.0
+
         limiter = TokenBucketRateLimiter()
-        limiter.redis_client = mock_redis
 
         request = Mock()
         request.headers = {}
@@ -158,10 +165,9 @@ class TestTokenBucketRateLimiter:
         request.client.host = "192.168.1.1"
 
         # Mock bucket with old timestamp (should refill tokens)
-        old_time = time.time() - 3600  # 1 hour ago
         mock_redis.hgetall.return_value = {
             "tokens": "1.0",
-            "last_refill": str(old_time),
+            "last_refill": "-2600.0",  # 1 hour ago
         }
         mock_redis.hset.return_value = True
         mock_redis.expire.return_value = True
@@ -176,6 +182,7 @@ class TestTokenBucketRateLimiter:
 class TestRateLimitMiddleware:
     """Test rate limiting middleware."""
 
+    @pytest.mark.asyncio
     async def test_rate_limit_middleware_health_check_bypass(self, mock_redis):
         """Test that health checks bypass rate limiting."""
         request = Mock()
@@ -197,6 +204,7 @@ class TestRateLimitMiddleware:
             mock_is_allowed.assert_not_called()
             assert response.status_code == 200
 
+    @pytest.mark.asyncio
     async def test_rate_limit_middleware_docs_bypass(self, mock_redis):
         """Test that docs endpoints bypass rate limiting."""
         request = Mock()
@@ -215,6 +223,7 @@ class TestRateLimitMiddleware:
             mock_is_allowed.assert_not_called()
             assert response.status_code == 200
 
+    @pytest.mark.asyncio
     async def test_rate_limit_middleware_allowed_request(self, mock_redis):
         """Test middleware with allowed request."""
         request = Mock()
@@ -247,6 +256,7 @@ class TestRateLimitMiddleware:
             assert "X-RateLimit-Remaining" in response.headers
             assert "X-RateLimit-Reset" in response.headers
 
+    @pytest.mark.asyncio
     async def test_rate_limit_middleware_rate_limited(self, mock_redis):
         """Test middleware with rate limited request."""
         request = Mock()
@@ -279,6 +289,7 @@ class TestRateLimitMiddleware:
             assert "Rate limit exceeded" in response.body.decode()
             assert "Retry-After" in response.headers
 
+    @pytest.mark.asyncio
     async def test_rate_limit_middleware_headers(self, mock_redis):
         """Test that rate limit headers are properly set."""
         request = Mock()
@@ -326,20 +337,35 @@ class TestRateLimitConfiguration:
 
     def test_rate_limit_environment_variables(self):
         """Test rate limit environment variable configuration."""
-        with patch.dict(
-            "os.environ",
-            {
-                "RATE_LIMIT_REQUESTS": "200",
-                "RATE_LIMIT_WINDOW": "1800",
-                "RATE_LIMIT_BURST": "20",
-            },
-        ):
-            # Re-import to get updated values
-            import importlib
-            import middleware.rate_limiter
+        # Store original environment
+        original_env = {}
+        env_vars = ["RATE_LIMIT_REQUESTS", "RATE_LIMIT_WINDOW", "RATE_LIMIT_BURST"]
 
-            importlib.reload(middleware.rate_limiter)
+        for var in env_vars:
+            original_env[var] = os.environ.get(var)
 
-            assert middleware.rate_limiter.RATE_LIMIT_REQUESTS == 200
-            assert middleware.rate_limiter.RATE_LIMIT_WINDOW == 1800
-            assert middleware.rate_limiter.RATE_LIMIT_BURST == 20
+        try:
+            with patch.dict(
+                "os.environ",
+                {
+                    "RATE_LIMIT_REQUESTS": "200",
+                    "RATE_LIMIT_WINDOW": "1800",
+                    "RATE_LIMIT_BURST": "20",
+                },
+            ):
+                # Re-import to get updated values
+                import importlib
+                import middleware.rate_limiter
+
+                importlib.reload(middleware.rate_limiter)
+
+                assert middleware.rate_limiter.RATE_LIMIT_REQUESTS == 200
+                assert middleware.rate_limiter.RATE_LIMIT_WINDOW == 1800
+                assert middleware.rate_limiter.RATE_LIMIT_BURST == 20
+        finally:
+            # Restore original environment
+            for var, value in original_env.items():
+                if value is None:
+                    os.environ.pop(var, None)
+                else:
+                    os.environ[var] = value

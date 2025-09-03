@@ -41,7 +41,11 @@ export function useModelSelection() {
   const updateModel = model => {
     if (VALID_MODELS.includes(model)) {
       setSelectedModel(model);
-      localStorage.setItem("selectedModel", model);
+      try {
+        localStorage.setItem("selectedModel", model);
+      } catch (error) {
+        console.warn("Failed to save model selection to localStorage:", error);
+      }
     }
   };
 

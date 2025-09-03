@@ -4,12 +4,15 @@ This guide covers how to test your Kyros Dashboard application locally and valid
 
 ## 🧪 Local Testing Options
 
+### E2E Testing
+For comprehensive End-to-End testing with Playwright, see the [E2E Testing Guide](./E2E_TESTING.md).
+
 ### Option 1: Quick Local Test (Recommended)
 
 Run the automated test script to validate everything works:
 
 ```bash
-./test-local.sh
+./scripts/test-local.sh
 ```
 
 This script will:
@@ -25,34 +28,27 @@ This script will:
 
 #### Test Backend (API)
 ```bash
-# Create and activate virtual environment
-cd api
-python -m venv .venv
-
-# Activate virtual environment
-# Linux/Mac:
-source .venv/bin/activate
-# Windows PowerShell:
-# .venv\Scripts\Activate.ps1
+# Navigate to the backend directory
+cd backend
 
 # Install dependencies
-pip install -r requirements.txt
+poetry install
 
 # Test imports
-python -c "import main; print('API imports successfully')"
+poetry run python -c "import main; print('API imports successfully')"
 
 # Run tests
-python -m pytest
+poetry run pytest
 
 # Test API startup
-python -m uvicorn main:app --reload
+poetry run uvicorn main:app --reload
 # Visit http://localhost:8000/api/health
 ```
 
-#### Test Frontend (UI)
+#### Test Frontend
 ```bash
 # Install dependencies
-cd ui
+cd frontend
 npm install
 
 # Run tests
@@ -74,7 +70,7 @@ Test the complete application stack using Docker:
 docker-compose -f docker-compose.test.yml up --build
 
 # Access the application
-# Frontend: http://localhost:3000
+# Frontend: http://localhost:3001
 # Backend: http://localhost:8000
 # API Health: http://localhost:8000/api/health
 ```
@@ -124,7 +120,7 @@ This workflow:
 - ✅ API startup and health checks
 - ✅ Security scanning (Bandit)
 
-### Frontend (UI) Tests
+### Frontend Tests
 - ✅ Node.js environment setup
 - ✅ Dependency installation
 - ✅ Code compilation
@@ -173,14 +169,9 @@ In GitHub Actions, you'll see:
 
 1. **Python Import Errors**:
    ```bash
-   # Make sure virtual environment is activated
-   # Linux/Mac:
-   source .venv/bin/activate
-   # Windows PowerShell:
-   # .venv\Scripts\Activate.ps1
-
    # Reinstall dependencies
-   pip install -r api/requirements.txt
+   cd backend
+   poetry install
    ```
 
 2. **Node.js Build Failures**:
@@ -204,7 +195,7 @@ In GitHub Actions, you'll see:
    npm run lint
 
    # Check build configuration
-   cat ui/vite.config.js
+   cat frontend/vite.config.js
    ```
 
 ### Debug Commands
@@ -212,19 +203,19 @@ In GitHub Actions, you'll see:
 ```bash
 # Check Python environment
 python --version
-pip list
+poetry show
 
 # Check Node.js environment
 node --version
 npm --version
 
 # Check if ports are in use
-lsof -i :3000
+lsof -i :3001
 lsof -i :8000
 
 # Check build output
-ls -la ui/dist/
-cat ui/dist/index.html
+ls -la frontend/dist/
+cat frontend/dist/index.html
 ```
 
 ## 🎯 Next Steps After Testing
@@ -254,7 +245,7 @@ Before considering your application ready:
 
 ### Adding More Tests
 - Add tests to `api/tests/` for backend testing
-- Add tests to `ui/src/` for frontend testing
+- Add tests to `frontend/src/` for frontend testing
 - Update the test scripts to include your new tests
 
 ### Modifying Test Workflow

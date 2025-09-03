@@ -194,7 +194,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
         <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <span className="text-white font-medium">
+              <span className="text-gray-900 dark:text-white font-medium">
                 {selectedVariants.size} variants selected
               </span>
               <div className="flex items-center space-x-2">
@@ -216,6 +216,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
 
             <div className="flex items-center space-x-2">
               <button
+                data-testid="export-button"
                 onClick={handleBulkExport}
                 disabled={exportMutation.isPending}
                 className="bg-accent hover:bg-accent/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
@@ -239,16 +240,18 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
         {filteredVariants.map(job =>
           Object.entries(job.variants || {})
             .map(([channel, channelVariants]) =>
-              channelVariants.map(variant => (
+              channelVariants.map((variant, index) => (
                 <VariantCard
-                  key={variant.id}
+                  key={`${job.job_id}-${channel}-${variant.id}-${index}`}
                   variant={variant}
                   channel={channel}
+                  isSelected={selectedVariants.has(variant.id)}
                   onEdit={handleVariantEdit}
                   onAccept={handleVariantAccept}
                   onCopy={handleVariantCopy}
                   onDownload={handleVariantDownload}
                   onToggleFavorite={handleToggleFavorite}
+                  onSelect={() => _handleVariantSelect(variant.id)}
                 />
               ))
             )

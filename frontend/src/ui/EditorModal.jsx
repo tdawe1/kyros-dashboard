@@ -6,14 +6,14 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
   const [originalText, setOriginalText] = useState("");
 
   useEffect(() => {
-    if (variant) {
+    if (variant?.text) {
       setEditedText(variant.text);
       setOriginalText(variant.text);
     }
   }, [variant]);
 
   const handleSave = () => {
-    if (onSave) {
+    if (onSave && variant) {
       onSave({
         ...variant,
         text: editedText,
@@ -68,7 +68,8 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
                 id="modal-description"
                 className="text-gray-600 dark:text-gray-300 text-sm mt-1"
               >
-                {variant.length} characters • {variant.readability} readability
+                {variant?.text?.length || 0} characters •{" "}
+                {variant?.readability || "N/A"} readability
               </p>
             </div>
             <button
@@ -89,6 +90,7 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
                   Content
                 </label>
                 <textarea
+                  data-testid="edit-modal"
                   value={editedText}
                   onChange={e => setEditedText(e.target.value)}
                   onKeyDown={handleKeyDown}

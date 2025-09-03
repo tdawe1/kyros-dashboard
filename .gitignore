@@ -150,3 +150,14 @@ config.local.json
 # Project archives
 *.zip
 kyros-dashboard-project.zip
+
+# Collaboration env (MCP)
+collaboration/.env
+collaboration/environment.json
+
+# Python coverage artifacts
+.coverage
+htmlcov/
+backend/.coverage
+backend/htmlcov/
+audit_prompt.txt

@@ -81,7 +81,11 @@ export default function Sidebar({ isOpen, onClose }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 mt-6 px-3" aria-label="Main navigation menu">
+        <nav
+          data-testid="sidebar"
+          className="flex-1 mt-6 px-3"
+          aria-label="Main navigation menu"
+        >
           <div className="space-y-1" role="list">
             {navigation.map(item => {
               // Handle tool routes - check if current path starts with tool path

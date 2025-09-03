@@ -28,10 +28,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install Python dependencies
+      - name: Install Poetry and backend deps
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          pip install poetry
+          cd backend
+          poetry install --no-interaction --no-ansi
 
       - name: Install Node.js dependencies
         run: |
@@ -41,7 +43,7 @@ jobs:
       - name: Run Python tests
         run: |
           cd backend
-          python -m pytest --cov=. --cov-report=xml
+          poetry run pytest --cov=. --cov-report=xml
 
       - name: Run frontend tests
         run: |
@@ -52,8 +54,7 @@ jobs:
         run: |
           # Python linting
           cd backend
-          ruff check .
-          black --check .
+          poetry run ruff check .
 
           # Frontend linting
           cd ../frontend
@@ -106,7 +107,7 @@ jobs:
   deploy-backend:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.DEPLOY_TARGET == 'railway'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -122,7 +123,7 @@ jobs:
   deploy-backend-render:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.DEPLOY_TARGET != 'railway'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

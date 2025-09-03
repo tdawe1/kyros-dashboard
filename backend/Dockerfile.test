@@ -7,11 +7,15 @@ RUN apt-get update && apt-get install -y \
     curl \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy requirements first for better caching
-COPY requirements.txt .
+# Install Poetry
+RUN pip install --no-cache-dir poetry && \
+    poetry config virtualenvs.create false
 
-# Install Python dependencies
-RUN pip install --no-cache-dir -r requirements.txt
+# Copy project metadata first for caching
+COPY pyproject.toml poetry.lock ./
+
+# Install Python dependencies (runtime only)
+RUN poetry install --only main --no-interaction --no-ansi
 
 # Copy application code
 COPY . .

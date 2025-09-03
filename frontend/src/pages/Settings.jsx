@@ -24,6 +24,7 @@ export default function Settings() {
   ]);
   const [editingPreset, setEditingPreset] = useState(null);
   const [editingGlossary, setEditingGlossary] = useState(null);
+  const [exportFormat, setExportFormat] = useState("csv");
 
   const tabs = [
     { id: "presets", name: "Presets & Templates" },
@@ -70,7 +71,10 @@ export default function Settings() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+        <h1
+          data-testid="page-title"
+          className="text-3xl font-bold text-gray-900 dark:text-white mb-2"
+        >
           Settings
         </h1>
         <p className="text-gray-600 dark:text-gray-300">
@@ -136,7 +140,13 @@ export default function Settings() {
                         className="w-full p-2 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-gray-900 dark:text-white h-20 resize-none"
                       />
                       <div className="flex space-x-2">
-                        <button className="bg-accent hover:bg-accent/90 text-white px-3 py-1 rounded text-sm">
+                        <button
+                          onClick={() => {
+                            // TODO: Implement preset save functionality
+                            setEditingPreset(null);
+                          }}
+                          className="bg-accent hover:bg-accent/90 text-white px-3 py-1 rounded text-sm"
+                        >
                           <Save className="w-4 h-4 inline mr-1" />
                           Save
                         </button>
@@ -225,7 +235,13 @@ export default function Settings() {
                         placeholder="Definition"
                       />
                       <div className="md:col-span-2 flex space-x-2">
-                        <button className="bg-accent hover:bg-accent/90 text-white px-3 py-1 rounded text-sm">
+                        <button
+                          onClick={() => {
+                            // TODO: Implement glossary save functionality
+                            setEditingGlossary(null);
+                          }}
+                          className="bg-accent hover:bg-accent/90 text-white px-3 py-1 rounded text-sm"
+                        >
                           <Save className="w-4 h-4 inline mr-1" />
                           Save
                         </button>
@@ -338,9 +354,9 @@ export default function Settings() {
                     type="password"
                     placeholder="Enter your OpenAI API key"
                     value={config?.openaiApiKey || ""}
-                    onChange={e => {
+                    onChange={() => {
                       // TODO: Implement API key persistence
-                      console.log("API key changed:", e.target.value);
+                      // API key changed - implement secure storage
                     }}
                     className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                   />
@@ -366,7 +382,11 @@ export default function Settings() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                   Default Export Format
                 </label>
-                <select className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white">
+                <select
+                  value={exportFormat}
+                  onChange={e => setExportFormat(e.target.value)}
+                  className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
+                >
                   <option value="csv">CSV</option>
                   <option value="docx">Word Document</option>
                   <option value="json">JSON</option>
