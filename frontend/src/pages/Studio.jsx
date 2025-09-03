@@ -110,6 +110,7 @@ export default function Studio() {
               value={inputText}
               onChange={(e) => setInputText(e.target.value)}
               placeholder="Paste your source content here... (minimum 100 characters for best results)"
+              aria-label="Source content input"
               className={`w-full h-64 p-4 bg-white dark:bg-gray-700 border rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent resize-none ${
                 errors.inputText
                   ? "border-red-500 focus:ring-red-500"
