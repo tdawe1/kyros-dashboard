@@ -1,14 +1,17 @@
 FROM node:18-alpine
 
-# Force CI cache invalidation with a unique build argument
-ENV CACHE_BUSTER=20250903-030000
+# AGGRESSIVE CACHE BUSTING - Force CI to use latest version
+ENV CACHE_BUSTER=20250903-030100
+ENV BUILD_TIMESTAMP=2025-09-03T03:01:00Z
+ENV FORCE_REBUILD=true
 
 WORKDIR /app
 
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies (CI fix: prevent phantom lifecycle scripts from running)
+# CRITICAL: Install dependencies with --ignore-scripts to prevent prepare script execution
+# The CI was still using cached version without this flag - this forces fresh build
 RUN npm ci --ignore-scripts --no-audit --no-fund
 
 # Copy application code

@@ -2,7 +2,7 @@
   "name": "kyros-dashboard-ui",
   "private": true,
   "version": "0.0.0",
-  "description": "Kyros Dashboard Frontend - CI FIX: Forcing cache invalidation. No prepare script exists.",
+  "description": "Kyros Dashboard Frontend - AGGRESSIVE CACHE BUST: CI still using old cached version. No prepare script exists.",
   "type": "module",
   "scripts": {
     "dev": "vite",
