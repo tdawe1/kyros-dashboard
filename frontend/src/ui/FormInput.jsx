@@ -11,7 +11,11 @@ const FormInput = forwardRef(
             className="block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             {label}
-            {required && <span className="text-red-400 ml-1" aria-label="required">*</span>}
+            {required && (
+              <span className="text-red-400 ml-1" aria-label="required">
+                *
+              </span>
+            )}
           </label>
         )}
         <div className="relative">
@@ -33,7 +37,11 @@ const FormInput = forwardRef(
           )}
         </div>
         {error && (
-          <p id={`${props.id}-error`} className="text-sm text-red-400 flex items-center space-x-1" role="alert">
+          <p
+            id={`${props.id}-error`}
+            className="text-sm text-red-400 flex items-center space-x-1"
+            role="alert"
+          >
             <AlertCircle className="w-3 h-3" aria-hidden="true" />
             <span>{error}</span>
           </p>

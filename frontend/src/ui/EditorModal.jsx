@@ -58,10 +58,16 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
           {/* Header */}
           <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
             <div>
-              <h3 id="modal-title" className="text-xl font-semibold text-gray-900 dark:text-white">
+              <h3
+                id="modal-title"
+                className="text-xl font-semibold text-gray-900 dark:text-white"
+              >
                 Edit Variant
               </h3>
-              <p id="modal-description" className="text-gray-600 dark:text-gray-300 text-sm mt-1">
+              <p
+                id="modal-description"
+                className="text-gray-600 dark:text-gray-300 text-sm mt-1"
+              >
                 {variant.length} characters • {variant.readability} readability
               </p>
             </div>
@@ -92,11 +98,19 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
                   aria-describedby="character-count unsaved-indicator"
                 />
                 <div className="flex justify-between items-center mt-2">
-                  <span id="character-count" className="text-xs text-gray-500 dark:text-gray-400">
+                  <span
+                    id="character-count"
+                    className="text-xs text-gray-500 dark:text-gray-400"
+                  >
                     {editedText.length} characters
                   </span>
                   {editedText !== originalText && (
-                    <span id="unsaved-indicator" className="text-xs text-yellow-400" role="status" aria-live="polite">
+                    <span
+                      id="unsaved-indicator"
+                      className="text-xs text-yellow-400"
+                      role="status"
+                      aria-live="polite"
+                    >
                       Unsaved changes
                     </span>
                   )}
