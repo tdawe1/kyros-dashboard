@@ -3,8 +3,14 @@ name: MCP Servers
 on:
   pull_request:
     branches: [ main, develop ]
+    paths:
+      - 'mcp/**'
+      - '.github/workflows/mcp-tests.yml'
   push:
     branches: [ main, develop ]
+    paths:
+      - 'mcp/**'
+      - '.github/workflows/mcp-tests.yml'
 
 jobs:
   mcp-tests:
