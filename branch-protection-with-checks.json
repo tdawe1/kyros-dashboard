@@ -3,12 +3,12 @@
     "strict": true,
     "contexts": [
       "Collab Guard",
-      "Backend Tests",
-      "Frontend Tests",
-      "E2E Tests",
-      "Security Scan",
-      "Build Verification",
-      "PR Checks Summary"
+      "backend-tests",
+      "frontend-tests",
+      "e2e-tests",
+      "security-scan",
+      "build-verification",
+      "pr-checks-summary"
     ]
   },
   "enforce_admins": false,

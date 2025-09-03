@@ -3,7 +3,6 @@ Pydantic models for authentication and user management.
 """
 
 from pydantic import BaseModel, EmailStr, validator
-import os
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -55,6 +54,7 @@ class UserCreate(BaseModel):
         if len(v) > 128:
             raise ValueError("Password must not exceed 128 characters")
         # Relax complexity requirements outside production to ease testing
+        import os
         env = os.getenv("ENVIRONMENT", "development").lower()
         if env == "production":
             if not re.search(r"[A-Z]", v):
