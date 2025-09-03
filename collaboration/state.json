@@ -11,7 +11,7 @@
     {
       "id": "task-002",
       "description": "Update README and docs to reflect Poetry usage and dev port 3001 (replace pip/requirements mentions).",
-      "status": "todo",
+      "status": "done",
       "assignee": "gemini-cli",
       "dependencies": []
     },
@@ -32,13 +32,10 @@
     {
       "id": "task-005",
       "description": "Deduplicate agent docs (choose agents.md as canonical, fold gemini.md content).",
-      "status": "in_progress",
+      "status": "done",
       "assignee": "gemini-cli",
       "dependencies": []
     }
   ],
-  "file_locks": {
-    "agents.md": "gemini-cli",
-    "gemini.md": "gemini-cli"
-  }
+  "file_locks": {}
 }

@@ -25,27 +25,20 @@ This script will:
 
 #### Test Backend (API)
 ```bash
-# Create and activate virtual environment
-cd api
-python -m venv .venv
-
-# Activate virtual environment
-# Linux/Mac:
-source .venv/bin/activate
-# Windows PowerShell:
-# .venv\Scripts\Activate.ps1
+# Navigate to the backend directory
+cd backend
 
 # Install dependencies
-pip install -r requirements.txt
+poetry install
 
 # Test imports
-python -c "import main; print('API imports successfully')"
+poetry run python -c "import main; print('API imports successfully')"
 
 # Run tests
-python -m pytest
+poetry run pytest
 
 # Test API startup
-python -m uvicorn main:app --reload
+poetry run uvicorn main:app --reload
 # Visit http://localhost:8000/api/health
 ```
 
@@ -173,14 +166,9 @@ In GitHub Actions, you'll see:
 
 1. **Python Import Errors**:
    ```bash
-   # Make sure virtual environment is activated
-   # Linux/Mac:
-   source .venv/bin/activate
-   # Windows PowerShell:
-   # .venv\Scripts\Activate.ps1
-
    # Reinstall dependencies
-   pip install -r api/requirements.txt
+   cd backend
+   poetry install
    ```
 
 2. **Node.js Build Failures**:
@@ -212,7 +200,7 @@ In GitHub Actions, you'll see:
 ```bash
 # Check Python environment
 python --version
-pip list
+poetry show
 
 # Check Node.js environment
 node --version

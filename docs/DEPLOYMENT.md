@@ -247,7 +247,7 @@ The following GitHub Actions workflows are configured:
 3. **Build Failures**:
    - Check build logs in GitHub Actions
    - Verify Node.js and Python versions
-   - Ensure all dependencies are in package.json/requirements.txt
+   - Ensure all dependencies are in package.json or pyproject.toml
 
 4. **Vercel Deployment Issues**:
    - Check Vercel project settings

@@ -12,18 +12,14 @@ Welcome! This guide will help you quickly set up and test the Kyros Repurposer D
 ### 1. Start the Backend API
 
 ```bash
-# Navigate to the API directory
-cd api
-
-# Create and activate virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Navigate to the backend directory
+cd backend
 
 # Install dependencies
-pip install -r requirements.txt
+poetry install
 
 # Start the API server
-uvicorn main:app --reload --port 8000
+poetry run uvicorn main:app --reload --port 8000
 ```
 
 The API will be available at: **http://localhost:8000**
@@ -130,10 +126,9 @@ npm run dev
 
 **Backend won't start**:
 ```bash
-cd api
-pip install --upgrade pip
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
+cd backend
+poetry install
+poetry run uvicorn main:app --reload --port 8000
 ```
 
 **API connection issues**:

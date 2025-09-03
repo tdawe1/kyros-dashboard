@@ -68,12 +68,10 @@ cd frontend && npm install && npm run dev
 **Backend:**
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-pip install -r requirements.txt
+poetry install
 cp env.example .env  # Edit with your config
-alembic upgrade head
-uvicorn main:app --reload --port 8000
+poetry run alembic upgrade head
+poetry run uvicorn main:app --reload --port 8000
 ```
 
 ### Environment Variables

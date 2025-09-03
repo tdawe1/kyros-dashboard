@@ -4,7 +4,7 @@
 echo "🚀 Starting Kyros Dashboard (Full Stack)..."
 
 # Check if we're in the right directory
-if [ ! -f "api/main.py" ] || [ ! -f "ui/package.json" ]; then
+if [ ! -f "backend/main.py" ] || [ ! -f "frontend/package.json" ]; then
     echo "❌ Error: Please run this script from the project root directory"
     exit 1
 fi
@@ -36,7 +36,7 @@ FRONTEND_PID=$!
 echo ""
 echo "✅ Both servers are starting up!"
 echo "📊 Backend API: http://localhost:8000"
-echo "🎨 Frontend UI: http://localhost:5173"
+echo "🎨 Frontend UI: http://localhost:3001"
 echo "📚 API Docs: http://localhost:8000/docs"
 echo ""
 echo "Press Ctrl+C to stop both servers"

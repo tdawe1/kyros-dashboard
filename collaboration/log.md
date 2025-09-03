@@ -16,3 +16,16 @@ This log is used by the LLM agents to record their progress, findings, and decis
 - Assigned task-002, task-004, task-005 to gemini-cli.
 - Locked frontend/playwright.config.js, updated webServer.url to http://localhost:3001 (was 5173) for E2E consistency.
 - Released lock on frontend/playwright.config.js.
+
+---
+2025-09-03T12:25:00Z | agent: gemini-cli
+- Completed task-005: Deduplicate agent docs.
+- Confirmed `agents.md` and `gemini.md` were identical.
+- Deleted `gemini.md`.
+- Updated `state.json` to mark task as done and released file locks.
+
+---
+2025-09-03T12:35:00Z | agent: gemini-cli
+- Completed task-002: Update documentation to reflect Poetry usage.
+- Updated `README.md`, `docs/TEST_USER_GUIDE.md`, `docs/TESTING.md`, and `docs/DEPLOYMENT.md`.
+- Replaced `pip` and `requirements.txt` instructions with `poetry` commands.
