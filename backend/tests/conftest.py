@@ -4,7 +4,7 @@ Pytest configuration and fixtures for the Kyros API tests.
 
 import os
 import sys
-from unittest.mock import Mock, patch
+from unittest.mock import Mock, patch, MagicMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -12,7 +12,41 @@ from fastapi.testclient import TestClient
 # Add the parent directory to the path so we can import our modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Import after path modification
+
+def pytest_configure(config):
+    """
+    Pytest hook to configure and patch settings before tests are run.
+    This is used to mock the Redis client at the earliest point possible
+    to prevent connection attempts during module import.
+    """
+    # Create a mock Redis client that can be used by SecureRedisClient
+    mock_redis_instance = MagicMock()
+    mock_redis_instance.ping.return_value = True
+    mock_redis_instance.get.return_value = None
+    mock_redis_instance.incr.return_value = 1
+    mock_redis_instance.expire.return_value = True
+    mock_redis_instance.delete.return_value = True
+    mock_redis_instance.hgetall.return_value = {}
+    mock_redis_instance.hset.return_value = True
+
+    # The rate limiter uses a pipeline, so we need to mock that too
+    mock_pipeline = MagicMock()
+    mock_pipeline.hset.return_value = mock_pipeline
+    mock_pipeline.expire.return_value = mock_pipeline
+    mock_pipeline.execute.return_value = []
+    mock_redis_instance.pipeline.return_value = mock_pipeline
+
+    # Patch the from_url function in core.security where the client is created
+    patcher = patch("core.security.redis.from_url", return_value=mock_redis_instance)
+
+    # Start the patcher - it will be automatically stopped when the process ends
+    patcher.start()
+
+    # Store the patcher in config for cleanup if needed
+    config._redis_patcher = patcher
+
+
+# Import the app after the patch has been applied
 from main import app  # noqa: E402
 from utils.token_storage import clear_all_data  # noqa: E402
 
