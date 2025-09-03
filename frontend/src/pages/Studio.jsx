@@ -21,11 +21,11 @@ export default function Studio() {
   const toast = useToast();
   const { selectedModel } = useModelSelection();
 
-  const handleChannelToggle = channelId => {
-    setSelectedChannels(prev =>
+  const handleChannelToggle = (channelId) => {
+    setSelectedChannels((prev) =>
       prev.includes(channelId)
-        ? prev.filter(id => id !== channelId)
-        : [...prev, channelId]
+        ? prev.filter((id) => id !== channelId)
+        : [...prev, channelId],
     );
   };
 
@@ -112,8 +112,9 @@ export default function Studio() {
             <textarea
               data-testid="content-input"
               value={inputText}
-              onChange={e => setInputText(e.target.value)}
+              onChange={(e) => setInputText(e.target.value)}
               placeholder="Paste your source content here... (minimum 100 characters for best results)"
+              aria-label="Source content input"
               className={`w-full h-64 p-4 bg-white dark:bg-gray-700 border rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent resize-none ${
                 errors.inputText
                   ? "border-red-500 focus:ring-red-500"
@@ -133,7 +134,7 @@ export default function Studio() {
               Target Channels
             </h3>
             <div className="grid grid-cols-2 gap-3">
-              {CHANNELS.map(channel => (
+              {CHANNELS.map((channel) => (
                 <button
                   key={channel.id}
                   data-testid={`channel-${channel.id}`}
@@ -162,7 +163,7 @@ export default function Studio() {
               Tone & Style
             </h3>
             <div className="space-y-1">
-              {TONES.map(tone => (
+              {TONES.map((tone) => (
                 <button
                   key={tone.id}
                   data-testid={`tone-${tone.id}`}
@@ -185,7 +186,7 @@ export default function Studio() {
               Preset
             </h3>
             <div className="space-y-1">
-              {PRESETS.map(preset => (
+              {PRESETS.map((preset) => (
                 <button
                   key={preset.id}
                   onClick={() => setSelectedPreset(preset.id)}
@@ -248,22 +249,22 @@ export default function Studio() {
         <div className="mt-8">
           <VariantsGallery
             variants={generatedVariants}
-            onVariantUpdate={updatedVariant => {
+            onVariantUpdate={(updatedVariant) => {
               // Update the variant in the state
-              setGeneratedVariants(prev =>
-                prev.map(job => ({
+              setGeneratedVariants((prev) =>
+                prev.map((job) => ({
                   ...job,
                   variants: Object.fromEntries(
                     Object.entries(job.variants).map(([channel, variants]) => [
                       channel,
-                      variants.map(variant =>
+                      variants.map((variant) =>
                         variant.id === updatedVariant.id
                           ? updatedVariant
-                          : variant
+                          : variant,
                       ),
-                    ])
+                    ]),
                   ),
-                }))
+                })),
               );
             }}
           />
