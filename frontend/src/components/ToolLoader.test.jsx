@@ -9,13 +9,13 @@ vi.mock("../toolRegistry", () => ({
   listTools: vi.fn(),
 }));
 
-const renderWithRoute = (path) => {
+const renderWithRoute = path => {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <Routes>
         <Route path="/tools/:toolName" element={<ToolLoader />} />
       </Routes>
-    </MemoryRouter>,
+    </MemoryRouter>
   );
 };
 
@@ -34,8 +34,8 @@ describe("ToolLoader", () => {
     expect(screen.getByText("Tool Not Found")).toBeInTheDocument();
     expect(
       screen.getByText(
-        'The tool "nonexistent" could not be found or is not available.',
-      ),
+        'The tool "nonexistent" could not be found or is not available.'
+      )
     ).toBeInTheDocument();
   });
 
@@ -51,7 +51,7 @@ describe("ToolLoader", () => {
 
     expect(screen.getByText("Tool Disabled")).toBeInTheDocument();
     expect(
-      screen.getByText('The tool "Test Tool" is currently disabled.'),
+      screen.getByText('The tool "Test Tool" is currently disabled.')
     ).toBeInTheDocument();
   });
 
@@ -68,7 +68,7 @@ describe("ToolLoader", () => {
 
     expect(screen.getByText("Component Error")).toBeInTheDocument();
     expect(
-      screen.getByText('The tool "Test Tool" component could not be loaded.'),
+      screen.getByText('The tool "Test Tool" component could not be loaded.')
     ).toBeInTheDocument();
   });
 

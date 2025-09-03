@@ -14,10 +14,10 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
 
   const channels = [
     "all",
-    ...new Set(variants?.map((v) => Object.keys(v.variants || {})).flat()),
+    ...new Set(variants?.map(v => Object.keys(v.variants || {})).flat()),
   ];
 
-  const _handleVariantSelect = (variantId) => {
+  const _handleVariantSelect = variantId => {
     const newSelected = new Set(selectedVariants);
     if (newSelected.has(variantId)) {
       newSelected.delete(variantId);
@@ -27,19 +27,19 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
     setSelectedVariants(newSelected);
   };
 
-  const handleSelectAll = (channel) => {
+  const handleSelectAll = channel => {
     if (channel === "all") {
       const allVariantIds =
-        variants?.flatMap((v) =>
+        variants?.flatMap(v =>
           Object.values(v.variants || {})
             .flat()
-            .map((variant) => variant.id),
+            .map(variant => variant.id)
         ) || [];
       setSelectedVariants(new Set(allVariantIds));
     } else {
       const channelVariantIds =
-        variants?.flatMap((v) =>
-          (v.variants?.[channel] || []).map((variant) => variant.id),
+        variants?.flatMap(v =>
+          (v.variants?.[channel] || []).map(variant => variant.id)
         ) || [];
       setSelectedVariants(new Set(channelVariantIds));
     }
@@ -77,28 +77,28 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
     }
   };
 
-  const handleVariantEdit = (variant) => {
+  const handleVariantEdit = variant => {
     setEditingVariant(variant);
   };
 
-  const handleVariantSave = (updatedVariant) => {
+  const handleVariantSave = updatedVariant => {
     if (onVariantUpdate) {
       onVariantUpdate(updatedVariant);
     }
     setEditingVariant(null);
   };
 
-  const handleVariantAccept = (variantId) => {
+  const handleVariantAccept = variantId => {
     // TODO: Implement accept logic
     console.log("Accepted variant:", variantId);
   };
 
-  const handleVariantCopy = (variantId) => {
+  const handleVariantCopy = variantId => {
     // TODO: Show copy feedback
     console.log("Copied variant:", variantId);
   };
 
-  const handleVariantDownload = (variantId) => {
+  const handleVariantDownload = variantId => {
     // TODO: Implement individual download
     console.log("Downloaded variant:", variantId);
   };
@@ -115,7 +115,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
 
   const filteredVariants =
     variants?.filter(
-      (v) => filterChannel === "all" || v.variants?.[filterChannel],
+      v => filterChannel === "all" || v.variants?.[filterChannel]
     ) || [];
 
   if (!variants || variants.length === 0) {
@@ -175,10 +175,10 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
           {/* Channel Filter */}
           <select
             value={filterChannel}
-            onChange={(e) => setFilterChannel(e.target.value)}
+            onChange={e => setFilterChannel(e.target.value)}
             className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white px-3 py-2 focus:outline-none focus:ring-2 focus:ring-accent"
           >
-            {channels.map((channel) => (
+            {channels.map(channel => (
               <option key={channel} value={channel}>
                 {channel === "all"
                   ? "All Channels"
@@ -236,10 +236,10 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
             : "space-y-4"
         }`}
       >
-        {filteredVariants.map((job) =>
+        {filteredVariants.map(job =>
           Object.entries(job.variants || {})
             .map(([channel, channelVariants]) =>
-              channelVariants.map((variant) => (
+              channelVariants.map(variant => (
                 <VariantCard
                   key={variant.id}
                   variant={variant}
@@ -250,9 +250,9 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
                   onDownload={handleVariantDownload}
                   onToggleFavorite={handleToggleFavorite}
                 />
-              )),
+              ))
             )
-            .flat(),
+            .flat()
         )}
       </div>
 

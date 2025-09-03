@@ -26,7 +26,7 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
     setEditedText(originalText);
   };
 
-  const handleKeyDown = (e) => {
+  const handleKeyDown = e => {
     if (e.key === "Escape") {
       onClose();
     } else if (e.key === "s" && (e.ctrlKey || e.metaKey)) {
@@ -90,7 +90,7 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
                 </label>
                 <textarea
                   value={editedText}
-                  onChange={(e) => setEditedText(e.target.value)}
+                  onChange={e => setEditedText(e.target.value)}
                   onKeyDown={handleKeyDown}
                   className="w-full h-96 p-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-none font-mono text-sm leading-relaxed"
                   placeholder="Enter your content here..."

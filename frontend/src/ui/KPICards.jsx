@@ -43,7 +43,7 @@ export default function KPICards() {
   if (isLoading) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {kpiConfig.map((kpi) => (
+        {kpiConfig.map(kpi => (
           <div
             key={kpi.title}
             className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700 animate-pulse"
@@ -65,7 +65,7 @@ export default function KPICards() {
   if (error) {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {kpiConfig.map((kpi) => {
+        {kpiConfig.map(kpi => {
           const Icon = kpi.icon;
           return (
             <div
@@ -97,7 +97,7 @@ export default function KPICards() {
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-      {kpiConfig.map((kpi) => {
+      {kpiConfig.map(kpi => {
         const Icon = kpi.icon;
         const value = kpis?.[kpi.key] || 0;
         const displayValue = kpi.suffix

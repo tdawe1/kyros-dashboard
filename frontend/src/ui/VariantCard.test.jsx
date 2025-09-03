@@ -32,7 +32,7 @@ describe("VariantCard", () => {
     expect(screen.getByText("150 chars")).toBeInTheDocument();
     expect(screen.getByText("Good")).toBeInTheDocument();
     expect(
-      screen.getByText("This is a test variant for LinkedIn"),
+      screen.getByText("This is a test variant for LinkedIn")
     ).toBeInTheDocument();
   });
 
@@ -59,8 +59,8 @@ describe("VariantCard", () => {
 
     // Find the heart button by its class (it's the first button with the heart styling)
     const buttons = screen.getAllByRole("button");
-    const heartButton = buttons.find((button) =>
-      button.className.includes("hover:text-red-400"),
+    const heartButton = buttons.find(button =>
+      button.className.includes("hover:text-red-400")
     );
 
     expect(heartButton).toBeDefined();
@@ -68,7 +68,7 @@ describe("VariantCard", () => {
 
     expect(defaultProps.onToggleFavorite).toHaveBeenCalledWith(
       mockVariant.id,
-      true,
+      true
     );
   });
 
@@ -77,7 +77,7 @@ describe("VariantCard", () => {
       <VariantCard
         {...defaultProps}
         variant={{ ...mockVariant, readability: "Excellent" }}
-      />,
+      />
     );
     expect(screen.getByText("Excellent")).toHaveClass("text-green-400");
 
@@ -85,7 +85,7 @@ describe("VariantCard", () => {
       <VariantCard
         {...defaultProps}
         variant={{ ...mockVariant, readability: "Poor" }}
-      />,
+      />
     );
     expect(screen.getByText("Poor")).toHaveClass("text-red-400");
   });

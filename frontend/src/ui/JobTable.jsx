@@ -29,7 +29,7 @@ export default function JobTable() {
   const [sortField, setSortField] = useState("created_at");
   const [sortDirection, setSortDirection] = useState("desc");
 
-  const handleSort = (field) => {
+  const handleSort = field => {
     if (sortField === field) {
       setSortDirection(sortDirection === "asc" ? "desc" : "asc");
     } else {
@@ -38,7 +38,7 @@ export default function JobTable() {
     }
   };
 
-  const formatDate = (dateString) => {
+  const formatDate = dateString => {
     return new Date(dateString).toLocaleDateString("en-US", {
       month: "short",
       day: "numeric",
@@ -47,7 +47,7 @@ export default function JobTable() {
     });
   };
 
-  const getSortIcon = (field) => {
+  const getSortIcon = field => {
     if (sortField !== field) return null;
     return sortDirection === "asc" ? (
       <ChevronUp className="w-4 h-4" />
@@ -161,7 +161,7 @@ export default function JobTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
-            {jobs?.map((job) => (
+            {jobs?.map(job => (
               <tr
                 key={job.id}
                 className="hover:bg-gray-50 dark:hover:bg-gray-700"
@@ -179,7 +179,9 @@ export default function JobTable() {
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span
-                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${statusColors[job.status]}`}
+                    className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${
+                      statusColors[job.status]
+                    }`}
                   >
                     {statusLabels[job.status]}
                   </span>
