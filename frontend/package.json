@@ -2,6 +2,7 @@
   "name": "kyros-dashboard-ui",
   "private": true,
   "version": "0.0.0",
+  "description": "Kyros Dashboard Frontend - Fixed for CI compatibility",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -11,6 +12,7 @@
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "pre-commit": "npm run format && npm run lint:fix",
+    "_comment": "No prepare script - fixed for CI compatibility",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",

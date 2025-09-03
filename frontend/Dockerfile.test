@@ -5,8 +5,8 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci
+# Install dependencies (CI fix: ensure no lifecycle scripts run during npm ci)
+RUN npm ci --ignore-scripts
 
 # Copy application code
 COPY . .
