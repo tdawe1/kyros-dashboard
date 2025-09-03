@@ -10,7 +10,7 @@ export const useJobs = () => {
   });
 };
 
-export const useJob = jobId => {
+export const useJob = (jobId) => {
   return useQuery({
     queryKey: ["job", jobId],
     queryFn: () => getJob(jobId),

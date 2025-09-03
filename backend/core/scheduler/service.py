@@ -2,7 +2,8 @@
 Business logic service for the scheduler system.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+import calendar
 from typing import Optional, List, Tuple
 from sqlalchemy.orm import Session
 from sqlalchemy import and_, desc, func, case
@@ -46,7 +47,22 @@ class SchedulerService:
                 .first()
             )
             if existing_key:
-                return None, "Job with this idempotency key already exists"
+                # Find the existing job created with this idempotency key
+                existing_job = (
+                    self.db.query(ScheduledJob)
+                    .filter(
+                        and_(
+                            ScheduledJob.owner_user_id == user_id,
+                            func.json_extract(ScheduledJob.options, "$.idempotency_key")
+                            == request.idempotency_key,
+                        )
+                    )
+                    .first()
+                )
+                if existing_job:
+                    return existing_job, None
+                else:
+                    return None, "Job with this idempotency key already exists"
 
         # Validate tool exists
         if not is_tool_enabled(request.tool):
@@ -80,12 +96,16 @@ class SchedulerService:
             )
 
         # Create the scheduled job
+        options = request.options or {}
+        if request.idempotency_key:
+            options["idempotency_key"] = request.idempotency_key
+
         job = ScheduledJob(
             tool=request.tool,
             name=request.name,
             owner_user_id=user_id,
             input_source=request.input_source,
-            options=request.options or {},
+            options=options,
             next_run_at=next_run_at,
             timezone=request.timezone,
             recurrence=request.recurrence,
@@ -172,7 +192,7 @@ class SchedulerService:
         if request.max_runs is not None:
             job.max_runs = request.max_runs
 
-        job.updated_at = datetime.utcnow()
+        job.updated_at = datetime.now(timezone.utc)
         self.db.commit()
         return job, None
 
@@ -205,7 +225,8 @@ class SchedulerService:
                 .filter(
                     and_(
                         ScheduledJob.id == job_id,
-                        JobRun.run_payload["idempotency_key"].astext == idempotency_key,
+                        func.json_extract(JobRun.run_payload, "$.idempotency_key")
+                        == idempotency_key,
                     )
                 )
                 .first()
@@ -293,20 +314,75 @@ class SchedulerService:
             total_tokens_used=run_stats.total_tokens or 0,
         )
 
-    def _calculate_next_run_time(self, recurrence: str, timezone: str) -> datetime:
+    def get_job_run(self, job_id: UUID, run_id: UUID, user_id: str) -> Optional[JobRun]:
+        """
+        Get a specific job run for a user's job.
+
+        Args:
+            job_id: The scheduled job ID
+            run_id: The job run ID
+            user_id: The user ID
+
+        Returns:
+            JobRun if found and belongs to user, None otherwise
+        """
+        return (
+            self.db.query(JobRun)
+            .join(ScheduledJob)
+            .filter(
+                and_(
+                    JobRun.id == run_id,
+                    JobRun.scheduled_job_id == job_id,
+                    ScheduledJob.owner_user_id == user_id,
+                )
+            )
+            .first()
+        )
+
+    def _calculate_next_run_time(self, recurrence: str, user_timezone: str) -> datetime:
         """Calculate the next run time based on recurrence pattern."""
-        now = datetime.utcnow()
+        now = datetime.now(timezone.utc)
 
         if recurrence == "daily":
             return now + timedelta(days=1)
         elif recurrence == "weekly":
             return now + timedelta(weeks=1)
         elif recurrence == "monthly":
-            # Simple monthly calculation - add 30 days
-            return now + timedelta(days=30)
+            # Proper monthly calculation - add one month
+            year = now.year
+            month = now.month
+            if month == 12:
+                year += 1
+                month = 1
+            else:
+                month += 1
+
+            # Handle cases where the day doesn't exist in the next month (e.g., Jan 31 -> Feb 31)
+            try:
+                next_month = now.replace(year=year, month=month)
+            except ValueError:
+                # Day doesn't exist in next month, use last day of month
+                last_day = calendar.monthrange(year, month)[1]
+                next_month = now.replace(year=year, month=month, day=last_day)
+
+            return next_month
         elif recurrence.startswith("cron:"):
-            # TODO: Implement cron parsing
-            # For now, default to daily
-            return now + timedelta(days=1)
+            # Basic cron parsing - for now just extract common patterns
+            cron_expr = recurrence[5:].strip()
+            if cron_expr == "0 9 * * *":  # Daily at 9 AM
+                next_run = now.replace(hour=9, minute=0, second=0, microsecond=0)
+                if next_run <= now:
+                    next_run += timedelta(days=1)
+                return next_run
+            elif cron_expr == "0 9 * * 1":  # Weekly on Monday at 9 AM
+                days_ahead = 0 - now.weekday()  # Monday is 0
+                if days_ahead <= 0:  # Target day already happened this week
+                    days_ahead += 7
+                next_run = now + timedelta(days=days_ahead)
+                next_run = next_run.replace(hour=9, minute=0, second=0, microsecond=0)
+                return next_run
+            else:
+                # For complex cron expressions, default to daily for now
+                return now + timedelta(days=1)
         else:
             return now + timedelta(days=1)

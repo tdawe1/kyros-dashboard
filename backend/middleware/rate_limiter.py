@@ -115,7 +115,7 @@ class TokenBucketRateLimiter:
             is_allowed = False
 
         # Use pipeline for atomic operations
-        pipe = self.redis_client._client.pipeline()
+        pipe = self.redis_client.pipeline()
         pipe.hset(bucket_key, mapping={"tokens": tokens, "last_refill": current_time})
         pipe.expire(bucket_key, RATE_LIMIT_WINDOW * 2)
         pipe.execute()
@@ -156,7 +156,8 @@ async def rate_limit_middleware(request: Request, call_next):
     is_allowed, rate_info = rate_limiter.is_allowed(request)
 
     if not is_allowed:
-        logger.warning(f"Rate limit exceeded for {request.client.host}")
+        client_id = rate_limiter._get_client_identifier(request)
+        logger.warning(f"Rate limit exceeded for {client_id}")
         return JSONResponse(
             status_code=429,
             content={

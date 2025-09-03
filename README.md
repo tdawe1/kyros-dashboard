@@ -104,6 +104,22 @@ See `http://localhost:8000/docs` for interactive API documentation.
 # Backend: python -m pytest
 ```
 
+## 🧠 MCP Servers & Collaboration
+
+This repo ships MCP servers under `mcp/` and a collaboration model under `collaboration/`.
+
+- Install servers locally:
+  - `python -m pip install -e mcp`
+  - Start (recommended): `python -m mcp.kyros_collab_server` (collaboration), `python -m mcp.linear_server`, `python -m mcp.railway_server`, `python -m mcp.vercel_server`, `python -m mcp.coderabbit_server`
+- Import CodeRabbit/GitHub PR feedback to tasks:
+  - `python scripts/import_coderabbit_feedback.py --owner ORG --repo REPO --pr 123 --assign`
+    - Creates tasks from review changes/PR comments, links PR number, and (optionally) auto‑assigns.
+- Link external IDs to tasks via collab RPC:
+  - `collab.link_external({"id": "task-001", "provider": "linear", "value": "LIN-123"})`
+  - `collab.link_external({"id": "task-001", "provider": "vercel", "key": "deployment", "value": "dpl_..."})`
+
+See `mcp/README.md` and `agents.md` for details.
+
 ## 🚀 Deployment
 
 **Automatic:** GitHub Actions deploys on merge to `main`

@@ -4,8 +4,8 @@ import { api } from "../lib/api";
 // Query keys
 const SCHEDULER_KEYS = {
   schedules: ["scheduler", "schedules"],
-  schedule: id => ["scheduler", "schedule", id],
-  runs: id => ["scheduler", "runs", id],
+  schedule: (id) => ["scheduler", "schedule", id],
+  runs: (id) => ["scheduler", "runs", id],
   run: (jobId, runId) => ["scheduler", "run", jobId, runId],
 };
 
@@ -14,22 +14,35 @@ const schedulerApi = {
   // Get all schedules
   getSchedules: async (params = {}) => {
     const searchParams = new URLSearchParams();
-    if (params.page) searchParams.append("page", params.page);
-    if (params.page_size) searchParams.append("page_size", params.page_size);
-    if (params.status) searchParams.append("status", params.status);
+
+    // Validate and sanitize pagination params
+    if (params.page && Number.isInteger(params.page) && params.page > 0) {
+      searchParams.append("page", params.page);
+    }
+    if (
+      params.page_size &&
+      Number.isInteger(params.page_size) &&
+      params.page_size > 0 &&
+      params.page_size <= 100
+    ) {
+      searchParams.append("page_size", params.page_size);
+    }
+    if (params.status && typeof params.status === "string") {
+      searchParams.append("status", params.status);
+    }
 
     const response = await api.get(`/scheduler/?${searchParams.toString()}`);
     return response.data;
   },
 
   // Get schedule details
-  getSchedule: async id => {
+  getSchedule: async (id) => {
     const response = await api.get(`/scheduler/${id}`);
     return response.data;
   },
 
   // Create schedule
-  createSchedule: async data => {
+  createSchedule: async (data) => {
     const response = await api.post("/scheduler/", data);
     return response.data;
   },
@@ -41,7 +54,7 @@ const schedulerApi = {
   },
 
   // Delete schedule
-  deleteSchedule: async id => {
+  deleteSchedule: async (id) => {
     const response = await api.delete(`/scheduler/${id}`);
     return response.data;
   },
@@ -61,7 +74,7 @@ const schedulerApi = {
     if (params.page_size) searchParams.append("page_size", params.page_size);
 
     const response = await api.get(
-      `/scheduler/${jobId}/runs?${searchParams.toString()}`
+      `/scheduler/${jobId}/runs?${searchParams.toString()}`,
     );
     return response.data;
   },
@@ -185,10 +198,12 @@ export function useSchedulerStats() {
   const stats = schedules.jobs?.reduce(
     (acc, schedule) => {
       acc.total++;
-      acc[schedule.status] = (acc[schedule.status] || 0) + 1;
+      // Normalize status to lowercase for consistent counting
+      const normalizedStatus = schedule.status?.toLowerCase() || "unknown";
+      acc[normalizedStatus] = (acc[normalizedStatus] || 0) + 1;
       return acc;
     },
-    { total: 0, active: 0, paused: 0, completed: 0, failed: 0 }
+    { total: 0, active: 0, paused: 0, completed: 0, failed: 0 },
   ) || {
     total: 0,
     active: 0,

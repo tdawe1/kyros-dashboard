@@ -4,12 +4,14 @@ Implements consistent error responses and exception hierarchy.
 """
 
 import logging
+import os
+import traceback
+from datetime import datetime
 from typing import Any, Dict, Optional
 from fastapi import HTTPException, status
 from fastapi.responses import JSONResponse
 from fastapi.requests import Request
 from fastapi.exceptions import RequestValidationError
-import traceback
 
 logger = logging.getLogger(__name__)
 
@@ -96,14 +98,15 @@ def create_error_response(
     message: str,
     status_code: int = status.HTTP_500_INTERNAL_SERVER_ERROR,
     details: Optional[Dict[str, Any]] = None,
+    request: Optional[Request] = None,
 ) -> JSONResponse:
     """Create standardized error response."""
 
     error_response = {
         "error": {"code": error_code, "message": message, "details": details or {}},
-        "timestamp": None,  # Will be set by middleware
-        "path": None,  # Will be set by middleware
-        "request_id": None,  # Will be set by middleware
+        "timestamp": datetime.utcnow().isoformat(),
+        "path": getattr(request.state, "request_path", None) if request else None,
+        "request_id": getattr(request.state, "request_id", None) if request else None,
     }
 
     return JSONResponse(status_code=status_code, content=error_response)
@@ -133,6 +136,7 @@ def handle_kyros_exception(request: Request, exc: KyrosException) -> JSONRespons
         message=exc.message,
         status_code=status_code,
         details=exc.details,
+        request=request,
     )
 
 
@@ -156,6 +160,7 @@ def handle_validation_error(
         message="Request validation failed",
         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
         details={"validation_errors": formatted_errors},
+        request=request,
     )
 
 
@@ -165,7 +170,10 @@ def handle_http_exception(request: Request, exc: HTTPException) -> JSONResponse:
     logger.warning(f"HTTP exception: {exc.status_code} - {exc.detail}")
 
     return create_error_response(
-        error_code="HTTP_ERROR", message=str(exc.detail), status_code=exc.status_code
+        error_code="HTTP_ERROR",
+        message=str(exc.detail),
+        status_code=exc.status_code,
+        request=request,
     )
 
 
@@ -176,7 +184,9 @@ def handle_generic_exception(request: Request, exc: Exception) -> JSONResponse:
     logger.error(f"Traceback: {traceback.format_exc()}")
 
     # Don't expose internal details in production
-    if logger.level <= logging.DEBUG:
+    # Use explicit config flag instead of logger level
+    show_tracebacks = os.getenv("SHOW_ERROR_TRACEBACKS", "false").lower() == "true"
+    if show_tracebacks:
         details = {"traceback": traceback.format_exc()}
     else:
         details = {}
@@ -186,37 +196,19 @@ def handle_generic_exception(request: Request, exc: Exception) -> JSONResponse:
         message="An internal error occurred",
         status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         details=details,
+        request=request,
     )
 
 
 # Error response middleware
 async def error_response_middleware(request: Request, call_next):
     """Middleware to add common fields to error responses."""
+    # Store request info for error handlers
+    request.state.request_path = str(request.url.path)
+    request.state.request_timestamp = datetime.utcnow().isoformat()
 
-    try:
-        response = await call_next(request)
-        return response
-    except Exception as exc:
-        # Let the exception handlers deal with the response
-        # This middleware just adds common fields
-        if hasattr(exc, "response") and isinstance(exc.response, JSONResponse):
-            content = exc.response.body.decode()
-            import json
-
-            error_data = json.loads(content)
-
-            # Add common fields
-            from datetime import datetime
-
-            error_data["timestamp"] = datetime.utcnow().isoformat()
-            error_data["path"] = str(request.url.path)
-            error_data["request_id"] = getattr(request.state, "request_id", None)
-
-            return JSONResponse(
-                status_code=exc.response.status_code, content=error_data
-            )
-
-        raise exc
+    response = await call_next(request)
+    return response
 
 
 # Utility functions for common error scenarios

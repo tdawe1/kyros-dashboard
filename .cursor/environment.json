@@ -1,0 +1,170 @@
+{
+  "agentCanUpdateSnapshot": true,
+  "environment": {
+    "development": {
+      "description": "Development environment configuration for Kyros Dashboard",
+      "variables": {
+        "APP_NAME": "Kyros Dashboard",
+        "APP_VERSION": "1.0.0",
+        "ENVIRONMENT": "development",
+        "DEBUG": "true",
+
+        "API_HOST": "0.0.0.0",
+        "API_PORT": "8000",
+        "API_PREFIX": "/api",
+
+        "JWT_SECRET_KEY": "your-jwt-secret-key-here",
+        "JWT_ALGORITHM": "HS256",
+        "JWT_ACCESS_TOKEN_EXPIRE_MINUTES": "30",
+        "JWT_REFRESH_TOKEN_EXPIRE_DAYS": "7",
+        "ADMIN_PASSWORD": "admin123",
+
+        "DATABASE_URL": "sqlite:///./kyros.db",
+        "DB_POOL_SIZE": "10",
+        "DB_MAX_OVERFLOW": "20",
+        "DB_POOL_TIMEOUT": "30",
+        "DB_POOL_RECYCLE": "3600",
+        "DB_ECHO": "false",
+
+        "REDIS_URL": "redis://localhost:6379",
+        "REDIS_SECURITY_MODE": "fail_closed",
+
+        "RATE_LIMIT_REQUESTS": "100",
+        "RATE_LIMIT_WINDOW": "3600",
+        "RATE_LIMIT_BURST": "10",
+
+        "DAILY_JOB_LIMIT": "10",
+        "MAX_INPUT_CHARACTERS": "100000",
+        "MAX_TOKENS_PER_JOB": "50000",
+        "TOKEN_ESTIMATION_FACTOR": "1.3",
+
+        "OPENAI_API_KEY": "your-openai-api-key-here",
+        "API_MODE": "demo",
+        "DEFAULT_MODEL": "gpt-4o-mini",
+
+        "ALLOWED_ORIGINS": "http://localhost:3001,http://localhost:5173,http://localhost:3000",
+
+        "SENTRY_DSN": "your-sentry-dsn-here",
+        "RELEASE_VERSION": "1.0.0",
+
+        "CIRCUIT_BREAKER_FAILURE_THRESHOLD": "5",
+        "CIRCUIT_BREAKER_RECOVERY_TIMEOUT": "60",
+
+        "VITE_API_BASE_URL": "http://localhost:8000",
+        "VITE_DEBUG": "true",
+        "VITE_SENTRY_DSN": "your-sentry-dsn-here",
+        "VITE_ENVIRONMENT": "development",
+        "VITE_RELEASE_VERSION": "1.0.0"
+      }
+    },
+    "testing": {
+      "description": "Testing environment configuration",
+      "variables": {
+        "ENVIRONMENT": "testing",
+        "DEBUG": "true",
+        "DATABASE_URL": "sqlite:///:memory:",
+        "REDIS_URL": "redis://localhost:6379/15",
+        "API_MODE": "demo",
+        "VITE_API_BASE_URL": "http://localhost:8000",
+        "VITE_DEBUG": "true"
+      }
+    },
+    "production": {
+      "description": "Production environment configuration",
+      "variables": {
+        "ENVIRONMENT": "production",
+        "DEBUG": "false",
+        "API_MODE": "real",
+        "DB_ECHO": "false",
+        "REDIS_SECURITY_MODE": "fail_closed",
+        "VITE_DEBUG": "false"
+      }
+    }
+  },
+  "mcp": {
+    "description": "MCP (Model Context Protocol) server configurations",
+    "servers": {
+      "kyros-collab": {
+        "command": "kyros-collab-mcp",
+        "env": {
+          "COLLAB_ROOT": "."
+        }
+      },
+      "linear": {
+        "command": "mcp-linear",
+        "env": {
+          "LINEAR_API_TOKEN": "${LINEAR_API_TOKEN}"
+        }
+      },
+      "railway": {
+        "command": "mcp-railway",
+        "env": {
+          "RAILWAY_TOKEN": "${RAILWAY_TOKEN}",
+          "RAILWAY_SERVICE_NAME": "kyros-dashboard-api"
+        }
+      },
+      "vercel": {
+        "command": "mcp-vercel",
+        "env": {
+          "VERCEL_TOKEN": "${VERCEL_TOKEN}",
+          "VERCEL_ORG_ID": "${VERCEL_ORG_ID}",
+          "VERCEL_PROJECT_ID": "${VERCEL_PROJECT_ID}"
+        }
+      },
+      "coderabbit": {
+        "command": "mcp-coderabbit",
+        "env": {
+          "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+        }
+      }
+    }
+  },
+  "external_services": {
+    "description": "External service API keys and configurations",
+    "variables": {
+      "LINEAR_API_TOKEN": "your-linear-api-token-here",
+      "RAILWAY_TOKEN": "your-railway-token-here",
+      "VERCEL_TOKEN": "your-vercel-token-here",
+      "VERCEL_ORG_ID": "your-vercel-org-id-here",
+      "VERCEL_PROJECT_ID": "your-vercel-project-id-here",
+      "GITHUB_TOKEN": "your-github-token-here"
+    }
+  },
+  "project_structure": {
+    "description": "Key project directories and their purposes",
+    "directories": {
+      "backend": "FastAPI backend with Python",
+      "frontend": "React frontend with Vite",
+      "mcp": "Model Context Protocol servers",
+      "collaboration": "Collaboration state and schemas",
+      "docs": "Project documentation",
+      "scripts": "Utility scripts",
+      ".cursor": "Cursor IDE configuration"
+    }
+  },
+  "development_commands": {
+    "description": "Common development commands for the project",
+    "backend": {
+      "start_dev": "cd backend && ./start_dev.sh",
+      "start": "cd backend && ./start.sh",
+      "test": "cd backend && python -m pytest",
+      "migrate": "cd backend && alembic upgrade head"
+    },
+    "frontend": {
+      "dev": "cd frontend && npm run dev",
+      "build": "cd frontend && npm run build",
+      "test": "cd frontend && npm run test",
+      "e2e": "cd frontend && npm run test:e2e"
+    },
+    "full_stack": {
+      "start_both": "./scripts/start-both.sh",
+      "test_local": "./scripts/test-local.sh"
+    }
+  },
+  "ports": {
+    "description": "Default ports used by the application",
+    "backend": 8000,
+    "frontend": 5173,
+    "redis": 6379
+  }
+}

@@ -43,6 +43,67 @@ collaboration/
 
 ---
 
+## Quickstart (TL;DR)
+
+1. Sync repo and read state: pull latest `main`, inspect `collaboration/state/*` and prune stale leases if required.
+2. Claim a task: pick highest‑priority `queued`, set `status: claimed`, set `assignee`, create branch `feat/<task-id>-slug`.
+3. Acquire leases: add leases only for files you will edit (TTL ≈ 15m; heartbeat every 5m).
+4. Implement: small commits; run gates (format, lint, type, unit tests, secret scan) locally.
+5. Open PR: set task `status: review`, assign a critic; release unneeded leases.
+6. Integrate: on approval → `approved → merging → done`, release all leases, regenerate logs.
+
+IDs: Current repo uses IDs like `task-00x`. Examples here also show `T-142` style. Either is acceptable; be consistent per task/thread and include the chosen ID in branches/commits.
+
+---
+
+## Task Slicing & Commits
+
+- Smallest viable steps: Aim for 10–60 minute subtasks that can be code‑reviewed independently and rolled back safely.
+- Commit cadence: Commit after every coherent change (1–5 files, ~10–200 LOC). Don’t batch unrelated edits.
+- Message format: Keep the template, but be specific to the subtask.
+  - `feat(task-007-01): add MCP env autoload`
+  - Why/Touches/Tests/Risks sections stay concise and focused.
+- Change size guardrails: Prefer ≤200 LOC per commit and ≤400 LOC per PR unless mechanical.
+- Branching: One branch per task; subtasks are sequential commits. If a subtask becomes large, branch off a temporary sub-branch and squash back before PR.
+
+Subtask IDs
+- Use `task-<parent>-NN` (e.g., `task-007-01`, `task-007-02`) or `task-007-a/b`.
+- Record subtask IDs in commit messages and events for traceability.
+
+Events to emit
+- `subtask_started` / `subtask_completed` with `{task, subtask, notes}`.
+- `commit_pushed` with `{task, subtask, sha, summary}` when applicable.
+- Continue emitting `tests_run`, `file_locked`, `lease_renewed`, etc.
+
+---
+
+## Context Reset Protocol
+
+Goal: minimize drift by clearing conversational context between subtasks.
+
+At every subtask boundary:
+- End the chat/session and start a new one (Cursor/Claude: open a fresh chat).
+- Rehydrate only minimal context:
+  - Task ID, title, acceptance criteria (DoD), and any blockers/dependencies.
+  - Current state from `collab.get_state(kind="tasks")` for the specific task.
+  - Open leases relevant to the next change (if any).
+- Post the following handoff snippet to kick off the next subtask:
+
+```
+Context Reset: New subtask
+Task: <task-id> — <title>
+Subtask: <task-id-NN> — <one-line goal>
+DoD: <bulleted acceptance criteria>
+Constraints: small diff, tests updated, no secrets, follow agents.md
+Plan: <3–5 steps>
+Output: code changes only; summarize what changed and next subtask suggestion
+```
+
+Operational notes
+- Don’t carry forward prior chat content. If needed, paste a one‑paragraph summary only.
+- Emit `context_reset` event with `{task, subtask, reason: "boundary"}`.
+- If an agent needs broader context, read the code/state again; avoid long free‑form recap.
+
 ## Task lifecycle (state machine)
 
 Statuses and transitions:
@@ -150,6 +211,37 @@ Defaults and behaviour:
 
    * If blocked or stalled, set `blocked` with a `reason` and `needs`.
    * Watchdog re-queues or splits the task after a grace period.
+
+---
+
+## RPC Cheat Sheet (collab.*)
+
+- `collab.get_state` (kind): Return `{data, etag}` for `tasks|locks|agents`, or `{text, etag}` for `events|log`.
+  - Params: `{"kind":"tasks"|"locks"|"agents"|"events"|"log"}`
+- `collab.list_tasks` (filters): List tasks, optionally by `status` and/or `assignee`.
+  - Params: `{status?: string, assignee?: string}`
+- `collab.create_task` (create): Create a task, defaults to `queued`.
+  - Params: `{title: string, description?: string, labels?: string[], priority?: string, assignee?: string, id?: string}`
+- `collab.update_task` (patch): Update fields on a task; validates status.
+  - Params: `{id: string, ...fields}`
+- `collab.transition_task` (status change): Enforce state machine transitions.
+  - Params: `{id: string, new_status: string, reason?: string}`
+- `collab.suggest_assignee` (heuristic): Recommend an assignee from agent pools.
+  - Params: `{labels?: string[]}`
+- `collab.auto_assign` (apply): Suggest and set an assignee on a task.
+  - Params: `{id: string, labels?: string[]}`
+- `collab.link_external` (refs): Attach external IDs to a task under `external_ids[provider][key]`.
+  - Params: `{id: string, provider: string, value: string, key?: string}`
+- `collab.emit_event` (append): Append any event to `events.jsonl`.
+  - Params: arbitrary event object
+- `collab.acquire_lease` / `collab.release_lease` (leases): Manage file leases with TTL + heartbeat.
+  - Params: `{path: string, owner: string, purpose?: string}` / `{lock_id: string, owner: string}`
+- `collab.list_agents` / `collab.update_agent` (agents): List or upsert agent metadata.
+  - Params: none / `{id: string, ...fields}`
+- `collab.generate_log` (md): Regenerate `collaboration/logs/log.md` from events.
+  - Params: none
+
+Examples (stdio): see `mcp/README.md` for `python -m mcp.kyros_collab_server` piping.
 
 ---
 
@@ -330,6 +422,38 @@ python scripts/collab_cli.py generate-log
 ```
 
 The helper implements ETag-checked atomic writes to `state/*`, lease management with TTL + heartbeat, and event emission.
+
+---
+
+## MCP servers: env and launch
+
+- Env loading: MCP servers auto-load `.env` and `collaboration/.env` at startup without overriding existing variables. Keep real tokens in those files (never commit them) or inject via your IDE/runner.
+- IDE/clients: `.cursor/environment.json` defines per-server env for Cursor; other MCP clients can pass env similarly.
+- Launch commands (preferred):
+  - `python -m mcp.kyros_collab_server`
+  - `python -m mcp.linear_server`
+  - `python -m mcp.railway_server`
+  - `python -m mcp.vercel_server`
+  - `python -m mcp.coderabbit_server`
+  These use stdio JSON-RPC as described in `mcp/README.md`.
+
+---
+
+## Local commands
+
+- Run tests:
+  - Full: `./scripts/run-tests.sh`
+  - Frontend: `cd frontend && npm test` (unit), `npm run test:e2e` (Playwright)
+  - Backend: `cd backend && python -m pytest`
+- Pre-commit (format, lint, checks): `pre-commit run -a` (install hooks with `pre-commit install`)
+- Regenerate human log: `python scripts/collab_cli.py generate-log` or RPC `collab.generate_log`
+
+---
+
+## Client config
+
+- Cursor: `.cursor/environment.json` contains MCP server commands and env mapping.
+- Generic clients: use `mcp/mcp.config.example.json` as a template; point commands to `python -m mcp.<server>` and pass env as needed.
 
 ---
 

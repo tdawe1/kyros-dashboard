@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kyros.local/schema/locks.json",
+  "type": "object",
+  "required": ["version", "locks"],
+  "properties": {
+    "version": {"type": "integer"},
+    "locks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["path", "owner", "lock_id", "acquired_at", "ttl_seconds"],
+        "properties": {
+          "path": {"type": "string"},
+          "owner": {"type": "string"},
+          "purpose": {"type": ["string", "null"]},
+          "lock_id": {"type": "string"},
+          "acquired_at": {"type": "string"},
+          "ttl_seconds": {"type": "integer"},
+          "heartbeat_at": {"type": ["string", "null"]}
+        }
+      }
+    }
+  }
+}

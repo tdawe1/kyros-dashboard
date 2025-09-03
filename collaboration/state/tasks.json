@@ -8,7 +8,10 @@
       "status": "done",
       "assignee": "codex-cli",
       "priority": "P2",
-      "labels": ["backend", "auth"],
+      "labels": [
+        "backend",
+        "auth"
+      ],
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
@@ -28,13 +31,17 @@
       "status": "done",
       "assignee": "gemini-cli",
       "priority": "P2",
-      "labels": ["docs"],
+      "labels": [
+        "docs"
+      ],
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
-      "dod": ["Docs updated"],
+      "dod": [
+        "Docs updated"
+      ],
       "needs": null
     },
     {
@@ -44,13 +51,18 @@
       "status": "done",
       "assignee": "codex-cli",
       "priority": "P1",
-      "labels": ["ci"],
+      "labels": [
+        "ci"
+      ],
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
-      "dod": ["CI green", "Docs updated"],
+      "dod": [
+        "CI green",
+        "Docs updated"
+      ],
       "needs": null
     },
     {
@@ -60,13 +72,18 @@
       "status": "done",
       "assignee": "gemini-cli",
       "priority": "P2",
-      "labels": ["frontend", "e2e"],
+      "labels": [
+        "frontend",
+        "e2e"
+      ],
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
-      "dod": ["Playwright config consistent"],
+      "dod": [
+        "Playwright config consistent"
+      ],
       "needs": null
     },
     {
@@ -76,13 +93,18 @@
       "status": "done",
       "assignee": "gemini-cli",
       "priority": "P3",
-      "labels": ["docs", "collab"],
+      "labels": [
+        "docs",
+        "collab"
+      ],
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
-      "dod": ["Docs updated"],
+      "dod": [
+        "Docs updated"
+      ],
       "needs": null
     },
     {
@@ -92,13 +114,35 @@
       "status": "in_progress",
       "assignee": "gemini-cli",
       "priority": "P3",
-      "labels": ["docs"],
+      "labels": [
+        "docs"
+      ],
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
-      "dod": ["Docs updated"],
+      "dod": [
+        "Docs updated"
+      ],
+      "needs": null
+    },
+    {
+      "id": "task-007",
+      "title": "MCP setup smoke test",
+      "description": "",
+      "status": "in_progress",
+      "assignee": "codex-cli-1",
+      "priority": "P3",
+      "labels": [
+        "backend"
+      ],
+      "dependencies": [],
+      "blockers": [],
+      "branch": null,
+      "created_at": "2025-09-03T15:02:19Z",
+      "updated_at": "2025-09-03T15:02:57Z",
+      "dod": [],
       "needs": null
     }
   ]

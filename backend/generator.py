@@ -3,8 +3,8 @@ import logging
 from typing import Dict, List, Any, Optional
 from openai import AsyncOpenAI
 import sentry_sdk
-from utils.token_storage import save_token_usage
-from core.security import with_circuit_breaker, openai_circuit_breaker
+from .utils.token_storage import save_token_usage
+from .core.security import with_circuit_breaker, openai_circuit_breaker
 
 logger = logging.getLogger(__name__)
 
@@ -112,7 +112,7 @@ async def generate_content_real(
 
 Tone: {tone}
 Format: Each post should be engaging, professional, and include relevant hashtags.
-Length: 150-200 characters each.
+Length: 500-1000 characters each (LinkedIn allows up to 3000 characters).
 Return as JSON array with objects containing: text, length, readability, tone"""
 
         elif channel == "twitter":

@@ -1,0 +1,42 @@
+{
+  "servers": [
+    {
+      "id": "kyros-collab",
+      "command": "kyros-collab-mcp",
+      "env": {
+        "COLLAB_ROOT": "."
+      }
+    },
+    {
+      "id": "linear",
+      "command": "mcp-linear",
+      "env": {
+        "LINEAR_API_TOKEN": "${LINEAR_API_TOKEN}"
+      }
+    },
+    {
+      "id": "railway",
+      "command": "mcp-railway",
+      "env": {
+        "RAILWAY_TOKEN": "${RAILWAY_TOKEN}",
+        "RAILWAY_SERVICE_NAME": "kyros-dashboard-api"
+      }
+    },
+    {
+      "id": "vercel",
+      "command": "mcp-vercel",
+      "env": {
+        "VERCEL_TOKEN": "${VERCEL_TOKEN}",
+        "VERCEL_ORG_ID": "${VERCEL_ORG_ID}",
+        "VERCEL_PROJECT_ID": "${VERCEL_PROJECT_ID}"
+      }
+    },
+    {
+      "id": "coderabbit",
+      "command": "mcp-coderabbit",
+      "env": {
+        "GITHUB_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
+  ]
+}

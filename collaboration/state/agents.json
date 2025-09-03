@@ -2,46 +2,61 @@
   "version": 1,
   "agents": [
     {
-      "id": "codex-cli",
+      "id": "codex-cli-1",
+      "model": "gpt-5-high",
+      "provider": "OpenAI",
       "role": "implementer",
-      "skills": ["python", "fastapi", "pytest", "ci"],
-      "status": "idle",
+      "skills": ["python", "fastapi", "pytest", "ci", "integrator"],
+      "status": "active",
       "last_seen": "2025-09-03T12:55:00Z"
     },
     {
-      "id": "gemini-cli",
+      "id": "cursor-ide",
+      "model": "auto",
+      "provider": "Cursor",
+      "alts": ["claude-4.1-sonnet", "gpt-5-high", "gemini-2.5-pro"],
+      "role": "implementer",
+      "skills": ["frontend", "e2e", "tooling", "multi-file-refactor"],
+      "status": "active",
+      "last_seen": "2025-09-03T12:55:00Z"
+    },
+    {
+      "id": "codex-cli-2",
+      "model": "gpt-5",
+      "provider": "OpenAI",
+      "role": "implementer",
+      "skills": ["backend", "devops", "workflows"],
+      "status": "active",
+      "last_seen": "2025-09-03T12:55:00Z"
+    },
+    {
+      "id": "cursor-ide-2",
+      "model": "gpt-5",
+      "provider": "Cursor",
+      "alts": ["gemini-2.5-flash", "claude-4.1-sonnet"],
+      "role": "implementer",
+      "skills": ["frontend", "docs", "e2e"],
+      "status": "active",
+      "last_seen": "2025-09-03T12:55:00Z"
+    },
+    {
+      "id": "gemini-cli-1",
+      "model": "gemini-2.5-flash",
+      "provider": "Google",
       "role": "critic",
-      "skills": ["docs", "e2e", "review"],
-      "status": "idle",
+      "skills": ["planning", "review", "docs", "watchdog"],
+      "status": "active",
       "last_seen": "2025-09-03T12:55:00Z"
     },
     {
-      "id": "gemini-2.5-flash",
+      "id": "cursor-ide-N",
+      "model": "auto",
+      "provider": "Cursor",
+      "alts": ["gpt-5", "gemini-2.5-flash", "claude-4.1-sonnet"],
       "role": "implementer",
-      "skills": ["javascript", "playwright", "docs"],
+      "skills": ["frontend", "e2e"],
       "status": "idle",
-      "last_seen": "2025-09-03T12:55:00Z"
-    },
-    {
-      "id": "cursor-gpt5-high",
-      "role": "critic",
-      "skills": ["tests", "coverage", "security"],
-      "status": "idle",
-      "last_seen": "2025-09-03T12:55:00Z"
-    },
-    {
-      "id": "cursor-gpt5",
-      "role": "implementer",
-      "skills": ["python", "react", "devops"],
-      "status": "idle",
-      "last_seen": "2025-09-03T12:55:00Z"
-    },
-    {
-      "id": "cursor-4.1-sonnet",
-      "role": "integrator",
-      "skills": ["git", "release", "changelog"],
-      "status": "idle",
-      "last_seen": "2025-09-03T12:55:00Z"
+      "last_seen": null
     }
   ]
 }

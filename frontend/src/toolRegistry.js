@@ -7,19 +7,19 @@
 
 import hello from "./tools/hello";
 
-// Static registry of available tools
-export const tools = [
+// Static registry of available tools (immutable)
+export const tools = Object.freeze([
   hello,
   // Future tools will be added here
   // summarizer,
   // etc.
-];
+]);
 
 /**
  * Get all enabled tools
  */
 export const getEnabledTools = () => {
-  return tools.filter(tool => tool.enabled !== false);
+  return tools.filter((tool) => tool.enabled !== false);
 };
 
 /**
@@ -32,37 +32,39 @@ export const listTools = () => {
 /**
  * Get a specific tool by name
  */
-export const getTool = toolName => {
-  return tools.find(tool => tool.name === toolName);
+export const getTool = (toolName) => {
+  return tools.find((tool) => tool.name === toolName);
 };
 
 /**
  * Get tools by category
  */
-export const getToolsByCategory = category => {
-  return tools.filter(tool => tool.category === category);
+export const getToolsByCategory = (category) => {
+  return tools.filter((tool) => tool.category === category);
 };
 
 /**
  * Get all available categories
  */
 export const getCategories = () => {
-  const categories = new Set(tools.map(tool => tool.category).filter(Boolean));
+  const categories = new Set(
+    tools.map((tool) => tool.category).filter(Boolean),
+  );
   return Array.from(categories);
 };
 
 /**
  * Check if a tool exists and is enabled
  */
-export const isToolEnabled = toolName => {
+export const isToolEnabled = (toolName) => {
   const tool = getTool(toolName);
-  return tool && tool.enabled !== false;
+  return Boolean(tool && tool.enabled !== false);
 };
 
 /**
  * Get tool metadata for display
  */
-export const getToolMetadata = toolName => {
+export const getToolMetadata = (toolName) => {
   const tool = getTool(toolName);
   if (!tool) return null;
 
@@ -81,5 +83,5 @@ export const getToolMetadata = toolName => {
  * Get all tools metadata
  */
 export const getAllToolsMetadata = () => {
-  return tools.map(tool => getToolMetadata(tool.name)).filter(Boolean);
+  return tools.map((tool) => getToolMetadata(tool.name)).filter(Boolean);
 };
