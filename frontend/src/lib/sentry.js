@@ -4,7 +4,7 @@ export const captureException = Sentry.captureException;
 
 export function initSentry() {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
-  
+
   if (dsn) {
     Sentry.init({
       dsn: dsn,

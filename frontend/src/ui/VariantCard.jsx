@@ -35,7 +35,7 @@ export default function VariantCard({
     }
   };
 
-  const getReadabilityColor = (readability) => {
+  const getReadabilityColor = readability => {
     switch (readability.toLowerCase()) {
       case "excellent":
         return "text-green-400";
@@ -50,7 +50,7 @@ export default function VariantCard({
     }
   };
 
-  const getChannelIcon = (channel) => {
+  const getChannelIcon = channel => {
     switch (channel.toLowerCase()) {
       case "linkedin":
         return "💼";
