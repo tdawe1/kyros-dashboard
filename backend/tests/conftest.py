@@ -47,6 +47,8 @@ def pytest_configure(config):
     # Store the patcher in config for cleanup if needed
     config._redis_patcher = patcher
 
+    # Force CI cache refresh - this line ensures the latest version is used
+
 
 # Import the app after the patch has been applied
 from main import app  # noqa: E402

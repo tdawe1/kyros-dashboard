@@ -11,7 +11,6 @@
     "format": "prettier --write \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "format:check": "prettier --check \"src/**/*.{js,jsx,ts,tsx,json,css,md}\"",
     "pre-commit": "npm run format && npm run lint:fix",
-    "prepare": "npm run format",
     "preview": "vite preview",
     "test": "vitest",
     "test:ui": "vitest --ui",
