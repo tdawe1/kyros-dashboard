@@ -6,4 +6,3 @@ vite.config.*
 vitest.config.*
 *.config.js
 *.config.ts
-

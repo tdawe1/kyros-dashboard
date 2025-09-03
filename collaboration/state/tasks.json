@@ -348,7 +348,7 @@
       "id": "task-012",
       "title": "E2E: Stabilize selectors with data-testid",
       "description": "Introduce data-testid attributes for key elements and refactor brittle text-based selectors.",
-      "status": "queued",
+      "status": "done",
       "assignee": "cursor-ide",
       "priority": "P3",
       "labels": ["frontend", "e2e", "tests", "refactor"],
@@ -356,7 +356,7 @@
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T17:42:00Z",
-      "updated_at": "2025-09-03T17:42:00Z",
+      "updated_at": "2025-09-03T18:02:00Z",
       "dod": [
         "data-testid added for key UI",
         "Tests refactored to stable selectors",

@@ -21,9 +21,8 @@ _job_storage = {}
 _storage_lock = threading.RLock()
 
 # Configuration
-DEFAULT_TOKEN_COST = float(
-    os.getenv("TOKEN_COST_PER_1K", "0.0001")
-)  # Default cost per 1K tokens
+# Default cost per token (not per 1K)
+DEFAULT_TOKEN_COST = float(os.getenv("TOKEN_COST_PER_TOKEN", "0.0001"))
 PERSISTENCE_FILE = os.getenv("TOKEN_STORAGE_FILE", "token_usage.json")
 
 
@@ -101,9 +100,7 @@ def save_token_usage(
             # Update total tokens and cost (configurable cost per 1K tokens)
             total_tokens = token_usage.get("total_tokens", 0)
             _token_usage_storage[job_id]["total_tokens"] += total_tokens
-            _token_usage_storage[job_id]["total_cost"] += (
-                total_tokens * DEFAULT_TOKEN_COST / 1000
-            )
+            _token_usage_storage[job_id]["total_cost"] += total_tokens * DEFAULT_TOKEN_COST
 
             # Store per-channel usage (maintain list of entries per channel)
             if "channels" not in _token_usage_storage[job_id]:

@@ -7,11 +7,16 @@ from typing import Optional, Dict, Any
 from fastapi import HTTPException, status
 from .schemas import TokenData
 
+# Load JWT settings with safe defaults for non-production
+ENVIRONMENT = os.getenv("ENVIRONMENT", "development").lower()
 JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
 if not JWT_SECRET_KEY:
-    raise ValueError(
-        "JWT_SECRET_KEY environment variable is required for production use"
-    )
+    if ENVIRONMENT == "production":
+        raise ValueError(
+            "JWT_SECRET_KEY environment variable is required for production use"
+        )
+    # Fallback for development/testing to avoid import-time failures
+    JWT_SECRET_KEY = "test_secret_key_for_testing_purposes_only"
 JWT_ALGORITHM = "HS256"
 JWT_ACCESS_TOKEN_EXPIRE_MINUTES = int(
     os.getenv("JWT_ACCESS_TOKEN_EXPIRE_MINUTES", "30")

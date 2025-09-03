@@ -253,7 +253,7 @@ const sampleArticle = `
   Artificial intelligence is revolutionizing the way businesses operate in the modern world.
   From machine learning algorithms that power recommendation systems to natural language
   processing that enables chatbots, AI is becoming increasingly integrated into our daily lives.
-  
+
   Companies are leveraging AI to improve efficiency, reduce costs, and enhance customer
   experiences. However, with these benefits come challenges around ethics, privacy, and
   the future of work.

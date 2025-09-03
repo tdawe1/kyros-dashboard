@@ -22,8 +22,8 @@ A comprehensive AI-powered content generation and scheduling platform with a mod
 
 ## 🛠️ Tech Stack
 
-**Frontend:** React 18, Vite, Tailwind CSS, TanStack Query, TypeScript
-**Backend:** FastAPI, PostgreSQL, Redis, Celery, JWT Auth
+**Frontend:** React 18, Vite (port 3001), Tailwind CSS, TanStack Query, TypeScript
+**Backend:** FastAPI, PostgreSQL, Redis, Celery, JWT Auth (Poetry-managed)
 **Testing:** Playwright, Vitest, pytest
 **Deployment:** GitHub Actions, Vercel, Railway/Render
 
@@ -41,7 +41,7 @@ kyros-dashboard/
 
 ### Prerequisites
 - Node.js 18+ and npm
-- Python 3.8+
+- Python 3.12+
 - PostgreSQL (for production)
 - Redis (for caching and rate limiting)
 
@@ -60,12 +60,12 @@ The easiest way to get started is using the provided scripts:
 
 ### Manual Setup
 
-**Frontend:**
+**Frontend (port 3001):**
 ```bash
 cd frontend && npm install && npm run dev
 ```
 
-**Backend:**
+**Backend (Poetry):**
 ```bash
 cd backend
 poetry install
@@ -97,11 +97,14 @@ See `http://localhost:8000/docs` for interactive API documentation.
 ## 🧪 Testing
 
 ```bash
-# Run all tests
+# Run all tests (backend, frontend, E2E)
 ./scripts/run-tests.sh
 
-# Frontend: npm test, npm run test:e2e
-# Backend: python -m pytest
+# Backend (Poetry):
+cd backend && poetry run pytest -q
+
+# Frontend (Vitest + Playwright on port 3001):
+cd frontend && npm run test && npm run test:e2e
 ```
 
 ## 🧠 MCP Servers & Collaboration

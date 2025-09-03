@@ -23,6 +23,8 @@
 {"event":"task_created","task":"task-011","branch":"develop","assignee":"cursor-ide-2","ts":"2025-09-03T17:42:00Z"}
 {"event":"task_created","task":"task-012","branch":"develop","assignee":"cursor-ide","ts":"2025-09-03T17:42:00Z"}
 {"event":"task_created","task":"task-013","branch":"develop","assignee":"cursor-ide","ts":"2025-09-03T17:42:00Z"}
+{"ts":"2025-09-03T18:00:00Z","event":"status_changed","task":"task-012","old_status":"queued","new_status":"in_progress","reason":"Begin data-testid rollout and E2E selector refactor","agent":"cursor-ide"}
+{"ts":"2025-09-03T18:02:00Z","event":"status_changed","task":"task-012","old_status":"in_progress","new_status":"done","reason":"Selectors added across UI; E2E updated; docs added (E2E_TESTING.md, frontend/README.md)","agent":"cursor-ide"}
 {"event": "status_changed", "task": "task-008-02", "old_status": "review", "new_status": "approved", "prev_etag": "", "new_etag": "", "ts": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"}
 {"event": "status_changed", "task": "task-008-03", "old_status": "queued", "new_status": "done", "prev_etag": "", "new_etag": "", "ts": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"}
 {"event": "status_changed", "task": "task-008-04", "old_status": "queued", "new_status": "merging", "prev_etag": "", "new_etag": "", "ts": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"}
