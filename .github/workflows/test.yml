@@ -162,12 +162,13 @@ jobs:
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
 
-    - name: Install Python dependencies
+    - name: Install Poetry and backend deps
       working-directory: ./backend
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install ruff black bandit isort flake8
+        pip install poetry
+        poetry install --no-interaction --no-ansi
+        poetry run pip install ruff black bandit isort flake8
 
     - name: Install Node.js dependencies
       working-directory: ./frontend
@@ -187,7 +188,7 @@ jobs:
         MAX_TOKENS_PER_JOB: 50000
         DAILY_JOB_LIMIT: 10
       run: |
-        uvicorn main:app --host 0.0.0.0 --port 8000 &
+        poetry run uvicorn main:app --host 0.0.0.0 --port 8000 &
         sleep 10
 
     - name: Build frontend
@@ -197,13 +198,13 @@ jobs:
     - name: Start frontend server
       working-directory: ./frontend
       run: |
-        npm run preview -- --port 5173 --host 0.0.0.0 &
+        npm run preview -- --port 3001 --host 0.0.0.0 &
         sleep 5
 
     - name: Run Playwright tests
       working-directory: ./frontend
       env:
-        PLAYWRIGHT_BASE_URL: http://localhost:5173
+        PLAYWRIGHT_BASE_URL: http://localhost:3001
       run: npx playwright test
 
     - name: Upload Playwright report
@@ -234,17 +235,18 @@ jobs:
       with:
         python-version: '3.11'
 
-    - name: Install dependencies
+    - name: Install Poetry and dependencies
       working-directory: ./backend
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install bandit
+        pip install poetry
+        poetry install --no-interaction --no-ansi
+        poetry run pip install bandit
 
     - name: Run security scan with bandit
       working-directory: ./backend
       run: |
-        bandit -r . -f json -o bandit-report.json
+        poetry run bandit -r . -f json -o bandit-report.json
 
     - name: Upload security report
       uses: actions/upload-artifact@v4

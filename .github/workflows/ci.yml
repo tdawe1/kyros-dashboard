@@ -137,11 +137,12 @@ jobs:
 
     - name: Start backend services
       run: |
-        cd backend
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        nohup python -m uvicorn main:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 &
-        echo $! > backend.pid
+          cd backend
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-interaction --no-ansi
+          nohup poetry run uvicorn main:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 &
+          echo $! > backend.pid
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
@@ -155,7 +156,7 @@ jobs:
       run: |
         echo "Waiting for services to start..."
         for i in {1..30}; do
-          if curl -f http://localhost:8000/health >/dev/null 2>&1; then
+          if curl -f http://localhost:8000/api/health >/dev/null 2>&1; then
             echo "Backend is ready!"
             break
           fi
@@ -164,7 +165,7 @@ jobs:
         done
 
         for i in {1..30}; do
-          if curl -f http://localhost:5173 >/dev/null 2>&1; then
+          if curl -f http://localhost:3001 >/dev/null 2>&1; then
             echo "Frontend is ready!"
             break
           fi
@@ -173,8 +174,8 @@ jobs:
         done
 
         # Final health checks
-        curl -f http://localhost:8000/health || (echo "Backend health check failed" && cat backend.log && exit 1)
-        curl -f http://localhost:5173 || (echo "Frontend health check failed" && cat frontend.log && exit 1)
+        curl -f http://localhost:8000/api/health || (echo "Backend health check failed" && cat backend.log && exit 1)
+        curl -f http://localhost:3001 || (echo "Frontend health check failed" && cat frontend.log && exit 1)
 
     - name: Run E2E tests
       run: npm run test:e2e
