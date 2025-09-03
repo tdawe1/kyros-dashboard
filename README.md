@@ -22,8 +22,8 @@ A comprehensive AI-powered content generation and scheduling platform with a mod
 
 ## 🛠️ Tech Stack
 
-**Frontend:** React 18, Vite, Tailwind CSS, TanStack Query, TypeScript
-**Backend:** FastAPI, PostgreSQL, Redis, Celery, JWT Auth
+**Frontend:** React 18, Vite (port 3001), Tailwind CSS, TanStack Query, TypeScript
+**Backend:** FastAPI, PostgreSQL, Redis, Celery, JWT Auth (Poetry-managed)
 **Testing:** Playwright, Vitest, pytest
 **Deployment:** GitHub Actions, Vercel, Railway/Render
 
@@ -41,7 +41,7 @@ kyros-dashboard/
 
 ### Prerequisites
 - Node.js 18+ and npm
-- Python 3.8+
+- Python 3.12+
 - PostgreSQL (for production)
 - Redis (for caching and rate limiting)
 
@@ -60,20 +60,18 @@ The easiest way to get started is using the provided scripts:
 
 ### Manual Setup
 
-**Frontend:**
+**Frontend (port 3001):**
 ```bash
 cd frontend && npm install && npm run dev
 ```
 
-**Backend:**
+**Backend (Poetry):**
 ```bash
 cd backend
-python -m venv venv
-source venv/bin/activate  # Linux/Mac
-pip install -r requirements.txt
+poetry install
 cp env.example .env  # Edit with your config
-alembic upgrade head
-uvicorn main:app --reload --port 8000
+poetry run alembic upgrade head
+poetry run uvicorn main:app --reload --port 8000
 ```
 
 ### Environment Variables
@@ -99,12 +97,31 @@ See `http://localhost:8000/docs` for interactive API documentation.
 ## 🧪 Testing
 
 ```bash
-# Run all tests
+# Run all tests (backend, frontend, E2E)
 ./scripts/run-tests.sh
 
-# Frontend: npm test, npm run test:e2e
-# Backend: python -m pytest
+# Backend (Poetry):
+cd backend && poetry run pytest -q
+
+# Frontend (Vitest + Playwright on port 3001):
+cd frontend && npm run test && npm run test:e2e
 ```
+
+## 🧠 MCP Servers & Collaboration
+
+This repo ships MCP servers under `mcp/` and a collaboration model under `collaboration/`.
+
+- Install servers locally:
+  - `python -m pip install -e mcp`
+  - Start (recommended): `python -m mcp.kyros_collab_server` (collaboration), `python -m mcp.linear_server`, `python -m mcp.railway_server`, `python -m mcp.vercel_server`, `python -m mcp.coderabbit_server`
+- Import CodeRabbit/GitHub PR feedback to tasks:
+  - `python scripts/import_coderabbit_feedback.py --owner ORG --repo REPO --pr 123 --assign`
+    - Creates tasks from review changes/PR comments, links PR number, and (optionally) auto‑assigns.
+- Link external IDs to tasks via collab RPC:
+  - `collab.link_external({"id": "task-001", "provider": "linear", "value": "LIN-123"})`
+  - `collab.link_external({"id": "task-001", "provider": "vercel", "key": "deployment", "value": "dpl_..."})`
+
+See `mcp/README.md` and `agents.md` for details.
 
 ## 🚀 Deployment
 

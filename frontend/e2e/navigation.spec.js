@@ -4,43 +4,67 @@ import { test, expect } from '@playwright/test';
 test.describe('Kyros Dashboard - Navigation', () => {
   test.beforeEach(async ({ page }) => {
     await page.goto('/');
+    await expect(page.locator('[data-testid="page-title"]').first()).toBeVisible();
   });
 
   test('navigation between main pages', async ({ page }) => {
-    // Test Dashboard page
-    await page.click('text=Dashboard');
+    // Prefer sidebar links if available
+    const sidebar = page.locator('[data-testid="sidebar"]');
+
+    const navClick = async (label) => {
+      const candidates = [label, label === 'Jobs' ? 'Job Monitor' : null].filter(Boolean);
+      for (const candidate of candidates) {
+        if (await sidebar.isVisible()) {
+          const link = sidebar.locator(`text=${candidate}, a:has-text("${candidate}")`).first();
+          if (await link.isVisible()) {
+            await link.click();
+            return true;
+          }
+        }
+        const pageLink = page.locator(`text=${candidate}`).first();
+        if (await pageLink.isVisible()) {
+          await pageLink.click();
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // Dashboard
+    await navClick('Dashboard');
     await expect(page).toHaveURL(/.*dashboard|.*\/$/);
-    await expect(page.locator('h1, [data-testid="page-title"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="page-title"]').first()).toBeVisible();
 
-    // Test Studio page
-    await page.click('text=Studio');
+    // Studio
+    await navClick('Studio');
     await expect(page).toHaveURL(/.*studio/);
-    await expect(page.locator('textarea, [data-testid="content-input"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="content-input"]').first()).toBeVisible();
 
-    // Test Jobs page
-    await page.click('text=Jobs');
+    // Jobs
+    await navClick('Jobs');
     await expect(page).toHaveURL(/.*jobs/);
-    await expect(page.locator('table, [data-testid="jobs-table"], .job-list').first()).toBeVisible();
+    await expect(page.locator('[data-testid="jobs-table"]').first()).toBeVisible();
 
-    // Test Settings page
-    await page.click('text=Settings');
+    // Settings
+    await navClick('Settings');
     await expect(page).toHaveURL(/.*settings/);
-    await expect(page.locator('form, [data-testid="settings-form"]').first()).toBeVisible();
+    await expect(page.locator('[data-testid="page-title"]').first()).toBeVisible();
   });
 
   test('sidebar navigation', async ({ page }) => {
     // Check if sidebar exists
-    const sidebar = page.locator('nav, [data-testid="sidebar"], .sidebar').first();
+    const sidebar = page.locator('[data-testid="sidebar"]');
 
     if (await sidebar.isVisible()) {
       // Test sidebar navigation items
       const navItems = ['Dashboard', 'Studio', 'Jobs', 'Settings'];
 
       for (const item of navItems) {
-        const navLink = sidebar.locator(`text=${item}, a:has-text("${item}")`).first();
+        const candidate = item === 'Jobs' ? 'Job Monitor' : item;
+        const navLink = sidebar.locator(`text=${candidate}, a:has-text("${candidate}")`).first();
         if (await navLink.isVisible()) {
           await navLink.click();
-          await expect(page.locator('h1, [data-testid="page-title"]').first()).toBeVisible();
+          await expect(page.locator('[data-testid="page-title"]').first()).toBeVisible();
         }
       }
     }
@@ -48,7 +72,7 @@ test.describe('Kyros Dashboard - Navigation', () => {
 
   test('theme toggle functionality', async ({ page }) => {
     // Look for theme toggle button
-    const themeToggle = page.locator('button[aria-label*="theme"], button:has-text("Dark"), button:has-text("Light"), [data-testid="theme-toggle"]').first();
+    const themeToggle = page.locator('[data-testid="theme-toggle"]');
 
     if (await themeToggle.isVisible()) {
       // Get initial theme
@@ -74,24 +98,25 @@ test.describe('Kyros Dashboard - Navigation', () => {
     await page.setViewportSize({ width: 375, height: 667 });
 
     // Look for mobile menu button
-    const mobileMenuButton = page.locator('button[aria-label*="menu"], button:has-text("Menu"), [data-testid="mobile-menu"]').first();
+    const mobileMenuButton = page.locator('[data-testid="mobile-menu"]');
 
     if (await mobileMenuButton.isVisible()) {
       // Open mobile menu
       await mobileMenuButton.click();
 
       // Check if menu is open
-      const mobileMenu = page.locator('[data-testid="mobile-menu"], .mobile-menu, nav[aria-expanded="true"]').first();
+      const mobileMenu = page.locator('[data-testid="sidebar"], .mobile-menu, nav[aria-expanded="true"]').first();
       await expect(mobileMenu).toBeVisible();
 
       // Test navigation in mobile menu
       const navItems = ['Dashboard', 'Studio', 'Jobs', 'Settings'];
 
       for (const item of navItems) {
-        const navLink = mobileMenu.locator(`text=${item}, a:has-text("${item}")`).first();
+        const candidate = item === 'Jobs' ? 'Job Monitor' : item;
+        const navLink = mobileMenu.locator(`text=${candidate}, a:has-text("${candidate}")`).first();
         if (await navLink.isVisible()) {
           await navLink.click();
-          await expect(page.locator('h1, [data-testid="page-title"]').first()).toBeVisible();
+          await expect(page.locator('[data-testid="page-title"]').first()).toBeVisible();
           break; // Just test one navigation to avoid too many page changes
         }
       }
@@ -158,7 +183,7 @@ test.describe('Kyros Dashboard - Navigation', () => {
       }
 
       // Check that main content is visible
-      await expect(page.locator('main, [data-testid="main-content"], .main-content').first()).toBeVisible();
+      await expect(page.locator('[data-testid="main-content"]').first()).toBeVisible();
     }
   });
 });

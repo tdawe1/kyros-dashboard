@@ -24,7 +24,7 @@ def can_create_job(user_id: str, daily_limit: int = 10) -> tuple[bool, int]:
     key = f"jobs:{user_id}:{today}"
 
     # Use Redis pipeline for atomic operations
-    pipe = r._client.pipeline()
+    pipe = r.pipeline()
 
     # Check current count first
     pipe.get(key)

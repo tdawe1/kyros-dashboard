@@ -4,10 +4,10 @@ Implements comprehensive input validation, sanitization, and security checks.
 """
 
 import re
-import html
 import bleach
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, validator, Field
+from urllib.parse import urlparse
+from pydantic import BaseModel, Field, field_validator
 import logging
 
 logger = logging.getLogger(__name__)
@@ -83,8 +83,7 @@ class InputValidator:
                 logger.warning(f"Potential XSS detected: {pattern}")
                 raise ValueError("Invalid input detected")
 
-        # HTML escape and clean
-        text = html.escape(text)
+        # Clean HTML using bleach (handles escaping internally)
         text = bleach.clean(
             text, tags=ALLOWED_HTML_TAGS, attributes=ALLOWED_HTML_ATTRIBUTES
         )
@@ -138,13 +137,23 @@ class InputValidator:
 
         url = url.strip()
 
-        # Basic URL validation
-        url_pattern = r"^https?://[^\s/$.?#].[^\s]*$"
-        if not re.match(url_pattern, url):
+        # Parse URL using urllib.parse for robust validation
+        try:
+            parsed = urlparse(url)
+        except Exception:
             raise ValueError("Invalid URL format")
 
+        # Check if scheme and netloc are present
+        if not parsed.scheme or not parsed.netloc:
+            raise ValueError("Invalid URL format")
+
+        # Check for allowed protocols
+        allowed_schemes = {"http", "https"}
+        if parsed.scheme.lower() not in allowed_schemes:
+            raise ValueError("Only HTTP and HTTPS URLs are allowed")
+
         # Check for dangerous protocols
-        if url.lower().startswith(("javascript:", "data:", "vbscript:")):
+        if parsed.scheme.lower() in {"javascript", "data", "vbscript", "file"}:
             raise ValueError("Dangerous URL protocol detected")
 
         return url
@@ -160,11 +169,11 @@ class SecureGenerateRequest(BaseModel):
     preset: str = Field(default="default", max_length=100)
     model: Optional[str] = Field(None, max_length=100)
 
-    @validator("input_text")
+    @field_validator("input_text")
     def validate_input_text(cls, v):
         return InputValidator.sanitize_text(v)
 
-    @validator("channels")
+    @field_validator("channels")
     def validate_channels(cls, v):
         valid_channels = ["linkedin", "twitter", "newsletter", "blog"]
         for channel in v:
@@ -172,14 +181,14 @@ class SecureGenerateRequest(BaseModel):
                 raise ValueError(f"Invalid channel: {channel}")
         return v
 
-    @validator("tone")
+    @field_validator("tone")
     def validate_tone(cls, v):
         valid_tones = ["professional", "casual", "engaging", "formal", "friendly"]
         if v not in valid_tones:
             raise ValueError(f"Invalid tone: {v}")
         return v
 
-    @validator("model")
+    @field_validator("model")
     def validate_model(cls, v):
         if v is not None:
             valid_models = ["gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-4o-mini"]
@@ -196,15 +205,15 @@ class SecureUserCreate(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
     role: str = Field(default="user", max_length=20)
 
-    @validator("username")
+    @field_validator("username")
     def validate_username(cls, v):
         return InputValidator.validate_username(v)
 
-    @validator("email")
+    @field_validator("email")
     def validate_email(cls, v):
         return InputValidator.validate_email(v)
 
-    @validator("password")
+    @field_validator("password")
     def validate_password(cls, v):
         # Check password strength
         if len(v) < 8:
@@ -217,7 +226,7 @@ class SecureUserCreate(BaseModel):
 
         return v
 
-    @validator("role")
+    @field_validator("role")
     def validate_role(cls, v):
         valid_roles = ["admin", "user", "readonly"]
         if v not in valid_roles:

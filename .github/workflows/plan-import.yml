@@ -1,0 +1,67 @@
+permissions:
+  contents: write
+  pull-requests: write
+name: Import Latest Plan from Drive
+on:
+  workflow_dispatch: {}   # run manually (or via gh workflow run)
+
+permissions:
+  contents: write          # commit plan & tasks
+  pull-requests: write     # open draft PR
+
+jobs:
+  import:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install Google client + YAML
+        run: pip install google-api-python-client google-auth google-auth-httplib2 pyyaml
+
+      - name: Download newest PlanSpec from Drive folder
+        env:
+          GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
+          PLANS_INBOX_FOLDER_ID: ${{ secrets.PLANS_INBOX_FOLDER_ID }}
+        run: |
+          python - <<'PY'
+import os, io, json, sys
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+from googleapiclient.http import MediaIoBaseDownload
+
+creds = service_account.Credentials.from_service_account_info(
+    json.loads(os.environ["GDRIVE_SA_JSON"]),
+    scopes=["https://www.googleapis.com/auth/drive.readonly"]
+)
+svc = build('drive', 'v3', credentials=creds)
+folder = os.environ["PLANS_INBOX_FOLDER_ID"]
+
+resp = svc.files().list(
+    q=f"'{folder}' in parents and trashed=false and name contains '.yml'",
+    orderBy="modifiedTime desc",
+    pageSize=1,
+    fields="files(id,name)"
+).execute()
+files = resp.get('files', [])
+if not files:
+    print("No .yml plans found in Plans Inbox."); sys.exit(1)
+fid, name = files[0]['id'], files[0]['name']
+
+request = svc.files().get_media(fileId=fid)
+fh = io.BytesIO()
+downloader = MediaIoBaseDownload(fh, request)
+done=False
+while not done:
+    status, done = downloader.next_chunk()
+open('planspec.yml', 'wb').write(fh.getvalue())
+print(f"DOWNLOADED {name} {fid}")
+PY
+
+      - name: Stage PlanSpec into repo
+        run: |
+          mkdir -p collaboration/plans/inbox

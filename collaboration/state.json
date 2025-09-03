@@ -1,0 +1,48 @@
+{
+  "overall_goal": "Stabilize develop after merges, migrate backend to Poetry, align CI and docs, and ensure frontend E2E readiness.",
+  "tasks": [
+    {
+      "id": "task-001",
+      "description": "Refactor authentication to package-based structure and update imports.",
+      "status": "done",
+      "assignee": "codex-cli",
+      "dependencies": []
+    },
+    {
+      "id": "task-002",
+      "description": "Update README and docs to reflect Poetry usage and dev port 3001 (replace pip/requirements mentions).",
+      "status": "done",
+      "assignee": "gemini-cli",
+      "dependencies": []
+    },
+    {
+      "id": "task-003",
+      "description": "Validate CI (Python 3.12 + Poetry) across workflows; fix any residual issues.",
+      "status": "in_progress",
+      "assignee": "codex-cli",
+      "dependencies": []
+    },
+    {
+      "id": "task-004",
+      "description": "Audit frontend E2E setup (Playwright baseURL, port 3001) and test coverage; propose improvements.",
+      "status": "done",
+      "assignee": "gemini-cli",
+      "dependencies": []
+    },
+    {
+      "id": "task-005",
+      "description": "Deduplicate agent docs (choose agents.md as canonical, fold gemini.md content).",
+      "status": "done",
+      "assignee": "gemini-cli",
+      "dependencies": []
+    },
+    {
+      "id": "task-006",
+      "description": "Generate audit report and initial documentation as per Axiom's audit.",
+      "status": "in_progress",
+      "assignee": "gemini-cli",
+      "dependencies": []
+    }
+  ],
+  "file_locks": {}
+}

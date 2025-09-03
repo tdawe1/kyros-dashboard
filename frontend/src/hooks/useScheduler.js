@@ -14,9 +14,22 @@ const schedulerApi = {
   // Get all schedules
   getSchedules: async (params = {}) => {
     const searchParams = new URLSearchParams();
-    if (params.page) searchParams.append("page", params.page);
-    if (params.page_size) searchParams.append("page_size", params.page_size);
-    if (params.status) searchParams.append("status", params.status);
+
+    // Validate and sanitize pagination params
+    if (params.page && Number.isInteger(params.page) && params.page > 0) {
+      searchParams.append("page", params.page);
+    }
+    if (
+      params.page_size &&
+      Number.isInteger(params.page_size) &&
+      params.page_size > 0 &&
+      params.page_size <= 100
+    ) {
+      searchParams.append("page_size", params.page_size);
+    }
+    if (params.status && typeof params.status === "string") {
+      searchParams.append("status", params.status);
+    }
 
     const response = await api.get(`/scheduler/?${searchParams.toString()}`);
     return response.data;
@@ -185,7 +198,9 @@ export function useSchedulerStats() {
   const stats = schedules.jobs?.reduce(
     (acc, schedule) => {
       acc.total++;
-      acc[schedule.status] = (acc[schedule.status] || 0) + 1;
+      // Normalize status to lowercase for consistent counting
+      const normalizedStatus = schedule.status?.toLowerCase() || "unknown";
+      acc[normalizedStatus] = (acc[normalizedStatus] || 0) + 1;
       return acc;
     },
     { total: 0, active: 0, paused: 0, completed: 0, failed: 0 }

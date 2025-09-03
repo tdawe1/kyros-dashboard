@@ -1,0 +1,39 @@
+name: Collab Guard
+on: [pull_request]
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: No conflict markers
+        run: |
+          ! grep -R --line-number -E '^(<<<<<<<|=======|>>>>>>>)' . --exclude-dir=venv --exclude-dir=.venv --exclude-dir=node_modules || \
+            (echo "Conflict markers found"; exit 1)
+      - name: Validate JSON
+        run: |
+          python - <<'PY'
+import json, sys, pathlib
+ok=True
+# Skip files that are not actually JSON or have special formats
+skip_files = {'tsconfig.json', 'tsconfig.node.json', 'package-lock.json'}
+for p in pathlib.Path('.').rglob('*.json'):
+    if 'venv' in str(p) or 'node_modules' in str(p) or p.name in skip_files:
+        continue
+    try: 
+        json.loads(p.read_text())
+        print(f'✓ Valid JSON: {p}')
+    except Exception as e:
+        print(f'✗ Invalid JSON: {p}: {e}'); ok=False
+sys.exit(0 if ok else 1)
+PY
+      - name: Validate YAML (plans)
+        run: |
+          python - <<'PY'
+import sys, pathlib, yaml
+ok=True
+for p in pathlib.Path('collaboration/plans').rglob('*.yml'):
+    try: yaml.safe_load(p.read_text())
+    except Exception as e:
+        print(f'Invalid YAML: {p}: {e}'); ok=False
+sys.exit(0 if ok else 1)
+PY

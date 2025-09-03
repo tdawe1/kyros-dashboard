@@ -159,7 +159,7 @@ class DocumentHandler(FileHandler):
 
     def __init__(self):
         super().__init__()
-        self.supported_extensions = [".docx", ".doc"]
+        self.supported_extensions = [".docx"]  # Only .docx is supported by python-docx
 
     def extract_text(self, file_path: Union[str, Path]) -> str:
         """Extract text from Word documents."""
@@ -185,7 +185,7 @@ class PresentationHandler(FileHandler):
 
     def __init__(self):
         super().__init__()
-        self.supported_extensions = [".pptx", ".ppt"]
+        self.supported_extensions = [".pptx"]  # Only .pptx is supported by python-pptx
 
     def extract_text(self, file_path: Union[str, Path]) -> str:
         """Extract text from PowerPoint presentations."""
@@ -233,7 +233,7 @@ class SpreadsheetHandler(FileHandler):
             return df.to_string()
         except ImportError:
             raise FileHandlerError(
-                "pandas library not installed. Install with: pip install pandas openpyxl"
+                "Required libraries not installed. Install with: pip install pandas openpyxl xlrd"
             )
         except Exception as e:
             raise FileHandlerError(f"Failed to extract text from spreadsheet: {str(e)}")

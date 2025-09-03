@@ -1,75 +1,20 @@
 name: Deploy to Production
 
 on:
-  push:
-    branches: [main]
+  workflow_run:
+    workflows: ["Tests"]
+    types: [completed]
 
 env:
-  NODE_VERSION: '18'
-  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.12'
 
 jobs:
-  # Test and validate code quality
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-
-      - name: Install Node.js dependencies
-        run: |
-          cd frontend
-          npm ci
-
-      - name: Run Python tests
-        run: |
-          cd backend
-          python -m pytest --cov=. --cov-report=xml
-
-      - name: Run frontend tests
-        run: |
-          cd frontend
-          npm run test:ci
-
-      - name: Run linting
-        run: |
-          # Python linting
-          cd backend
-          ruff check .
-          black --check .
-
-          # Frontend linting
-          cd ../frontend
-          npm run lint
-
-      - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
-        with:
-          files: ./backend/coverage.xml,./frontend/coverage/lcov.info
-          fail_ci_if_error: false
 
   # Deploy frontend to Vercel
   deploy-frontend:
-    needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -104,9 +49,8 @@ jobs:
 
   # Deploy backend to Railway
   deploy-backend:
-    needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && secrets.DEPLOY_TARGET == 'railway'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -120,9 +64,8 @@ jobs:
 
   # Alternative: Deploy backend to Render
   deploy-backend-render:
-    needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && secrets.DEPLOY_TARGET != 'railway'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

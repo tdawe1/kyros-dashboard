@@ -28,5 +28,5 @@ docker-compose*.yml @thomas
 
 # Configuration files
 package.json @thomas
-requirements.txt @thomas
-pyproject.toml @thomas
+/backend/pyproject.toml @thomas
+/backend/poetry.lock @thomas

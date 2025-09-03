@@ -2,12 +2,12 @@ import { forwardRef } from "react";
 import { AlertCircle } from "lucide-react";
 
 const FormInput = forwardRef(
-  ({ label, error, required, className = "", ...props }, ref) => {
+  ({ label, error, required, className = "", id, ...props }, ref) => {
     return (
       <div className="space-y-2">
         {label && (
           <label
-            htmlFor={props.id}
+            htmlFor={id}
             className="block text-sm font-medium text-gray-700 dark:text-gray-300"
           >
             {label}
@@ -21,13 +21,15 @@ const FormInput = forwardRef(
         <div className="relative">
           <input
             ref={ref}
+            id={id}
+            required={required}
             className={`w-full px-3 py-2 bg-white dark:bg-gray-700 border rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent transition-colors ${
               error
                 ? "border-red-500 focus:ring-red-500"
                 : "border-gray-300 dark:border-gray-600"
             } ${className}`}
             aria-invalid={error ? "true" : "false"}
-            aria-describedby={error ? `${props.id}-error` : undefined}
+            aria-describedby={error ? `${id}-error` : undefined}
             {...props}
           />
           {error && (
@@ -38,7 +40,7 @@ const FormInput = forwardRef(
         </div>
         {error && (
           <p
-            id={`${props.id}-error`}
+            id={`${id}-error`}
             className="text-sm text-red-400 flex items-center space-x-1"
             role="alert"
           >

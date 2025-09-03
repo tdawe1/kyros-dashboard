@@ -175,12 +175,12 @@ VITE_RELEASE_VERSION=1.0.0
 - `api/test_api_endpoints.py` - API tests (new)
 
 ### Frontend
-- `ui/src/lib/sentry.js` - Sentry configuration (new)
-- `ui/src/main.jsx` - Sentry initialization
-- `ui/src/components/ErrorBoundary.jsx` - Error capture
-- `ui/src/lib/api.js` - API error tracking
-- `ui/src/constants/index.js` - Sentry config constants
-- `ui/package.json` - Added @sentry/react dependency
+- `frontend/src/lib/sentry.js` - Sentry configuration (new)
+- `frontend/src/main.jsx` - Sentry initialization
+- `frontend/src/components/ErrorBoundary.jsx` - Error capture
+- `frontend/src/lib/api.js` - API error tracking
+- `frontend/src/constants/index.js` - Sentry config constants
+- `frontend/package.json` - Added @sentry/react dependency
 
 ## 🎯 Impact
 

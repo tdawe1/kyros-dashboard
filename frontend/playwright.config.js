@@ -41,44 +41,21 @@ export default defineConfig({
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
     },
-
-    {
-      name: 'firefox',
-      use: { ...devices['Desktop Firefox'] },
-    },
-
-    {
-      name: 'webkit',
-      use: { ...devices['Desktop Safari'] },
-    },
-
-    /* Test against mobile viewports. */
-    {
-      name: 'Mobile Chrome',
-      use: { ...devices['Pixel 5'] },
-    },
-    {
-      name: 'Mobile Safari',
-      use: { ...devices['iPhone 12'] },
-    },
-
-    /* Test against branded browsers. */
-    // {
-    //   name: 'Microsoft Edge',
-    //   use: { ...devices['Desktop Edge'], channel: 'msedge' },
-    // },
-    // {
-    //   name: 'Google Chrome',
-    //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
-    // },
+    // Limit to Chromium locally to avoid missing system dependencies
+    ...(process.env.CI ? [
+      { name: 'firefox', use: { ...devices['Desktop Firefox'] } },
+      { name: 'webkit', use: { ...devices['Desktop Safari'] } },
+      { name: 'Mobile Chrome', use: { ...devices['Pixel 5'] } },
+      { name: 'Mobile Safari', use: { ...devices['iPhone 12'] } },
+    ] : []),
   ],
 
   /* Run your local dev server before starting the tests */
   // Disable webServer when running in test environment (servers are started by test script)
   ...(process.env.SKIP_WEBSERVER ? {} : {
     webServer: {
-      command: 'npm run dev',
-      url: 'http://localhost:5173',
+      command: 'npm run dev -- --strictPort --host',
+      url: 'http://localhost:3001',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
     },

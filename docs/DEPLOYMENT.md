@@ -247,7 +247,7 @@ The following GitHub Actions workflows are configured:
 3. **Build Failures**:
    - Check build logs in GitHub Actions
    - Verify Node.js and Python versions
-   - Ensure all dependencies are in package.json/requirements.txt
+   - Ensure all dependencies are in package.json or pyproject.toml
 
 4. **Vercel Deployment Issues**:
    - Check Vercel project settings
@@ -263,8 +263,8 @@ The following GitHub Actions workflows are configured:
 
 ```bash
 # Test local build
-cd ui && npm run build
-cd api && python -c "import main; print('API imports successfully')"
+cd frontend && npm run build
+cd backend && poetry run python -c "import main; print('API imports successfully')"
 
 # Check environment variables
 echo $VITE_API_BASE_URL
@@ -276,7 +276,7 @@ else
 fi
 
 # Test API locally
-cd api && uvicorn main:app --reload
+cd backend && poetry run uvicorn main:app --reload
 ```
 
 ## 📚 Additional Resources

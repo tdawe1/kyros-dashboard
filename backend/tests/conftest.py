@@ -4,13 +4,21 @@ Pytest configuration and fixtures for the Kyros API tests.
 
 import os
 import sys
-from unittest.mock import Mock, patch, MagicMock
-
-import pytest
-from fastapi.testclient import TestClient
+from unittest.mock import Mock, patch, MagicMock, AsyncMock
 
 # Add the parent directory to the path so we can import our modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+import pytest
+from fastapi.testclient import TestClient
+from sqlalchemy import create_engine
+from sqlalchemy.pool import StaticPool
+from sqlalchemy.orm import sessionmaker
+
+from core.database import Base, get_db
+
+# Ensure models are registered with SQLAlchemy's Base before creating tables
+import core.models  # noqa: F401
 
 
 def pytest_configure(config):
@@ -53,12 +61,74 @@ def pytest_configure(config):
 # Import the app after the patch has been applied
 from main import app  # noqa: E402
 from utils.token_storage import clear_all_data  # noqa: E402
+from core.auth.schemas import UserCreate  # noqa: E402
+from core.auth.service import create_user  # noqa: E402
+
+
+# Test database setup
+@pytest.fixture(scope="function")
+def set_test_environment(monkeypatch):
+    """Set environment variables for tests."""
+    monkeypatch.setenv("JWT_SECRET_KEY", "test_secret_key_for_testing_purposes_only")
+    monkeypatch.setenv("ADMIN_PASSWORD", "test_admin_password")
+    monkeypatch.setenv("ENVIRONMENT", "testing")
+
+
+SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
+engine = create_engine(
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
+)
+TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 
 @pytest.fixture(scope="function")
-def client():
-    """Create a test client for the FastAPI app."""
-    return TestClient(app)
+def db_session(set_test_environment):
+    """Create a new database session for a test."""
+    Base.metadata.create_all(bind=engine)
+    db = TestingSessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
+        Base.metadata.drop_all(bind=engine)
+
+
+@pytest.fixture(scope="function")
+def client(db_session, set_test_environment):
+    """Create a test client that uses the test database."""
+
+    def override_get_db():
+        try:
+            yield db_session
+        finally:
+            db_session.close()
+
+    app.dependency_overrides[get_db] = override_get_db
+    yield TestClient(app)
+    del app.dependency_overrides[get_db]
+
+
+@pytest.fixture(scope="function")
+def test_user(db_session):
+    """Create a test user in the database."""
+    user_data = UserCreate(
+        username="testuser",
+        email="test@example.com",
+        password="testpassword",
+        role="user",
+    )
+    user = create_user(db=db_session, user=user_data)
+    # Add password to the object for use in tests, since it's not stored in plain text
+    user.plain_password = "testpassword"
+    return user
+
+
+@pytest.fixture
+def job_id():
+    """Sample job ID for testing."""
+    return "test_job_123"
 
 
 @pytest.fixture(scope="function")
@@ -70,11 +140,12 @@ def clean_storage():
 
 
 @pytest.fixture
-def mock_redis():
+def mock_redis(monkeypatch):
     """Mock Redis client for testing."""
-    with patch("utils.quotas.get_redis_client") as mock_redis_client, patch(
-        "middleware.rate_limiter.redis.from_url"
-    ) as mock_redis_url:
+    with (
+        patch("utils.quotas.get_secure_redis_client") as mock_redis_client,
+        patch("middleware.rate_limiter.get_secure_redis_client") as mock_redis_url,
+    ):
         # Create a mock Redis instance
         mock_redis_instance = Mock()
         mock_redis_instance.get.return_value = None
@@ -83,18 +154,29 @@ def mock_redis():
         mock_redis_instance.delete.return_value = True
         mock_redis_instance.hgetall.return_value = {}
         mock_redis_instance.hset.return_value = True
-        mock_redis_instance.expire.return_value = True
+
+        # Mock the pipeline
+        mock_pipeline = Mock()
+        mock_pipeline.get.return_value = mock_pipeline
+        mock_pipeline.incr.return_value = mock_pipeline
+        mock_pipeline.expire.return_value = mock_pipeline
+        mock_pipeline.execute.side_effect = lambda: [
+            mock_redis_instance.get.return_value,
+            mock_redis_instance.incr.return_value,
+        ]
+        mock_redis_instance.pipeline.return_value = mock_pipeline
 
         mock_redis_client.return_value = mock_redis_instance
         mock_redis_url.return_value = mock_redis_instance
 
+        # Keep patches active for the duration of the test using this fixture
         yield mock_redis_instance
 
 
 @pytest.fixture
 def mock_openai():
     """Mock OpenAI client for testing."""
-    with patch("generator.OpenAI") as mock_openai_class:
+    with patch("generator.AsyncOpenAI") as mock_openai_class:
         mock_client = Mock()
         mock_response = Mock()
         mock_response.choices = [Mock()]
@@ -106,7 +188,7 @@ def mock_openai():
         mock_response.usage.completion_tokens = 100
         mock_response.usage.total_tokens = 150
 
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
         mock_openai_class.return_value = mock_client
 
         yield mock_client

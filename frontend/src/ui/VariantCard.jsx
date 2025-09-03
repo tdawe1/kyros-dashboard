@@ -11,11 +11,13 @@ import {
 export default function VariantCard({
   variant,
   channel,
+  isSelected,
   onEdit,
   onAccept,
   onCopy,
   onDownload,
   onToggleFavorite,
+  onSelect,
 }) {
   const [isFavorited, setIsFavorited] = useState(false);
 
@@ -64,7 +66,10 @@ export default function VariantCard({
   };
 
   return (
-    <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:border-gray-300 dark:hover:border-gray-600 transition-colors">
+    <div
+      data-testid="variant-card"
+      className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6 hover:border-gray-300 dark:hover:border-gray-600 transition-colors"
+    >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-3">
@@ -84,6 +89,14 @@ export default function VariantCard({
         </div>
 
         <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            data-testid="select-variant"
+            checked={!!isSelected}
+            onChange={() => onSelect?.()}
+            className="w-4 h-4 accent-accent cursor-pointer"
+            aria-label="Select variant"
+          />
           <button
             onClick={handleToggleFavorite}
             className={`p-2 rounded-lg transition-colors ${
@@ -111,6 +124,7 @@ export default function VariantCard({
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-2">
           <button
+            data-testid="accept-button"
             onClick={() => onAccept?.(variant.id)}
             className="bg-accent hover:bg-accent/90 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
           >
@@ -119,6 +133,7 @@ export default function VariantCard({
           </button>
 
           <button
+            data-testid="edit-button"
             onClick={() => onEdit?.(variant)}
             className="bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2 border border-gray-300 dark:border-gray-600"
           >
@@ -129,6 +144,7 @@ export default function VariantCard({
 
         <div className="flex items-center space-x-2">
           <button
+            data-testid="copy-button"
             onClick={handleCopy}
             className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             title="Copy to clipboard"
@@ -137,6 +153,7 @@ export default function VariantCard({
           </button>
 
           <button
+            data-testid="download-button"
             onClick={() => onDownload?.(variant.id)}
             className="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
             title="Download"

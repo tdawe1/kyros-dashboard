@@ -33,38 +33,43 @@ if ! git rev-parse --git-dir > /dev/null 2>&1; then
 fi
 
 echo ""
-echo "🔧 Setting up branch protection rules for 'main' branch..."
+echo "🔧 Setting up branch protection rules for 'main' and 'develop' branches..."
 
-# Create branch protection rule
+# Set up protection for main branch
+echo "Setting up branch protection for 'main' branch..."
 gh api repos/$REPO/branches/main/protection \
   --method PUT \
-  --field required_status_checks='{"strict":true,"contexts":["Backend Tests","Frontend Tests","E2E Tests","Security Scan","Build Verification","PR Checks Summary"]}' \
-  --field enforce_admins=false \
-  --field required_pull_request_reviews='{"required_approving_review_count":1,"dismiss_stale_reviews":true,"require_code_owner_reviews":true}' \
-  --field restrictions=null \
-  --field allow_force_pushes=false \
-  --field allow_deletions=false
+  --input branch-protection.json
 
-echo "✅ Branch protection rules created successfully!"
+echo "✅ Main branch protection created!"
+
+# Set up protection for develop branch
+echo "Setting up branch protection for 'develop' branch..."
+gh api repos/$REPO/branches/develop/protection \
+  --method PUT \
+  --input branch-protection.json
+
+echo "✅ Develop branch protection created!"
+
+echo ""
+echo "⚠️  Note: Status checks will be added after the first PR is created."
+echo "   The status checks need to exist in GitHub before they can be required."
+echo "   After creating your first PR, you can add the required status checks manually:"
+echo "   - Collab Guard (conflict markers, JSON/YAML validation)"
+echo "   - backend-tests"
+echo "   - frontend-tests"
+echo "   - e2e-tests"
+echo "   - security-scan"
+echo "   - build-verification"
+echo "   - pr-checks-summary"
 
 echo ""
 echo "📋 Summary of protection rules:"
 echo "  • Require pull request reviews before merging"
-echo "  • Require status checks to pass before merging"
-echo "  • Require branches to be up to date before merging"
 echo "  • Require review from code owners"
 echo "  • Dismiss stale PR approvals when new commits are pushed"
 echo "  • Block force pushes"
 echo "  • Block branch deletion"
-
-echo ""
-echo "🔍 Required status checks:"
-echo "  • Backend Tests"
-echo "  • Frontend Tests"
-echo "  • E2E Tests"
-echo "  • Security Scan"
-echo "  • Build Verification"
-echo "  • PR Checks Summary"
 
 echo ""
 echo "📝 Next steps:"
@@ -72,8 +77,11 @@ echo "  1. Create a test branch: git checkout -b test-branch-protection"
 echo "  2. Make a small change and commit"
 echo "  3. Push the branch: git push origin test-branch-protection"
 echo "  4. Create a pull request to main"
-echo "  5. Verify that all checks run and approval is required"
+echo "  5. Wait for the PR checks to run (this creates the status checks in GitHub)"
+echo "  6. After the first PR, manually add the required status checks in GitHub Settings"
+echo "  7. Verify that all checks run and approval is required"
 
 echo ""
 echo "🎉 Branch protection setup complete!"
-echo "Your main branch is now protected and requires code review before merging."
+echo "Both 'main' and 'develop' branches are now protected and require code review before merging."
+

@@ -7,8 +7,8 @@ on:
     branches: [develop]
 
 env:
-  NODE_VERSION: '18'
-  PYTHON_VERSION: '3.11'
+  NODE_VERSION: '20'
+  PYTHON_VERSION: '3.12'
 
 jobs:
   # Deploy to staging environment
@@ -23,7 +23,7 @@ jobs:
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: 'npm'
-          cache-dependency-path: ui/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
 
       - name: Install dependencies
         run: |
@@ -38,7 +38,8 @@ jobs:
           VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL_STAGING }}
 
       - name: Deploy frontend to Vercel (Preview)
-        uses: amondnet/vercel-action@v41.1.4
+        id: deploy_frontend
+        uses: amondnet/vercel-action@v25
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
@@ -47,6 +48,7 @@ jobs:
           vercel-args: '--target=preview'
 
       - name: Deploy backend to Railway (Staging)
+        id: deploy_backend
         uses: railwayapp/railway-deploy@v1
         with:
           railway-token: ${{ secrets.RAILWAY_TOKEN }}
@@ -56,6 +58,9 @@ jobs:
       - name: Comment PR with staging URL
         if: github.event_name == 'pull_request'
         uses: actions/github-script@v6
+        env:
+          VERCEL_PREVIEW_URL: ${{ steps.deploy_frontend.outputs.preview-url }}
+          RAILWAY_STAGING_URL: ${{ steps.deploy_backend.outputs.url }}
         with:
           script: |
             const { data: comments } = await github.rest.issues.listComments({
@@ -68,11 +73,11 @@ jobs:
               comment.user.type === 'Bot' && comment.body.includes('Staging deployment')
             );
 
-            const stagingUrl = `https://${process.env.VERCEL_PREVIEW_URL || '${{ vars.STAGING_FRONTEND_URL }}'}`;
+            const stagingUrl = `https://${process.env.VERCEL_PREVIEW_URL}`;
             const commentBody = `🚀 **Staging Deployment Ready!**
 
             **Frontend**: ${stagingUrl}
-            **Backend**: ${process.env.RAILWAY_STAGING_URL || '${{ vars.STAGING_BACKEND_URL }}'}
+            **Backend**: ${process.env.RAILWAY_STAGING_URL}
 
             This deployment will be automatically updated when you push new commits to this branch.`;
 

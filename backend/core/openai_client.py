@@ -113,8 +113,8 @@ class OpenAIClient:
                 )
 
                 # Set Sentry context
-                if job_id:
-                    with sentry_sdk.push_scope() as scope:
+                if job_id and sentry_sdk.Hub.current and sentry_sdk.Hub.current.client:
+                    with sentry_sdk.configure_scope() as scope:
                         scope.set_tag("openai_model", model)
                         scope.set_tag("openai_tokens", usage.total_tokens)
                         if tool_name:

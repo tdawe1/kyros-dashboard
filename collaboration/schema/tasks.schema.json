@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kyros.local/schema/tasks.json",
+  "type": "object",
+  "required": ["version", "tasks"],
+  "properties": {
+    "version": {"type": "integer"},
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "status"],
+        "properties": {
+          "id": {"type": "string"},
+          "title": {"type": "string"},
+          "description": {"type": "string"},
+          "status": {"type": "string", "enum": ["queued", "claimed", "in_progress", "review", "changes_requested", "approved", "merging", "done", "blocked", "failed", "abandoned"]},
+          "assignee": {"type": ["string", "null"]},
+          "priority": {"type": ["string", "null"]},
+          "labels": {"type": "array", "items": {"type": "string"}},
+          "dependencies": {"type": "array", "items": {"type": "string"}},
+          "blockers": {"type": "array", "items": {"type": "string"}},
+          "branch": {"type": ["string", "null"]},
+          "created_at": {"type": ["string", "null"]},
+          "updated_at": {"type": ["string", "null"]},
+          "dod": {"type": "array", "items": {"type": "string"}},
+          "needs": {"type": ["string", "null"]},
+          "external_ids": {"type": "object", "additionalProperties": true}
+        }
+      }
+    }
+  }
+}

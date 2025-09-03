@@ -89,7 +89,9 @@ export default function Scheduler() {
 
   const formatDateTime = dateString => {
     if (!dateString) return "Not scheduled";
-    return new Date(dateString).toLocaleString();
+    // Normalize to UTC for consistent display
+    const date = new Date(dateString);
+    return date.toLocaleString(undefined, { timeZone: "UTC" }) + " UTC";
   };
 
   const getStatusColor = status => {
@@ -259,11 +261,21 @@ export default function Scheduler() {
                       {schedule.input_source && (
                         <div className="mt-3 text-sm text-gray-600 dark:text-gray-400">
                           <span className="font-medium">Input:</span>
-                          <span className="ml-1">
-                            {typeof schedule.input_source === "string"
-                              ? schedule.input_source
-                              : JSON.stringify(schedule.input_source)}
-                          </span>
+                          <div className="ml-1 mt-1 p-2 bg-gray-50 dark:bg-gray-800 rounded border">
+                            {typeof schedule.input_source === "string" ? (
+                              <span className="break-words">
+                                {schedule.input_source}
+                              </span>
+                            ) : schedule.input_source.text ? (
+                              <span className="break-words">
+                                {schedule.input_source.text}
+                              </span>
+                            ) : (
+                              <pre className="text-xs overflow-auto">
+                                {JSON.stringify(schedule.input_source, null, 2)}
+                              </pre>
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -360,7 +372,7 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
 
     const submitData = {
       ...formData,
-      run_at: formData.run_at ? new Date(formData.run_at) : null,
+      run_at: formData.run_at ? new Date(formData.run_at + "Z") : null, // Ensure UTC
       max_runs: formData.max_runs ? parseInt(formData.max_runs) : null,
     };
 

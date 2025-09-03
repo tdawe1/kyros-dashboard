@@ -13,7 +13,6 @@ from sqlalchemy import (
     ForeignKey,
     JSON,
 )
-from sqlalchemy.dialects.postgresql import UUID
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -27,7 +26,7 @@ class ScheduledJob(Base):
 
     __tablename__ = "scheduled_jobs"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     tool = Column(String(100), nullable=False, index=True)
     name = Column(String(255), nullable=True)
     owner_user_id = Column(
@@ -76,9 +75,9 @@ class JobRun(Base):
 
     __tablename__ = "job_runs"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     scheduled_job_id = Column(
-        UUID(as_uuid=True),
+        String(36),
         ForeignKey("scheduled_jobs.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -120,7 +119,7 @@ class IdempotencyKey(Base):
 
     __tablename__ = "idempotency_keys"
 
-    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
+    id = Column(String(36), primary_key=True, default=lambda: str(uuid.uuid4()))
     owner_user_id = Column(String(255), nullable=True, index=True)
     key = Column(String(255), nullable=False, unique=True, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

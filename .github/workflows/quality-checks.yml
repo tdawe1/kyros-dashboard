@@ -3,12 +3,20 @@ name: Quality Checks
 on:
   pull_request:
     branches: [main, develop]
+    paths-ignore:
+      - '**/*.md'
+      - 'collaboration/logs/**'
+      - 'CHANGELOG.md'
   push:
     branches: [main, develop]
+    paths-ignore:
+      - '**/*.md'
+      - 'collaboration/logs/**'
+      - 'CHANGELOG.md'
 
 env:
   NODE_VERSION: '18'
-  PYTHON_VERSION: '3.11'
+  PYTHON_VERSION: '3.12'
 
 jobs:
   # Security and code quality checks
@@ -32,11 +40,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install Python dependencies
+      - name: Install Poetry and backend deps
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-          pip install bandit detect-secrets
+          pip install poetry detect-secrets
+          cd backend
+          poetry install --no-interaction --no-ansi
 
       - name: Install Node.js dependencies
         run: |
@@ -46,8 +55,8 @@ jobs:
       - name: Run security scan (Python)
         run: |
           cd backend
-          bandit -r . -f json -o bandit-report.json || true
-          bandit -r . -f txt
+          poetry run bandit -r . -f json -o bandit-report.json || true
+          poetry run bandit -r . -f txt
 
       - name: Run security scan (Node.js)
         run: |
@@ -85,10 +94,12 @@ jobs:
           cache: 'npm'
           cache-dependency-path: frontend/package-lock.json
 
-      - name: Install Python dependencies
+      - name: Install Poetry and backend deps
         run: |
           python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
+          pip install poetry
+          cd backend
+          poetry install --no-interaction --no-ansi
 
       - name: Install Node.js dependencies
         run: |
@@ -98,8 +109,8 @@ jobs:
       - name: Check Python formatting
         run: |
           cd backend
-          # ruff format --check .
-          ruff check .
+          # poetry run ruff format --check .
+          poetry run ruff check .
         continue-on-error: true
 
       - name: Check frontend formatting
@@ -114,75 +125,4 @@ jobs:
       #   with:
       #     configFile: .commitlintrc.js
 
-  # Build verification
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v4
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install Python dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install -r backend/requirements.txt
-
-      - name: Install Node.js dependencies
-        run: |
-          cd frontend
-          npm ci
-
-      - name: Build frontend
-        run: |
-          cd frontend
-          npm run build
-        env:
-          VITE_API_BASE_URL: ${{ secrets.VITE_API_BASE_URL || 'http://localhost:8000' }}
-
-      - name: Test API startup
-        run: |
-          cd backend
-          python -c "import main; print('API imports successfully')"
-
-  # Performance checks
-  performance:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-          cache: 'npm'
-          cache-dependency-path: frontend/package-lock.json
-
-      - name: Install Node.js dependencies
-        run: |
-          cd frontend
-          npm ci
-
-      - name: Build and analyze bundle
-        run: |
-          cd frontend
-          npm run build
-          npx bundle-analyzer dist/assets/*.js --mode static --report || echo "Bundle analyzer failed, continuing..."
-        continue-on-error: true
-
-      - name: Upload bundle analysis
-        uses: actions/upload-artifact@v4
-        with:
-          name: bundle-analysis
-          path: frontend/bundle-report.html
+  # Removed build/performance duplication; Tests workflow handles builds

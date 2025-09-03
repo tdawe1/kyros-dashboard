@@ -15,6 +15,12 @@ from redis.exceptions import RedisError
 logger = logging.getLogger(__name__)
 
 
+class CircuitBreakerOpenError(Exception):
+    """Exception raised when circuit breaker is open."""
+
+    pass
+
+
 class SecurityMode(Enum):
     """Security operation modes."""
 
@@ -64,7 +70,7 @@ class CircuitBreaker:
                 self.state = CircuitBreakerState.HALF_OPEN
                 logger.info(f"Circuit breaker '{self.name}' entering HALF_OPEN state")
             else:
-                raise Exception(f"Circuit breaker '{self.name}' is OPEN")
+                raise CircuitBreakerOpenError(f"Circuit breaker '{self.name}' is OPEN")
 
         try:
             result = func(*args, **kwargs)
@@ -84,6 +90,7 @@ class CircuitBreaker:
     def _on_success(self):
         """Handle successful call."""
         self.failure_count = 0
+        self.last_failure_time = None
         self.state = CircuitBreakerState.CLOSED
 
     def _on_failure(self):
@@ -191,6 +198,18 @@ class SecureRedisClient:
             raise Exception("Redis operation failed - failing closed for security")
         return result or {}
 
+    def pipeline(self):
+        """Get Redis pipeline with circuit breaker protection."""
+        if not self._client:
+            if self.security_mode == SecurityMode.FAIL_CLOSED:
+                raise Exception("Redis not available - failing closed for security")
+            return None
+        
+        def _get_pipeline():
+            return self._client.pipeline()
+        
+        return self._circuit_breaker.call(_get_pipeline)
+
 
 def secure_operation(
     security_mode: SecurityMode = SecurityMode.FAIL_CLOSED,
@@ -233,7 +252,17 @@ def secure_operation(
 def get_secure_redis_client() -> SecureRedisClient:
     """Get secure Redis client with fail-closed behavior."""
     redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
-    security_mode = SecurityMode(os.getenv("REDIS_SECURITY_MODE", "fail_closed"))
+
+    # Validate REDIS_SECURITY_MODE
+    mode_str = os.getenv("REDIS_SECURITY_MODE", "fail_closed")
+    try:
+        security_mode = SecurityMode(mode_str)
+    except ValueError:
+        logger.warning(
+            f"Invalid REDIS_SECURITY_MODE '{mode_str}', defaulting to 'fail_closed'"
+        )
+        security_mode = SecurityMode.FAIL_CLOSED
+
     return SecureRedisClient(redis_url, security_mode)
 
 
