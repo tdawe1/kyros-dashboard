@@ -53,9 +53,13 @@ class TestCanCreateJob:
 
     def test_can_create_job_redis_error(self, mock_redis):
         """Test quota check with Redis error (fail closed)."""
-        mock_redis._client.pipeline.return_value.execute.side_effect = Exception("Redis connection failed")
+        mock_redis._client.pipeline.return_value.execute.side_effect = Exception(
+            "Redis connection failed"
+        )
 
-        with pytest.raises(Exception, match="Operation failed - failing closed for security"):
+        with pytest.raises(
+            Exception, match="Operation failed - failing closed for security"
+        ):
             can_create_job("error_user", 10)
 
     def test_can_create_job_custom_limit(self, mock_redis):
@@ -111,7 +115,9 @@ class TestGetUserQuotaStatus:
         """Test quota status with Redis error."""
         mock_redis.get.side_effect = Exception("Redis connection failed")
 
-        with pytest.raises(Exception, match="Operation failed - failing closed for security"):
+        with pytest.raises(
+            Exception, match="Operation failed - failing closed for security"
+        ):
             get_user_quota_status("error_user", 10)
 
     def test_get_user_quota_status_custom_limit(self, mock_redis):
@@ -154,7 +160,9 @@ class TestResetUserQuota:
         """Test reset quota with Redis error."""
         mock_redis.delete.side_effect = Exception("Redis connection failed")
 
-        with pytest.raises(Exception, match="Operation failed - failing closed for security"):
+        with pytest.raises(
+            Exception, match="Operation failed - failing closed for security"
+        ):
             reset_user_quota("error_user")
 
     def test_reset_user_quota_nonexistent_key(self, mock_redis):

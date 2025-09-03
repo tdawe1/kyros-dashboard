@@ -32,25 +32,26 @@ jobs:
       with:
         python-version: ${{ matrix.python-version }}
 
-    - name: Cache pip dependencies
+    - name: Cache Poetry dependencies
       uses: actions/cache@v3
       with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        path: |
+          ~/.cache/pypoetry
+        key: ${{ runner.os }}-poetry-${{ hashFiles('backend/poetry.lock') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
+          ${{ runner.os }}-poetry-
 
-    - name: Install dependencies
+    - name: Install Poetry and backend deps
       working-directory: ./backend
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install ruff black bandit isort flake8
+        pip install poetry
+        poetry install --no-interaction --no-ansi
 
     - name: Lint with ruff
       working-directory: ./backend
       run: |
-        ruff check . --output-format=github
+        poetry run ruff check . --output-format=github
 
     # - name: Format check with ruff
     #   working-directory: ./backend
@@ -60,7 +61,7 @@ jobs:
     - name: Security check with bandit
       working-directory: ./backend
       run: |
-        bandit -r . -f json -o bandit-report.json || true
+        poetry run bandit -r . -f json -o bandit-report.json || true
 
     - name: Run unit tests with pytest
       working-directory: ./backend
@@ -72,7 +73,7 @@ jobs:
         MAX_TOKENS_PER_JOB: 50000
         DAILY_JOB_LIMIT: 10
       run: |
-        pytest --cov=. --cov-report=xml --cov-report=html --junitxml=pytest-report.xml -v
+        poetry run pytest --cov=. --cov-report=xml --cov-report=html --junitxml=pytest-report.xml -v
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3

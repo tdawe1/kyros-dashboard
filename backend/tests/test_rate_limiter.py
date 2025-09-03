@@ -140,7 +140,9 @@ class TestTokenBucketRateLimiter:
         # Mock Redis error
         mock_redis.hgetall.side_effect = Exception("Redis connection failed")
 
-        with pytest.raises(Exception, match="Operation failed - failing closed for security"):
+        with pytest.raises(
+            Exception, match="Operation failed - failing closed for security"
+        ):
             limiter.is_allowed(request)
 
     def test_token_refill_calculation(self, mock_redis):

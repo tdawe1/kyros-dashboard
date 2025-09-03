@@ -201,6 +201,7 @@ if tools_registry:
 # Add basic endpoints that work even without other modules
 try:
     from api import router as api_router
+
     app.include_router(api_router, prefix="/api", tags=["api"])
     logger.info("API router added successfully")
 except Exception as e:
@@ -215,17 +216,25 @@ async def generate_simple(request: dict):
         if generator:
             from generator import generate_content
             from utils.token_storage import get_token_usage
+
             input_text = request.get("input_text")
             if not input_text or len(input_text) < 20:
-                raise HTTPException(status_code=400, detail={"error": "Input text too short"})
+                raise HTTPException(
+                    status_code=400, detail={"error": "Input text too short"}
+                )
             if len(input_text) > 100000:
-                raise HTTPException(status_code=400, detail={"error": "Input text too long"})
+                raise HTTPException(
+                    status_code=400, detail={"error": "Input text too long"}
+                )
 
             if utils_quotas:
                 from utils.quotas import can_create_job
+
                 can_create, _ = can_create_job(request.get("user_id", "anonymous"))
                 if not can_create:
-                    raise HTTPException(status_code=400, detail={"error": "Quota exceeded"})
+                    raise HTTPException(
+                        status_code=400, detail={"error": "Quota exceeded"}
+                    )
 
             job_id = f"job_{uuid.uuid4()}"
             variants = await generate_content(
@@ -241,7 +250,8 @@ async def generate_simple(request: dict):
                 "status": "completed",
                 "variants": variants,
                 "token_usage": token_usage,
-                "model": request.get("model") or os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
+                "model": request.get("model")
+                or os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
                 "api_mode": os.getenv("API_MODE", "demo"),
             }
         else:

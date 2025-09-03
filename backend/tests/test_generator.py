@@ -4,7 +4,7 @@ Unit tests for content generator functionality.
 
 import pytest
 import os
-from unittest.mock import patch, Mock
+from unittest.mock import patch, Mock, AsyncMock
 from generator import (
     get_demo_variants,
     generate_content_real,
@@ -142,10 +142,12 @@ class TestGenerateContentReal:
     @patch.dict(os.environ, {"OPENAI_API_KEY": "test_key"})
     @pytest.mark.asyncio
     async def test_generate_content_real_api_error(self, sample_input_text):
-        """Test real content generation with API error."""
-        with patch("generator.OpenAI") as mock_openai_class:
+        """Test real content generation with API error (AsyncOpenAI mock)."""
+        with patch("generator.AsyncOpenAI") as mock_openai_class:
             mock_client = Mock()
-            mock_client.chat.completions.create.side_effect = Exception("API Error")
+            mock_client.chat.completions.create = AsyncMock(
+                side_effect=Exception("API Error")
+            )
             mock_openai_class.return_value = mock_client
 
             # Should fallback to demo content

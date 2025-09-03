@@ -1,7 +1,7 @@
 import os
 import logging
 from typing import Dict, List, Any, Optional
-from openai import OpenAI, AsyncOpenAI
+from openai import AsyncOpenAI
 import sentry_sdk
 from utils.token_storage import save_token_usage
 from core.security import with_circuit_breaker, openai_circuit_breaker

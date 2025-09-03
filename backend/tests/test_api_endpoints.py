@@ -136,7 +136,12 @@ class TestGenerateEndpoint:
     ):
         """Test successful content generation."""
         with patch("utils.token_storage.get_token_usage") as mock_get_token_usage:
-            mock_get_token_usage.return_value = {"input_tokens": 1, "output_tokens": 1, "total_tokens": 2, "total_cost": 0.0001}
+            mock_get_token_usage.return_value = {
+                "input_tokens": 1,
+                "output_tokens": 1,
+                "total_tokens": 2,
+                "total_cost": 0.0001,
+            }
             response = client.post("/api/generate", json=sample_generate_request)
 
         assert response.status_code == 200
