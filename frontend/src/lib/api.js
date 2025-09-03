@@ -11,29 +11,29 @@ const api = axios.create({
 
 // Add request interceptor for auth tokens
 api.interceptors.request.use(
-  (config) => {
+  config => {
     const token = localStorage.getItem("auth_token");
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => {
+  error => {
     return Promise.reject(error);
-  },
+  }
 );
 
 // Add response interceptor for error handling
 api.interceptors.response.use(
-  (response) => response,
-  (error) => {
+  response => response,
+  error => {
     if (error.response?.status === 401) {
       // Handle unauthorized access
       localStorage.removeItem("auth_token");
       window.location.href = "/login";
     }
     return Promise.reject(error);
-  },
+  }
 );
 
 // API functions
@@ -47,7 +47,7 @@ export const getJobs = async () => {
   return response.data;
 };
 
-export const getJob = async (id) => {
+export const getJob = async id => {
   const response = await api.get(`/api/jobs/${id}`);
   return response.data;
 };
@@ -57,7 +57,7 @@ export const getPresets = async () => {
   return response.data;
 };
 
-export const createPreset = async (preset) => {
+export const createPreset = async preset => {
   const response = await api.post("/api/presets", preset);
   return response.data;
 };
@@ -67,12 +67,12 @@ export const updatePreset = async (id, preset) => {
   return response.data;
 };
 
-export const deletePreset = async (id) => {
+export const deletePreset = async id => {
   const response = await api.delete(`/api/presets/${id}`);
   return response.data;
 };
 
-export const generateContent = async (request) => {
+export const generateContent = async request => {
   const response = await api.post("/api/generate", request);
   return response.data;
 };
@@ -88,7 +88,7 @@ export const getScheduledJobs = async () => {
   return response.data;
 };
 
-export const createScheduledJob = async (job) => {
+export const createScheduledJob = async job => {
   const response = await api.post("/api/scheduler", job);
   return response.data;
 };
@@ -98,17 +98,17 @@ export const updateScheduledJob = async (id, job) => {
   return response.data;
 };
 
-export const deleteScheduledJob = async (id) => {
+export const deleteScheduledJob = async id => {
   const response = await api.delete(`/api/scheduler/${id}`);
   return response.data;
 };
 
-export const runScheduledJob = async (id) => {
+export const runScheduledJob = async id => {
   const response = await api.post(`/api/scheduler/${id}/run-now`);
   return response.data;
 };
 
-export const getScheduledJobRuns = async (id) => {
+export const getScheduledJobRuns = async id => {
   const response = await api.get(`/api/scheduler/${id}/runs`);
   return response.data;
 };

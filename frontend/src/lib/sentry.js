@@ -21,7 +21,7 @@ export function initSentry() {
   const environment = import.meta.env.VITE_ENVIRONMENT || "development";
 
   if (sentryDsn) {
-    loadSentry().then((sentry) => {
+    loadSentry().then(sentry => {
       if (sentry) {
         sentry.init({
           dsn: sentryDsn,
@@ -91,7 +91,7 @@ export function addBreadcrumb(
   message,
   category = "user",
   level = "info",
-  data = {},
+  data = {}
 ) {
   if (import.meta.env.VITE_SENTRY_DSN && Sentry) {
     Sentry.addBreadcrumb({
