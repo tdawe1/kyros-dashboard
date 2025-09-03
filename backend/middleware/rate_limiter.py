@@ -140,6 +140,10 @@ class TokenBucketRateLimiter:
         return is_allowed, rate_limit_info
 
 
+# Provide a module-level rate limiter instance for easy patching in tests
+rate_limiter = TokenBucketRateLimiter()
+
+
 async def rate_limit_middleware(request: Request, call_next):
     """
     FastAPI middleware for rate limiting.
@@ -148,8 +152,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if request.url.path in ["/api/health", "/docs", "/openapi.json", "/redoc"]:
         return await call_next(request)
 
-    # Check rate limit
-    rate_limiter = TokenBucketRateLimiter()
+    # Check rate limit using shared instance
     is_allowed, rate_info = rate_limiter.is_allowed(request)
 
     if not is_allowed:

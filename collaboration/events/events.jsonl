@@ -1,0 +1,6 @@
+{"ts":"2025-09-03T12:55:00Z","event":"task_migrated","task":"task-001","agent":"codex-cli","notes":"Migrated from v1 state.json"}
+{"ts":"2025-09-03T12:55:00Z","event":"task_migrated","task":"task-002","agent":"gemini-cli","notes":"Migrated from v1 state.json"}
+{"ts":"2025-09-03T12:55:00Z","event":"task_migrated","task":"task-003","agent":"codex-cli","notes":"Migrated from v1 state.json"}
+{"ts":"2025-09-03T12:55:00Z","event":"task_migrated","task":"task-004","agent":"gemini-cli","notes":"Migrated from v1 state.json"}
+{"ts":"2025-09-03T12:55:00Z","event":"task_migrated","task":"task-005","agent":"gemini-cli","notes":"Migrated from v1 state.json"}
+{"ts":"2025-09-03T12:55:00Z","event":"task_migrated","task":"task-006","agent":"gemini-cli","notes":"Migrated from v1 state.json"}

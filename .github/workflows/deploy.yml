@@ -107,7 +107,7 @@ jobs:
   deploy-backend:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.DEPLOY_TARGET == 'railway'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -123,7 +123,7 @@ jobs:
   deploy-backend-render:
     needs: test
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push' && secrets.DEPLOY_TARGET != 'railway'
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

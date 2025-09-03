@@ -1,8 +1,22 @@
 import os
-from fastapi import APIRouter, HTTPException
-from generator import VALID_MODELS
+import logging
+from fastapi import APIRouter
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+from .generator import VALID_MODELS
 
 router = APIRouter()
+
+logger = logging.getLogger(__name__)
+
+
+def safe_int(value: str, default: int) -> int:
+    """Safely convert a string to an integer."""
+    try:
+        return int(value)
+    except (ValueError, TypeError):
+        logger.warning(f"Could not convert '{value}' to int, using default {default}")
+        return default
 
 
 @router.get("/config")
@@ -13,9 +27,13 @@ async def get_config():
             "api_mode": os.getenv("API_MODE", "demo"),
             "default_model": os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
             "valid_models": VALID_MODELS,
-            "max_input_characters": int(os.getenv("MAX_INPUT_CHARACTERS", "100000")),
-            "max_tokens_per_job": int(os.getenv("MAX_TOKENS_PER_JOB", "50000")),
-            "daily_job_limit": int(os.getenv("DAILY_JOB_LIMIT", "10")),
+            "max_input_characters": safe_int(
+                os.getenv("MAX_INPUT_CHARACTERS", "100000"), 100000
+            ),
+            "max_tokens_per_job": safe_int(
+                os.getenv("MAX_TOKENS_PER_JOB", "50000"), 50000
+            ),
+            "daily_job_limit": safe_int(os.getenv("DAILY_JOB_LIMIT", "10"), 10),
         }
     except Exception as e:
         return {"error": str(e)}
@@ -59,15 +77,23 @@ async def get_job_by_id(job_id: str):
             "created_at": "2024-01-01T12:00:00Z",
             "source_url": "http://example.com/blog/1",
         }
-    raise HTTPException(status_code=404, detail="Job not found")
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error": {"code": "NOT_FOUND", "message": "Job not found", "details": {}}
+        },
+    )
+
+
+class ExportRequest(BaseModel):
+    job_id: str
+    format: str = "csv"
 
 
 @router.post("/export")
-async def export_content(request: dict):
+async def export_content(request: ExportRequest):
     """Export content."""
-    job_id = request.get("job_id", "export")
-    file_format = request.get("format", "csv")
-    filename = f"{job_id}.{file_format}"
+    filename = f"{request.job_id}.{request.format}"
     return {"file_url": f"http://example.com/{filename}", "filename": filename}
 
 
@@ -84,10 +110,16 @@ async def get_presets():
     ]
 
 
+class CreatePresetRequest(BaseModel):
+    name: str
+    description: str
+    config: dict
+
+
 @router.post("/presets")
-async def create_preset(request: dict):
+async def create_preset(request: CreatePresetRequest):
     """Create a preset."""
-    return {"id": "preset_2", **request}
+    return {"id": "preset_2", **request.dict()}
 
 
 @router.get("/presets/{preset_id}")
@@ -100,7 +132,16 @@ async def get_preset_by_id(preset_id: str):
             "description": "Description 1",
             "config": {},
         }
-    raise HTTPException(status_code=404, detail="Preset not found")
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error": {
+                "code": "NOT_FOUND",
+                "message": "Preset not found",
+                "details": {},
+            },
+        },
+    )
 
 
 @router.put("/presets/{preset_id}")

@@ -171,7 +171,8 @@ if core_auth_router:
     try:
         from core.auth_router import router as auth_router
 
-        app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
+        # Router already defines its own prefix/tags; include without extra prefix
+        app.include_router(auth_router)
         logger.info("Auth router added successfully")
     except Exception as e:
         logger.warning(f"Failed to add auth router: {e}")
@@ -220,12 +221,30 @@ async def generate_simple(request: dict):
 
             input_text = request.get("input_text")
             if not input_text or len(input_text) < 20:
-                raise HTTPException(
-                    status_code=400, detail={"error": "Input text too short"}
+                from fastapi.responses import JSONResponse
+
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": {
+                            "code": "VALIDATION_ERROR",
+                            "message": "Input text too short",
+                            "details": {},
+                        }
+                    },
                 )
             if len(input_text) > 100000:
-                raise HTTPException(
-                    status_code=400, detail={"error": "Input text too long"}
+                from fastapi.responses import JSONResponse
+
+                return JSONResponse(
+                    status_code=400,
+                    content={
+                        "error": {
+                            "code": "VALIDATION_ERROR",
+                            "message": "Input text too long",
+                            "details": {},
+                        }
+                    },
                 )
 
             if utils_quotas:
@@ -233,8 +252,17 @@ async def generate_simple(request: dict):
 
                 can_create, _ = can_create_job(request.get("user_id", "anonymous"))
                 if not can_create:
-                    raise HTTPException(
-                        status_code=400, detail={"error": "Quota exceeded"}
+                    from fastapi.responses import JSONResponse
+
+                    return JSONResponse(
+                        status_code=400,
+                        content={
+                            "error": {
+                                "code": "QUOTA_EXCEEDED",
+                                "message": "Quota exceeded",
+                                "details": {},
+                            }
+                        },
                     )
 
             job_id = f"job_{uuid.uuid4()}"
@@ -269,7 +297,6 @@ if core_error_handling:
         from core.error_handling import (
             handle_kyros_exception,
             handle_validation_error,
-            handle_http_exception,
             handle_generic_exception,
             KyrosException,
         )
@@ -283,9 +310,7 @@ if core_error_handling:
         async def validation_exception_handler(request, exc):
             return handle_validation_error(request, exc)
 
-        @app.exception_handler(HTTPException)
-        async def http_exception_handler(request, exc):
-            return handle_http_exception(request, exc)
+        # Use FastAPI default HTTPException response format (detail) expected by tests.
 
         @app.exception_handler(Exception)
         async def generic_exception_handler(request, exc):

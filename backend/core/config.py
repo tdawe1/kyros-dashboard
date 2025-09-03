@@ -4,7 +4,6 @@ Implements secure configuration loading with validation and environment-specific
 """
 
 import logging
-import secrets
 from typing import List, Optional
 from pydantic_settings import BaseSettings
 from pydantic import Field, field_validator
@@ -54,7 +53,8 @@ class Settings(BaseSettings):
         default=7, env="JWT_REFRESH_TOKEN_EXPIRE_DAYS"
     )
     admin_password: str = Field(
-        default_factory=lambda: secrets.token_urlsafe(16), env="ADMIN_PASSWORD"
+        default_factory=lambda: __import__("secrets").token_urlsafe(16),
+        env="ADMIN_PASSWORD",
     )
 
     # Database settings

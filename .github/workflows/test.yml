@@ -61,7 +61,7 @@ jobs:
     - name: Security check with bandit
       working-directory: ./backend
       run: |
-        poetry run bandit -r . -f json -o bandit-report.json || true
+        poetry run bandit -r . -f json -o bandit-report.json
 
     - name: Run unit tests with pytest
       working-directory: ./backend

@@ -9,9 +9,13 @@ from unittest.mock import Mock, patch, MagicMock, AsyncMock
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
+from sqlalchemy.pool import StaticPool
 from sqlalchemy.orm import sessionmaker
 
 from core.database import Base, get_db
+
+# Ensure models are registered with SQLAlchemy's Base before creating tables
+import core.models  # noqa: F401
 
 # Add the parent directory to the path so we can import our modules
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -71,7 +75,9 @@ def set_test_environment(monkeypatch):
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"
 engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
+    SQLALCHEMY_DATABASE_URL,
+    connect_args={"check_same_thread": False},
+    poolclass=StaticPool,
 )
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
@@ -171,7 +177,8 @@ def mock_redis(monkeypatch):
         mock_redis_client.return_value = mock_redis_instance
         mock_redis_url.return_value = mock_redis_instance
 
-    yield mock_redis_instance
+        # Keep patches active for the duration of the test using this fixture
+        yield mock_redis_instance
 
 
 @pytest.fixture
