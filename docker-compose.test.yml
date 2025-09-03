@@ -4,7 +4,7 @@ services:
   # Test API service
   api-test:
     build:
-      context: ./api
+      context: ./backend
       dockerfile: Dockerfile.test
     ports:
       - "8000:8000"
@@ -14,7 +14,7 @@ services:
       - DATABASE_URL=sqlite:///./test.db
       - JWT_SECRET=test-secret-key-for-testing-only
     volumes:
-      - ./api:/app
+      - ./backend:/app
     command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/api/health"]
@@ -25,14 +25,14 @@ services:
   # Test UI service
   ui-test:
     build:
-      context: ./ui
+      context: ./frontend
       dockerfile: Dockerfile.test
     ports:
       - "3000:3000"
     environment:
       - VITE_API_BASE_URL=http://localhost:8000
     volumes:
-      - ./ui:/app
+      - ./frontend:/app
       - /app/node_modules
     command: npm run dev -- --host 0.0.0.0
     depends_on:

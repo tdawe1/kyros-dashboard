@@ -46,7 +46,7 @@ jobs:
       - name: Run frontend tests
         run: |
           cd frontend
-          npm test -- --coverage --watchAll=false --run
+          npm run test:ci
 
       - name: Run linting
         run: |

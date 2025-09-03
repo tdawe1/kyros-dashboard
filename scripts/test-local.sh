@@ -51,13 +51,13 @@ cleanup() {
 trap cleanup EXIT INT TERM
 
 # Check if we're in the right directory
-if [ ! -f "README.md" ] || [ ! -d "api" ] || [ ! -d "ui" ]; then
+if [ ! -f "README.md" ] || [ ! -d "backend" ] || [ ! -d "frontend" ]; then
     print_error "Please run this script from the project root directory"
     exit 1
 fi
 
 print_status "Testing Python environment..."
-cd api
+cd backend
 
 # Test Python setup
 if ! command -v python3 &> /dev/null; then
@@ -101,7 +101,7 @@ print('✅ API can be imported and configured')
 "
 print_success "API startup test passed"
 
-cd ../ui
+cd ../frontend
 
 # Test Node.js setup
 print_status "Testing Node.js environment..."
@@ -151,10 +151,10 @@ fi
 
 # Test frontend tests
 print_status "Running frontend tests..."
-npm test -- --coverage --watchAll=false
+npm run test:ci
 print_success "Frontend tests passed"
 
-cd ../api
+cd ../backend
 
 # Test Python tests
 print_status "Running Python tests..."
@@ -163,7 +163,7 @@ print_success "Python tests passed"
 
 # Test API health endpoint (if possible)
 print_status "Testing API health endpoint..."
-cd ../api
+cd ../backend
 
 # Start API in background for testing
 print_status "Starting API server for health check..."
