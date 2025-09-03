@@ -1,18 +1,19 @@
 FROM node:18-alpine
 
+# Force CI cache invalidation - updated to fix lifecycle script issues
 WORKDIR /app
 
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies (CI fix: ensure no lifecycle scripts run during npm ci)
-RUN npm ci --ignore-scripts
+# Install dependencies (CI fix: prevent lifecycle scripts from running during npm ci)
+RUN npm ci --ignore-scripts --no-audit --no-fund
 
 # Copy application code
 COPY . .
 
-# Expose port
-EXPOSE 3000
+# Expose port (updated to match frontend config)
+EXPOSE 3001
 
 # Default command
 CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
