@@ -13,6 +13,7 @@ on:
       - '**/*.md'
       - 'collaboration/logs/**'
       - 'CHANGELOG.md'
+  workflow_dispatch: {}          # ← REQUIRED for manual runs
 
 env:
   NODE_VERSION: '18'

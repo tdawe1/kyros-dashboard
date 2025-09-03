@@ -5,6 +5,7 @@ on:
     branches: [develop, feature/*]
   pull_request:
     branches: [develop]
+  workflow_dispatch: {}          # ← REQUIRED for manual runs
 
 env:
   NODE_VERSION: '20'
