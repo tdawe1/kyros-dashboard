@@ -6,7 +6,7 @@ Welcome! This guide will help you quickly set up and test the Kyros Repurposer D
 
 ### Prerequisites
 - Node.js 18+ and npm
-- Python 3.8+
+- Python 3.12+
 - Git
 
 ### 1. Start the Backend API
@@ -24,13 +24,13 @@ poetry run uvicorn main:app --reload --port 8000
 
 The API will be available at: **http://localhost:8000**
 
-### 2. Start the Frontend UI
+### 2. Start the Frontend
 
 Open a new terminal:
 
 ```bash
-# Navigate to the UI directory
-cd ui
+# Navigate to the frontend directory
+cd frontend
 
 # Install dependencies
 npm install
@@ -39,17 +39,17 @@ npm install
 npm run dev
 ```
 
-The frontend will be available at: **http://localhost:5173**
+The frontend will be available at: **http://localhost:3001**
 
 ## 🎯 What You Can Test
 
 ### 1. Dashboard Overview
-- **URL**: http://localhost:5173
+- **URL**: http://localhost:3001
 - **Features**: KPI cards, recent jobs table, quick studio panel
 - **Test**: Navigate around the dashboard to see the modern UI
 
 ### 2. Content Generation (Main Feature)
-- **URL**: http://localhost:5173/studio
+- **URL**: http://localhost:3001/studio
 - **Test Content** (copy and paste this):
 ```
 Artificial Intelligence is revolutionizing the way businesses operate, from automating routine tasks to providing deep insights through data analysis. Companies that embrace AI technologies are seeing significant improvements in efficiency, customer satisfaction, and competitive advantage. The key to successful AI implementation lies in understanding your specific use cases, ensuring data quality, and gradually scaling your AI initiatives. As we move forward, AI will become an essential tool for businesses of all sizes, not just tech giants.
@@ -63,12 +63,12 @@ Artificial Intelligence is revolutionizing the way businesses operate, from auto
 5. Watch the AI create channel-specific variants
 
 ### 3. Job Monitoring
-- **URL**: http://localhost:5173/jobs
+- **URL**: http://localhost:3001/jobs
 - **Features**: Job listing, search, filtering, status updates
 - **Test**: View generated jobs and their status
 
 ### 4. Settings & Presets
-- **URL**: http://localhost:5173/settings
+- **URL**: http://localhost:3001/settings
 - **Features**: Preset management, configuration
 - **Test**: Create custom presets for different content types
 
@@ -85,9 +85,9 @@ The app runs in demo mode by default, which means:
 To test with real OpenAI API:
 
 1. Get an OpenAI API key from https://platform.openai.com/api-keys
-2. Create a `.env` file in the `api` directory:
+2. Create a `.env` file in the `backend` directory:
 ```bash
-# In api/.env
+# In backend/.env
 OPENAI_API_KEY=your_api_key_here
 API_MODE=real
 DEFAULT_MODEL=gpt-4o-mini
@@ -118,7 +118,7 @@ DEFAULT_MODEL=gpt-4o-mini
 
 **Frontend won't start**:
 ```bash
-cd ui
+cd frontend
 rm -rf node_modules package-lock.json
 npm install
 npm run dev
@@ -137,9 +137,9 @@ poetry run uvicorn main:app --reload --port 8000
 - Verify both services are running
 
 ### Port Conflicts
-If ports 8000 or 5173 are in use:
+If ports 8000 or 3001 are in use:
 - Backend: `uvicorn main:app --reload --port 8001`
-- Frontend: `npm run dev -- --port 5174`
+- Frontend: `npm run dev -- --port 3002`
 
 ## 📊 Test Scenarios
 

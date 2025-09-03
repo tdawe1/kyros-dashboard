@@ -22,13 +22,13 @@ chmod +x start-both.sh
 
 ## 🌐 Access the App
 
-- **Frontend UI**: http://localhost:5173
+- **Frontend**: http://localhost:3001
 - **Backend API**: http://localhost:8000
 - **API Documentation**: http://localhost:8000/docs
 
 ## 🎯 Quick Test
 
-1. **Go to Studio**: http://localhost:5173/studio
+1. **Go to Studio**: http://localhost:3001/studio
 2. **Paste this sample content**:
 ```
 Artificial Intelligence is revolutionizing the way businesses operate, from automating routine tasks to providing deep insights through data analysis. Companies that embrace AI technologies are seeing significant improvements in efficiency, customer satisfaction, and competitive advantage.

@@ -42,10 +42,10 @@ poetry run uvicorn main:app --reload
 # Visit http://localhost:8000/api/health
 ```
 
-#### Test Frontend (UI)
+#### Test Frontend
 ```bash
 # Install dependencies
-cd ui
+cd frontend
 npm install
 
 # Run tests
@@ -117,7 +117,7 @@ This workflow:
 - ✅ API startup and health checks
 - ✅ Security scanning (Bandit)
 
-### Frontend (UI) Tests
+### Frontend Tests
 - ✅ Node.js environment setup
 - ✅ Dependency installation
 - ✅ Code compilation
@@ -192,7 +192,7 @@ In GitHub Actions, you'll see:
    npm run lint
 
    # Check build configuration
-   cat ui/vite.config.js
+   cat frontend/vite.config.js
    ```
 
 ### Debug Commands
@@ -211,8 +211,8 @@ lsof -i :3000
 lsof -i :8000
 
 # Check build output
-ls -la ui/dist/
-cat ui/dist/index.html
+ls -la frontend/dist/
+cat frontend/dist/index.html
 ```
 
 ## 🎯 Next Steps After Testing
@@ -242,7 +242,7 @@ Before considering your application ready:
 
 ### Adding More Tests
 - Add tests to `api/tests/` for backend testing
-- Add tests to `ui/src/` for frontend testing
+- Add tests to `frontend/src/` for frontend testing
 - Update the test scripts to include your new tests
 
 ### Modifying Test Workflow
