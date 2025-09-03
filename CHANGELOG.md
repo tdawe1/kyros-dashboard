@@ -1,34 +1,33 @@
 # Changelog
 
-All notable changes to this project will be documented in this file.
+All notable changes to this project are documented here.
 
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+Format: inspired by Keep a Changelog. Dates use UTC.
 
 ## [Unreleased]
 
-### Added
-- **Frontend Stabilization (task-008):** Comprehensive E2E testing infrastructure and documentation.
-  - Added `docs/E2E_TESTING.md` with complete testing guide, selector reference, and best practices.
-  - Implemented consistent `data-testid` attributes across all frontend components (VariantCard, Studio, Navigation, UI elements).
-  - Updated `frontend/README.md` with architecture documentation, testing strategies, and development workflow.
-  - Enhanced E2E test coverage for content generation workflow, navigation, and studio page functionality.
+- Backend: decouple `core` package imports and make HTML sanitization dependency optional.
+  - `backend/core/__init__.py`: keep package init lightweight to avoid import‑time failures from optional deps.
+  - `backend/core/input_validation.py`: gracefully fall back when `bleach` is unavailable.
+  - Intent: stabilize develop CI post‑merge by preventing missing optional deps from blocking tests.
+- Frontend: CI hygiene improvements (landed in prior batch branch, merged to develop).
+  - Limit ESLint to `src/`; add `.eslintignore` for artifacts.
+  - Fix JobTable skeleton import; remove unused param in Settings.
+  - Apply Prettier formatting and ignore Playwright reports/test artifacts in Git.
 
-### Fixed
-- **CI/CD:** Resolved multiple failures in the `pr-checks.yml` workflow to unblock PR auto-merging.
-  - Injected a `JWT_SECRET_KEY` environment variable into the `backend-tests`, `e2e-tests`, and `critic-gate` jobs to fix test and build startup failures.
-  - Modified the `security-scan` job to prevent `bandit` from failing the build on non-critical issues.
-- **Code Quality:** Addressed several issues identified during a comprehensive quality review.
-  - Corrected formatting in 24 frontend files using Prettier.
-  - Removed an unused variable in the frontend to fix a linting error.
-  - Updated the `.secrets.baseline` file to ignore false positives from `detect-secrets`.
-- **Frontend Testing:** Stabilized E2E test selectors and improved test reliability.
-  - Updated all E2E test files (`full-flow.spec.js`, `navigation.spec.js`, `studio.spec.js`) to use consistent `data-testid` selectors.
-  - Fixed selector inconsistencies between E2E tests and frontend components.
-  - Applied Prettier formatting across all frontend source files for consistency.
+Known status:
+- PR #10 (fix/develop-backend-ci-optional-bleach) open to land backend CI stabilization into `develop`.
+- `develop` CI is not fully green yet; PR #10 targets remaining backend build/test issues.
 
-### Changed
-- **Task `task-008-02`:** Completed critic review, approved PR #9 with fixes.
-- **Task `task-008-03`:** Completed backend CI fixes.
-- **Task `task-008-04`:** Completed frontend stabilization with data-testid selectors and E2E documentation.
-- **Task `task-008-05`:** Completed frontend documentation consistency and testing infrastructure.
+## 2025-09-03 – Batch merge into develop
+
+- Merge: `feat/organize-recent-changes` and `test/ci-fixes` → `develop` (PR #9).
+- Highlights:
+  - Backend: migrate to Poetry; align CI to Python 3.12; unified test runner; improved code quality and re‑enabled tests.
+  - Frontend: standardize dev/E2E on port 3001; Playwright config corrected; component and pages refinements.
+  - CI: workflow fixes (format/lint/tests/build/security); reduce phantom prepare issues and cache problems.
+  - Collaboration: add state/events scaffolding and docs updates for agent roles and processes.
+- Notes:
+  - Integrator set auto‑merge; PR merged at commit 21b9f09696ca78ecc5b44bb6e8042e4861eae2e2.
+  - Post‑merge follow‑up is tracked under task‑008 stabilization.
+
