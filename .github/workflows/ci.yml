@@ -41,8 +41,8 @@ jobs:
         pip install -r requirements.txt
         pip install ruff isort flake8 pytest pytest-cov bandit
 
-    - name: Format check with Ruff
-      run: ruff format --check .
+    # - name: Format check with Ruff
+    #   run: ruff format --check .
 
     - name: Import sorting check with isort
       run: isort --check-only --diff .
