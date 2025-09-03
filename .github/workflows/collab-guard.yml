@@ -20,7 +20,7 @@ for p in pathlib.Path('.').rglob('*.json'):
         print(f'Invalid JSON: {p}: {e}'); ok=False
 sys.exit(0 if ok else 1)
 PY
-      - name: Validate YAML
+      - name: Validate YAML (plans)
         run: |
           python - <<'PY'
 import sys, pathlib, yaml

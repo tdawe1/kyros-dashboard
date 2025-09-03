@@ -27,17 +27,25 @@ REPO=$(gh repo view --json nameWithOwner -q .nameWithOwner)
 echo "📁 Repository: $REPO"
 
 echo ""
-echo "🔧 Adding required status checks to branch protection..."
+echo "🔧 Adding required status checks to branch protection for both 'main' and 'develop' branches..."
 
-# Update branch protection with status checks
+# Update branch protection with status checks for main branch
+echo "Updating main branch protection..."
 gh api repos/$REPO/branches/main/protection \
   --method PUT \
   --input branch-protection-with-checks.json
 
-echo "✅ Required status checks added successfully!"
+# Update branch protection with status checks for develop branch
+echo "Updating develop branch protection..."
+gh api repos/$REPO/branches/develop/protection \
+  --method PUT \
+  --input branch-protection-with-checks.json
+
+echo "✅ Required status checks added successfully to both branches!"
 
 echo ""
 echo "🔍 Required status checks now configured:"
+echo "  • Collab Guard (conflict markers, JSON/YAML validation)"
 echo "  • Backend Tests"
 echo "  • Frontend Tests"
 echo "  • E2E Tests"
@@ -56,5 +64,5 @@ echo "  • Block force pushes"
 echo "  • Block branch deletion"
 
 echo ""
-echo "🎉 Branch protection is now fully configured!"
+echo "🎉 Branch protection is now fully configured for both 'main' and 'develop' branches!"
 echo "All future PRs will require these checks to pass before merging."
