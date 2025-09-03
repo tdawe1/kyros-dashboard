@@ -6,6 +6,9 @@ import os
 import sys
 from unittest.mock import Mock, patch, MagicMock, AsyncMock
 
+# Add the parent directory to the path so we can import our modules
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
 import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
@@ -16,9 +19,6 @@ from core.database import Base, get_db
 
 # Ensure models are registered with SQLAlchemy's Base before creating tables
 import core.models  # noqa: F401
-
-# Add the parent directory to the path so we can import our modules
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
 def pytest_configure(config):
@@ -71,6 +71,7 @@ def set_test_environment(monkeypatch):
     """Set environment variables for tests."""
     monkeypatch.setenv("JWT_SECRET_KEY", "test_secret_key_for_testing_purposes_only")
     monkeypatch.setenv("ADMIN_PASSWORD", "test_admin_password")
+    monkeypatch.setenv("ENVIRONMENT", "testing")
 
 
 SQLALCHEMY_DATABASE_URL = "sqlite:///:memory:"

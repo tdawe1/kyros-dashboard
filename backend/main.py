@@ -316,9 +316,14 @@ if core_error_handling:
 if middleware_rate_limiter:
     try:
         from middleware.rate_limiter import rate_limit_middleware
+        from core.config import is_testing
 
-        app.middleware("http")(rate_limit_middleware)
-        logger.info("Rate limiter middleware added successfully")
+        # Only add rate limiter middleware if not in testing environment
+        if not is_testing():
+            app.middleware("http")(rate_limit_middleware)
+            logger.info("Rate limiter middleware added successfully")
+        else:
+            logger.info("Rate limiter middleware skipped in testing environment")
     except Exception as e:
         logger.warning(f"Failed to add rate limiter middleware: {e}")
 

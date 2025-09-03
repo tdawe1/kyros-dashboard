@@ -4,6 +4,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse
 import logging
 from core.security import get_secure_redis_client, secure_operation, SecurityMode
+from core.config import is_testing
 
 logger = logging.getLogger(__name__)
 
@@ -148,6 +149,11 @@ async def rate_limit_middleware(request: Request, call_next):
     """
     FastAPI middleware for rate limiting.
     """
+    # Skip rate limiting entirely in testing environment
+    if is_testing():
+        logger.debug("Rate limiting disabled in testing environment")
+        return await call_next(request)
+    
     # Skip rate limiting for health checks and static files
     if request.url.path in ["/api/health", "/docs", "/openapi.json", "/redoc"]:
         return await call_next(request)

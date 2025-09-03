@@ -18,10 +18,10 @@ class TestCanCreateJob:
 
         assert can_create is True
         assert count == 1
-        mock_redis._client.pipeline.return_value.get.assert_called_once()
-        mock_redis._client.pipeline.return_value.incr.assert_called_once()
-        mock_redis._client.pipeline.return_value.expire.assert_called_once()
-        mock_redis._client.pipeline.return_value.execute.assert_called_once()
+        mock_redis.pipeline.return_value.get.assert_called_once()
+        mock_redis.pipeline.return_value.incr.assert_called_once()
+        mock_redis.pipeline.return_value.expire.assert_called_once()
+        mock_redis.pipeline.return_value.execute.assert_called_once()
 
     def test_can_create_job_within_limit(self, mock_redis):
         """Test quota check for user within limit."""
@@ -55,7 +55,7 @@ class TestCanCreateJob:
 
     def test_can_create_job_redis_error(self, mock_redis):
         """Test quota check with Redis error (fail closed)."""
-        mock_redis._client.pipeline.return_value.execute.side_effect = Exception(
+        mock_redis.pipeline.return_value.execute.side_effect = Exception(
             "Redis connection failed"
         )
 

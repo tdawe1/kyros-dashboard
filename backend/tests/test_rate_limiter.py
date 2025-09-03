@@ -263,6 +263,7 @@ class TestRateLimitMiddleware:
         request.url.path = "/api/generate"
         request.client = Mock()
         request.client.host = "192.168.1.1"
+        request.headers = {}
 
         async def mock_call_next(req):
             return JSONResponse(content={"result": "success"})

@@ -88,12 +88,8 @@ class Settings(BaseSettings):
     default_model: str = Field(default="gpt-4o-mini", env="DEFAULT_MODEL")
 
     # CORS settings
-    allowed_origins: List[str] = Field(
-        default=[
-            "http://localhost:3001",
-            "http://localhost:5173",
-            "http://localhost:3000",
-        ],
+    allowed_origins: str = Field(
+        default="http://localhost:3001,http://localhost:5173,http://localhost:3000",
         env="ALLOWED_ORIGINS",
     )
 
@@ -109,11 +105,22 @@ class Settings(BaseSettings):
         default=60, env="CIRCUIT_BREAKER_RECOVERY_TIMEOUT"
     )
 
-    @field_validator("allowed_origins", mode="before")
+    @field_validator("allowed_origins", mode="after")
     def parse_allowed_origins(cls, v):
         """Parse comma-separated origins."""
         if isinstance(v, str):
-            return [origin.strip() for origin in v.split(",")]
+            # Handle empty string
+            if not v.strip():
+                return []
+            # Handle JSON array format
+            if v.strip().startswith('[') and v.strip().endswith(']'):
+                try:
+                    import json
+                    return json.loads(v)
+                except json.JSONDecodeError:
+                    pass
+            # Handle comma-separated format
+            return [origin.strip().strip('"\'') for origin in v.split(",") if origin.strip()]
         return v
 
     @field_validator("environment", mode="before")
@@ -148,6 +155,7 @@ class Settings(BaseSettings):
         env_file = ".env"
         env_file_encoding = "utf-8"
         case_sensitive = False
+        extra = "ignore"  # Ignore extra environment variables
 
 
 # Global settings instance
@@ -192,12 +200,18 @@ def get_redis_url() -> str:
 
 def get_cors_origins() -> List[str]:
     """Get CORS origins based on environment."""
+    # Parse the allowed_origins string into a list
+    if isinstance(settings.allowed_origins, str):
+        origins = [origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()]
+    else:
+        origins = settings.allowed_origins
+    
     if is_production():
         # In production, only allow specific domains
-        return settings.allowed_origins
+        return origins
     else:
         # In development, allow localhost origins
-        return settings.allowed_origins + [
+        return origins + [
             "http://localhost:3000",
             "http://localhost:3001",
             "http://localhost:5173",
