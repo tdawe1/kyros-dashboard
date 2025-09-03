@@ -1,0 +1,108 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - navigation "Main navigation" [ref=e4]:
+      - img "Kyros Logo" [ref=e8]
+      - navigation "Main navigation menu" [ref=e9]:
+        - list [ref=e10]:
+          - listitem [active] [ref=e11] [cursor=pointer]:
+            - img [ref=e12] [cursor=pointer]
+            - text: Dashboard
+          - listitem [ref=e17] [cursor=pointer]:
+            - img [ref=e18] [cursor=pointer]
+            - text: Studio
+          - listitem [ref=e21] [cursor=pointer]:
+            - img [ref=e22] [cursor=pointer]
+            - text: Job Monitor
+          - listitem [ref=e24] [cursor=pointer]:
+            - img [ref=e25] [cursor=pointer]
+            - text: Scheduler
+          - listitem [ref=e27] [cursor=pointer]:
+            - img [ref=e28] [cursor=pointer]
+            - text: Analytics
+          - listitem [ref=e30] [cursor=pointer]:
+            - img [ref=e31] [cursor=pointer]
+            - text: Settings
+          - listitem [ref=e34] [cursor=pointer]:
+            - img [ref=e35] [cursor=pointer]
+            - text: Hello World
+      - generic [ref=e38]:
+        - generic [ref=e39]: Theme
+        - button "Switch to dark mode" [ref=e40] [cursor=pointer]:
+          - generic [ref=e41] [cursor=pointer]:
+            - img [ref=e42] [cursor=pointer]
+            - img [ref=e48] [cursor=pointer]
+    - generic [ref=e50]:
+      - generic [ref=e52]:
+        - heading "Repurposer Studio" [level=1] [ref=e54]
+        - generic [ref=e55]:
+          - button [ref=e56] [cursor=pointer]:
+            - img [ref=e57] [cursor=pointer]
+          - button "Admin" [ref=e61] [cursor=pointer]:
+            - img [ref=e63] [cursor=pointer]
+            - generic [ref=e66] [cursor=pointer]: Admin
+      - main [ref=e67]:
+        - generic [ref=e68]:
+          - generic [ref=e69]:
+            - heading "Repurposer Studio" [level=1] [ref=e70]
+            - paragraph [ref=e71]: Transform your content into multiple channel formats
+          - generic [ref=e72]:
+            - generic [ref=e73]:
+              - generic [ref=e74]:
+                - generic [ref=e75]:
+                  - heading "Source Content" [level=3] [ref=e76]
+                  - generic [ref=e77]: 0 characters
+                - textbox "Paste your source content here... (minimum 100 characters for best results)" [ref=e78]
+              - generic [ref=e79]:
+                - heading "Target Channels" [level=3] [ref=e80]
+                - generic [ref=e81]:
+                  - button "💼 LinkedIn" [ref=e82] [cursor=pointer]:
+                    - generic [ref=e83] [cursor=pointer]:
+                      - generic [ref=e84] [cursor=pointer]: 💼
+                      - generic [ref=e85] [cursor=pointer]: LinkedIn
+                  - button "🐦 Twitter" [ref=e86] [cursor=pointer]:
+                    - generic [ref=e87] [cursor=pointer]:
+                      - generic [ref=e88] [cursor=pointer]: 🐦
+                      - generic [ref=e89] [cursor=pointer]: Twitter
+                  - button "📧 Newsletter" [ref=e90] [cursor=pointer]:
+                    - generic [ref=e91] [cursor=pointer]:
+                      - generic [ref=e92] [cursor=pointer]: 📧
+                      - generic [ref=e93] [cursor=pointer]: Newsletter
+                  - button "📝 Blog" [ref=e94] [cursor=pointer]:
+                    - generic [ref=e95] [cursor=pointer]:
+                      - generic [ref=e96] [cursor=pointer]: 📝
+                      - generic [ref=e97] [cursor=pointer]: Blog
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - heading "Tone & Style" [level=3] [ref=e100]
+                - generic [ref=e101]:
+                  - button "Professional" [ref=e102] [cursor=pointer]
+                  - button "Casual" [ref=e103] [cursor=pointer]
+                  - button "Technical" [ref=e104] [cursor=pointer]
+                  - button "Creative" [ref=e105] [cursor=pointer]
+              - generic [ref=e106]:
+                - heading "Preset" [level=3] [ref=e107]
+                - generic [ref=e108]:
+                  - button "Default" [ref=e109] [cursor=pointer]
+                  - button "Marketing" [ref=e110] [cursor=pointer]
+                  - button "Technical" [ref=e111] [cursor=pointer]
+                  - button "Newsletter" [ref=e112] [cursor=pointer]
+              - button "Generate Variants" [disabled] [ref=e113]:
+                - img [ref=e114]
+                - generic [ref=e116]: Generate Variants
+              - generic [ref=e117]:
+                - heading "Quick Actions" [level=3] [ref=e118]
+                - generic [ref=e119]:
+                  - button "Manage Presets" [ref=e120] [cursor=pointer]:
+                    - img [ref=e121] [cursor=pointer]
+                    - text: Manage Presets
+                  - button "Export Templates" [ref=e124] [cursor=pointer]:
+                    - img [ref=e125] [cursor=pointer]
+                    - text: Export Templates
+  - generic [ref=e128]:
+    - img [ref=e130]
+    - button "Open Tanstack query devtools" [ref=e178] [cursor=pointer]:
+      - img [ref=e179] [cursor=pointer]
+```

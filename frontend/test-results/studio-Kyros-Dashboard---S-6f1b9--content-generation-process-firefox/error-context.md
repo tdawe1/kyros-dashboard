@@ -1,0 +1,108 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - navigation "Main navigation" [ref=e4]:
+      - img "Kyros Logo" [ref=e8]
+      - navigation "Main navigation menu" [ref=e9]:
+        - list [ref=e10]:
+          - listitem [ref=e11] [cursor=pointer]:
+            - img [ref=e12] [cursor=pointer]
+            - text: Dashboard
+          - listitem [ref=e17] [cursor=pointer]:
+            - img [ref=e18] [cursor=pointer]
+            - text: Studio
+          - listitem [ref=e24] [cursor=pointer]:
+            - img [ref=e25] [cursor=pointer]
+            - text: Job Monitor
+          - listitem [ref=e29] [cursor=pointer]:
+            - img [ref=e30] [cursor=pointer]
+            - text: Scheduler
+          - listitem [ref=e35] [cursor=pointer]:
+            - img [ref=e36] [cursor=pointer]
+            - text: Analytics
+          - listitem [ref=e41] [cursor=pointer]:
+            - img [ref=e42] [cursor=pointer]
+            - text: Settings
+          - listitem [ref=e45] [cursor=pointer]:
+            - img [ref=e46] [cursor=pointer]
+            - text: Hello World
+      - generic [ref=e49]:
+        - generic [ref=e50]: Theme
+        - button "Switch to dark mode" [ref=e51] [cursor=pointer]:
+          - generic [ref=e52] [cursor=pointer]:
+            - img [ref=e53] [cursor=pointer]
+            - img [ref=e63] [cursor=pointer]
+    - generic [ref=e65]:
+      - generic [ref=e67]:
+        - heading "Repurposer Studio" [level=1] [ref=e69]
+        - generic [ref=e70]:
+          - button [ref=e71] [cursor=pointer]:
+            - img [ref=e72] [cursor=pointer]
+          - button "Admin" [ref=e76] [cursor=pointer]:
+            - img [ref=e78] [cursor=pointer]
+            - generic [ref=e81] [cursor=pointer]: Admin
+      - main [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e84]:
+            - heading "Repurposer Studio" [level=1] [ref=e85]
+            - paragraph [ref=e86]: Transform your content into multiple channel formats
+          - generic [ref=e87]:
+            - generic [ref=e88]:
+              - generic [ref=e89]:
+                - generic [ref=e90]:
+                  - heading "Source Content" [level=3] [ref=e91]
+                  - generic [ref=e92]: 382 characters
+                - textbox "Paste your source content here... (minimum 100 characters for best results)" [ref=e93]: Artificial intelligence is transforming the way we work and live. From machine learning algorithms that power recommendation systems to natural language processing that enables chatbots, AI is becoming increasingly integrated into our daily lives. Companies are leveraging AI to improve efficiency, reduce costs, and enhance customer experiences.
+              - generic [ref=e94]:
+                - heading "Target Channels" [level=3] [ref=e95]
+                - generic [ref=e96]:
+                  - button "💼 LinkedIn" [ref=e97] [cursor=pointer]:
+                    - generic [ref=e98] [cursor=pointer]:
+                      - generic [ref=e99] [cursor=pointer]: 💼
+                      - generic [ref=e100] [cursor=pointer]: LinkedIn
+                  - button "🐦 Twitter" [ref=e101] [cursor=pointer]:
+                    - generic [ref=e102] [cursor=pointer]:
+                      - generic [ref=e103] [cursor=pointer]: 🐦
+                      - generic [ref=e104] [cursor=pointer]: Twitter
+                  - button "📧 Newsletter" [ref=e105] [cursor=pointer]:
+                    - generic [ref=e106] [cursor=pointer]:
+                      - generic [ref=e107] [cursor=pointer]: 📧
+                      - generic [ref=e108] [cursor=pointer]: Newsletter
+                  - button "📝 Blog" [ref=e109] [cursor=pointer]:
+                    - generic [ref=e110] [cursor=pointer]:
+                      - generic [ref=e111] [cursor=pointer]: 📝
+                      - generic [ref=e112] [cursor=pointer]: Blog
+            - generic [ref=e113]:
+              - generic [ref=e114]:
+                - heading "Tone & Style" [level=3] [ref=e115]
+                - generic [ref=e116]:
+                  - button "Professional" [ref=e117] [cursor=pointer]
+                  - button "Casual" [ref=e118] [cursor=pointer]
+                  - button "Technical" [ref=e119] [cursor=pointer]
+                  - button "Creative" [ref=e120] [cursor=pointer]
+              - generic [ref=e121]:
+                - heading "Preset" [level=3] [ref=e122]
+                - generic [ref=e123]:
+                  - button "Default" [ref=e124] [cursor=pointer]
+                  - button "Marketing" [ref=e125] [cursor=pointer]
+                  - button "Technical" [ref=e126] [cursor=pointer]
+                  - button "Newsletter" [ref=e127] [cursor=pointer]
+              - button "Generate Variants" [active] [ref=e128] [cursor=pointer]:
+                - img [ref=e129] [cursor=pointer]
+                - generic [ref=e135] [cursor=pointer]: Generate Variants
+              - generic [ref=e136]:
+                - heading "Quick Actions" [level=3] [ref=e137]
+                - generic [ref=e138]:
+                  - button "Manage Presets" [ref=e139] [cursor=pointer]:
+                    - img [ref=e140] [cursor=pointer]
+                    - text: Manage Presets
+                  - button "Export Templates" [ref=e143] [cursor=pointer]:
+                    - img [ref=e144] [cursor=pointer]
+                    - text: Export Templates
+  - generic [ref=e148]:
+    - img [ref=e150]
+    - button "Open Tanstack query devtools" [ref=e199] [cursor=pointer]:
+      - img [ref=e200] [cursor=pointer]
+```

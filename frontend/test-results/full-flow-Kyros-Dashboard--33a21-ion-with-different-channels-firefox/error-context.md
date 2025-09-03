@@ -1,0 +1,60 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e2]:
+  - generic [ref=e3]:
+    - navigation "Main navigation" [ref=e4]:
+      - img "Kyros Logo" [ref=e8]
+      - navigation "Main navigation menu" [ref=e9]:
+        - list [ref=e10]:
+          - listitem [ref=e11] [cursor=pointer]:
+            - img [ref=e12] [cursor=pointer]
+            - text: Dashboard
+          - listitem [ref=e17] [cursor=pointer]:
+            - img [ref=e18] [cursor=pointer]
+            - text: Studio
+          - listitem [ref=e24] [cursor=pointer]:
+            - img [ref=e25] [cursor=pointer]
+            - text: Job Monitor
+          - listitem [ref=e29] [cursor=pointer]:
+            - img [ref=e30] [cursor=pointer]
+            - text: Scheduler
+          - listitem [ref=e35] [cursor=pointer]:
+            - img [ref=e36] [cursor=pointer]
+            - text: Analytics
+          - listitem [ref=e41] [cursor=pointer]:
+            - img [ref=e42] [cursor=pointer]
+            - text: Settings
+          - listitem [ref=e45] [cursor=pointer]:
+            - img [ref=e46] [cursor=pointer]
+            - text: Hello World
+      - generic [ref=e49]:
+        - generic [ref=e50]: Theme
+        - button "Switch to dark mode" [ref=e51] [cursor=pointer]:
+          - generic [ref=e52] [cursor=pointer]:
+            - img [ref=e53] [cursor=pointer]
+            - img [ref=e63] [cursor=pointer]
+    - generic [ref=e65]:
+      - generic [ref=e67]:
+        - heading "Dashboard" [level=1] [ref=e69]
+        - generic [ref=e70]:
+          - button [ref=e71] [cursor=pointer]:
+            - img [ref=e72] [cursor=pointer]
+          - button "Admin" [ref=e76] [cursor=pointer]:
+            - img [ref=e78] [cursor=pointer]
+            - generic [ref=e81] [cursor=pointer]: Admin
+      - main [ref=e82]:
+        - generic [ref=e83]:
+          - generic [ref=e85]:
+            - generic [ref=e86]:
+              - heading "Dashboard" [level=1] [ref=e87]
+              - paragraph [ref=e88]: Welcome to your Kyros Repurposer dashboard
+            - button "Refresh" [ref=e89] [cursor=pointer]:
+              - img [ref=e90] [cursor=pointer]
+              - generic [ref=e95] [cursor=pointer]: Refresh
+          - heading "Recent Jobs" [level=3] [ref=e127]
+  - generic [ref=e158]:
+    - img [ref=e160]
+    - button "Open Tanstack query devtools" [ref=e209] [cursor=pointer]:
+      - img [ref=e210] [cursor=pointer]
+```

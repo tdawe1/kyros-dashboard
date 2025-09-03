@@ -4,8 +4,8 @@ import { api } from "../lib/api";
 // Query keys
 const SCHEDULER_KEYS = {
   schedules: ["scheduler", "schedules"],
-  schedule: (id) => ["scheduler", "schedule", id],
-  runs: (id) => ["scheduler", "runs", id],
+  schedule: id => ["scheduler", "schedule", id],
+  runs: id => ["scheduler", "runs", id],
   run: (jobId, runId) => ["scheduler", "run", jobId, runId],
 };
 
@@ -36,13 +36,13 @@ const schedulerApi = {
   },
 
   // Get schedule details
-  getSchedule: async (id) => {
+  getSchedule: async id => {
     const response = await api.get(`/scheduler/${id}`);
     return response.data;
   },
 
   // Create schedule
-  createSchedule: async (data) => {
+  createSchedule: async data => {
     const response = await api.post("/scheduler/", data);
     return response.data;
   },
@@ -54,7 +54,7 @@ const schedulerApi = {
   },
 
   // Delete schedule
-  deleteSchedule: async (id) => {
+  deleteSchedule: async id => {
     const response = await api.delete(`/scheduler/${id}`);
     return response.data;
   },
@@ -74,7 +74,7 @@ const schedulerApi = {
     if (params.page_size) searchParams.append("page_size", params.page_size);
 
     const response = await api.get(
-      `/scheduler/${jobId}/runs?${searchParams.toString()}`,
+      `/scheduler/${jobId}/runs?${searchParams.toString()}`
     );
     return response.data;
   },
@@ -203,7 +203,7 @@ export function useSchedulerStats() {
       acc[normalizedStatus] = (acc[normalizedStatus] || 0) + 1;
       return acc;
     },
-    { total: 0, active: 0, paused: 0, completed: 0, failed: 0 },
+    { total: 0, active: 0, paused: 0, completed: 0, failed: 0 }
   ) || {
     total: 0,
     active: 0,

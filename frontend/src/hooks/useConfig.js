@@ -38,7 +38,7 @@ export function useModelSelection() {
     }
   }, [defaultModel]);
 
-  const updateModel = (model) => {
+  const updateModel = model => {
     if (VALID_MODELS.includes(model)) {
       setSelectedModel(model);
       try {
