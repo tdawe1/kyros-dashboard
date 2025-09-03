@@ -143,8 +143,18 @@ if [ "$RUN_BACKEND" = true ]; then
 
     # Install Python dependencies (prefer Poetry if available)
     print_status "Installing Python dependencies..."
-    if command_exists poetry && [ -f pyproject.toml ]; then
-        poetry install --no-interaction --no-ansi --no-root
+    if [ -f pyproject.toml ]; then
+        if ! command_exists poetry; then
+            print_warning "Poetry not found. Installing Poetry locally..."
+            curl -sSL https://install.python-poetry.org | python3 - >/dev/null 2>&1 || true
+            export PATH="$HOME/.local/bin:$PATH"
+        fi
+        if command_exists poetry; then
+            poetry install --no-interaction --no-ansi --no-root
+        else
+            print_error "Poetry is required but could not be installed automatically."
+            exit 1
+        fi
     elif [ -f requirements.txt ]; then
         if [ -f "../venv/bin/pip" ]; then
             ../venv/bin/pip install -r requirements.txt
@@ -252,8 +262,18 @@ if [ "$RUN_E2E" = true ]; then
     # Install API dependencies for E2E
     print_status "Installing API dependencies for E2E tests..."
     cd backend
-    if command_exists poetry && [ -f pyproject.toml ]; then
-        poetry install --no-interaction --no-ansi --no-root
+    if [ -f pyproject.toml ]; then
+        if ! command_exists poetry; then
+            print_warning "Poetry not found. Installing Poetry locally..."
+            curl -sSL https://install.python-poetry.org | python3 - >/dev/null 2>&1 || true
+            export PATH="$HOME/.local/bin:$PATH"
+        fi
+        if command_exists poetry; then
+            poetry install --no-interaction --no-ansi --no-root
+        else
+            print_error "Poetry is required but could not be installed automatically."
+            exit 1
+        fi
     elif [ -f "../venv/bin/pip" ]; then
         ../venv/bin/pip install -r requirements.txt
     else

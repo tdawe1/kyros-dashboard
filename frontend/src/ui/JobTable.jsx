@@ -109,7 +109,7 @@ export default function JobTable() {
       </div>
 
       <div className="overflow-x-auto">
-        <table className="w-full">
+        <table data-testid="jobs-table" className="w-full">
           <thead className="bg-gray-50 dark:bg-gray-700">
             <tr>
               <th

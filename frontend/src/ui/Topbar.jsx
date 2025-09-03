@@ -20,6 +20,7 @@ export default function Topbar({ onMenuClick }) {
       <div className="flex items-center justify-between h-16 px-6">
         {/* Mobile menu button */}
         <button
+          data-testid="mobile-menu"
           onClick={onMenuClick}
           className="lg:hidden text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
         >

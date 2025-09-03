@@ -119,6 +119,12 @@ Rules:
 * Transitions must be recorded as events with `old_status`, `new_status`, and `reason` when relevant.
 * A task in `blocked` must include a `needs` field (what’s required to unblock).
 
+## Handoff Minimization
+
+- Implementer owns fixes: when a review results in `changes_requested`, the original implementer remains the owner and addresses feedback (no separate "fixer" role by default).
+- Exceptions: the planner may reassign fixes only for load-balancing or domain mismatch; record the reassignment reason in events.
+- Separation of duties remains: critics review and integrators merge; implementers must not self-approve or self-merge.
+
 ---
 
 ## Definition of Done (DoD)
@@ -454,6 +460,102 @@ The helper implements ETag-checked atomic writes to `state/*`, lease management 
 
 - Cursor: `.cursor/environment.json` contains MCP server commands and env mapping.
 - Generic clients: use `mcp/mcp.config.example.json` as a template; point commands to `python -m mcp.<server>` and pass env as needed.
+
+---
+
+## Codex Config and Profiles
+
+- Location: project `.codex/config.toml` and collaboration `.codex/config.toml` are provided.
+- Global copy: installed at `~/.codex/config.toml` for convenience.
+- File opener: `file_opener = "cursor"` to deep‑link files in Cursor Pro.
+- Auth: `preferred_auth_method = "chatgpt"` to sign in via ChatGPT UI.
+
+Profiles
+- default/dev: OpenAI `gpt-5`, `on-request`, `workspace-write`.
+- deep: OpenAI `o3` with high reasoning for complex refactors/debugging.
+- safe: `read-only` + `untrusted` for audits/reviews.
+- impl_a / impl_b: two parallel implementers on `gpt-5`.
+- review_strict: `gpt-5`, `read-only`, `untrusted`, concise summaries.
+- Optional (via proxy): `architect_sonnet` (claude-4.1-sonnet), `impl_gemini_pro` (gemini-2.5-pro), `speed_gemini_flash` (gemini-2.5-flash).
+
+Running Codex
+- Project root: `CODEX_HOME=$(pwd)/.codex codex --profile dev|deep|safe|impl_a|impl_b|review_strict`
+- Collaboration workspace: `cd collaboration && CODEX_HOME=$(pwd)/.codex codex --profile <profile>`
+- Global default: `codex` uses `~/.codex/config.toml` (already installed).
+
+Networking & Safety
+- Sandbox: `workspace-write` by default; network disabled inside sandbox.
+- Escalation: `on-request` default; prompts when elevated permissions are needed.
+- Env pass-through: minimal allowlist (HOME, PATH, USER, SHELL) to reduce secret exposure.
+
+Non‑OpenAI Models
+- Providers configured for OpenAI‑compatible proxies at `http://localhost:4000/v1` (Claude) and `http://localhost:4001/v1` (Gemini).
+- Set `ANTHROPIC_API_KEY` / `GOOGLE_API_KEY` and run a gateway, or use MCP servers that call native APIs.
+
+Assignment Pattern
+- Planner/Architect → `architect_sonnet` or `deep` (o3) for gnarly designs.
+- Implementers → `impl_a`, `impl_b` (gpt‑5) or `impl_gemini_pro`.
+- Speed/Scaffold → `speed_gemini_flash`.
+- Reviewer → `review_strict`.
+
+---
+
+## Resource Budgeting (ChatGPT Plus + Cursor Pro)
+
+Assumptions and posture
+- Daily numbers reflect typical usage; true caps are higher with an undisclosed weekly limit.
+- Plan daily with 20–40% headroom and protect the unknown weekly ceiling with rolling usage targets and spillover.
+
+Routing policy (efficient default)
+- Codex pool (ChatGPT Plus auth):
+  - Run 1–2 implementers on `gpt-5` (`impl_a`, `impl_b`); keep concurrent Codex sessions ≤2 to stretch 5‑hour windows.
+  - Use `deep` (o3) as short spikes for ambiguous work; close the session after the subtask.
+- Cursor pool (inside Cursor):
+  - Planner/Architect on Claude Sonnet for decompositions, risk calls, and PR reviews.
+  - Speed Coder on Gemini Flash for scaffolding, small refactors, and scripts.
+  - Optional Reviewer/overflow Implementer on GPT‑5 when Codex is saturated.
+
+Daily targets and headroom
+- Define soft daily budgets per pool and aim to consume ≤60–80% on typical days.
+- Reserve 20–40% for bursts (urgent fixes, long reviews, o3 spikes).
+- Front‑load Sonnet planning to unblock implementers; schedule long‑context work on Gemini Pro later if Sonnet runs hot.
+
+Rolling‑week safeguard (unknown weekly cap)
+- Track a 7‑day rolling sum of sessions/turns per pool.
+- If a pool exceeds its soft weekly target, shift upcoming subtasks to other pools for 24–48 hours.
+- Keep o3 usage bursty and rare; avoid daily recurring o3 turns.
+
+Backoff and failover
+- Codex rate friction in a 5‑hour window → pause that implementer, route the next subtask to Cursor GPT‑5 or Gemini Flash, resume Codex later.
+- Sonnet running hot → do planning in Cursor GPT‑5, reserve Sonnet for final sign‑off reviews.
+- Gemini near strain → use Cursor GPT‑5 for scaffolding; compress long‑context with a brief Sonnet summary before implementation.
+
+Turn budgets per subtask (stretch windows)
+- Planning (Sonnet): 15–30 turns → RFC/checklist + DoD.
+- Scaffold (Gemini Flash): 10–25 turns → files/tests/mechanical diffs.
+- Implement (Codex gpt‑5): 20–40 turns → small, test‑covered diff.
+- Review (Sonnet or Cursor gpt‑5): 10–20 turns → feedback + acceptance.
+- Deep (o3): ≤25 turns → isolate the hardest reasoning; hand back to implementer.
+
+Concurrency and sequencing
+- Run at most 2 Codex sessions concurrently; schedule `deep` when one lane is idle.
+- Prefer many small Cursor sessions over long chats; reset context between subtasks to reduce turn count and drift.
+
+Lightweight tracking (optional)
+- Maintain a simple per‑pool counter in `collaboration/state/agents.json` or a new `collaboration/state/usage.json` (turns/sessions, 7‑day rolling). Review daily and rebalance.
+
+---
+
+## Operating Plan (current)
+
+- Cursor agents: run two concurrent Cursor sessions using Auto model selection.
+  - `cursor.auto.1` and `cursor.auto.2` handle planning, scaffolding, and overflow implementation directly in Cursor.
+- Codex agent (this assistant): use `gpt5_high` profile for implementation.
+  - Run with: `CODEX_HOME=$(pwd)/.codex codex --profile gpt5_high` (project root) or from `collaboration/` with its local config.
+- Escalation for difficult/long tasks: pause and notify the operator.
+  - Operator will run Gemini 2.5 Pro and GPT‑o3 manually for those cases.
+- Keep changes small and test‑covered; prefer many short sessions over long ones.
+
 
 ---
 

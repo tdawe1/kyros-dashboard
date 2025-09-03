@@ -90,6 +90,7 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
                   Content
                 </label>
                 <textarea
+                  data-testid="edit-modal"
                   value={editedText}
                   onChange={(e) => setEditedText(e.target.value)}
                   onKeyDown={handleKeyDown}

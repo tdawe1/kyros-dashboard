@@ -32,12 +32,12 @@ test.describe('Kyros Dashboard - Full Flow', () => {
       with responsibility to ensure that AI technologies benefit society as a whole.
     `;
 
-    const textarea = page.locator('textarea[placeholder*="article"], textarea[placeholder*="content"], textarea[placeholder*="text"]').first();
+    const textarea = page.locator('[data-testid="content-input"]');
     await textarea.fill(sampleArticle);
 
     // Step 3: Select channels
-    await page.check('input[type="checkbox"][value="linkedin"]');
-    await page.check('input[type="checkbox"][value="twitter"]');
+    await page.click('[data-testid="channel-linkedin"]');
+    await page.click('[data-testid="channel-twitter"]');
 
     // Step 4: Set tone
     const toneSelect = page.locator('select[name="tone"], select[data-testid="tone-select"]').first();
@@ -46,20 +46,20 @@ test.describe('Kyros Dashboard - Full Flow', () => {
     }
 
     // Step 5: Generate content
-    const generateButton = page.locator('button:has-text("Generate"), button:has-text("Create"), button[type="submit"]').first();
+    const generateButton = page.locator('[data-testid="generate-button"]');
     await generateButton.click();
 
     // Step 6: Wait for variants to appear
-    await expect(page.locator('[data-testid="variant-card"], .variant-card, [class*="variant"]').first()).toBeVisible({ timeout: 30000 });
+    await expect(page.locator('[data-testid="variant-card"]').first()).toBeVisible({ timeout: 30000 });
 
     // Step 7: Verify variants are displayed
-    const variantCards = page.locator('[data-testid="variant-card"], .variant-card, [class*="variant"]');
+    const variantCards = page.locator('[data-testid="variant-card"]');
     const variantCount = await variantCards.count();
     expect(variantCount).toBeGreaterThan(0);
 
     // Step 8: Select a variant (click accept or select button)
     const firstVariant = variantCards.first();
-    const acceptButton = firstVariant.locator('button:has-text("Accept"), button:has-text("Select"), button:has-text("Use")').first();
+    const acceptButton = firstVariant.locator('[data-testid="accept-button"]');
 
     if (await acceptButton.isVisible()) {
       await acceptButton.click();
@@ -69,7 +69,7 @@ test.describe('Kyros Dashboard - Full Flow', () => {
     }
 
     // Step 9: Export functionality
-    const exportButton = page.locator('button:has-text("Export"), button:has-text("Download")').first();
+    const exportButton = page.locator('[data-testid="export-button"]');
     if (await exportButton.isVisible()) {
       await exportButton.click();
 

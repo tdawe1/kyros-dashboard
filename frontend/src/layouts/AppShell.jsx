@@ -17,7 +17,10 @@ export default function AppShell() {
         <Topbar onMenuClick={() => setSidebarOpen(true)} />
 
         {/* Page content */}
-        <main className="flex-1 p-4 lg:p-6 overflow-auto">
+        <main
+          data-testid="main-content"
+          className="flex-1 p-4 lg:p-6 overflow-auto"
+        >
           <Outlet />
         </main>
       </div>

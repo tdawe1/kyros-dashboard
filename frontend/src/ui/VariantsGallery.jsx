@@ -216,6 +216,7 @@ export default function VariantsGallery({ variants, onVariantUpdate }) {
 
             <div className="flex items-center space-x-2">
               <button
+                data-testid="export-button"
                 onClick={handleBulkExport}
                 disabled={exportMutation.isPending}
                 className="bg-accent hover:bg-accent/90 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center space-x-2"
