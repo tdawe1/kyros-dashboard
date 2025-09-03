@@ -144,7 +144,7 @@ if [ "$RUN_BACKEND" = true ]; then
     # Install Python dependencies (prefer Poetry if available)
     print_status "Installing Python dependencies..."
     if command_exists poetry && [ -f pyproject.toml ]; then
-        poetry install --no-interaction --no-ansi
+        poetry install --no-interaction --no-ansi --no-root
     elif [ -f requirements.txt ]; then
         if [ -f "../venv/bin/pip" ]; then
             ../venv/bin/pip install -r requirements.txt
@@ -253,7 +253,7 @@ if [ "$RUN_E2E" = true ]; then
     print_status "Installing API dependencies for E2E tests..."
     cd backend
     if command_exists poetry && [ -f pyproject.toml ]; then
-        poetry install --no-interaction --no-ansi
+        poetry install --no-interaction --no-ansi --no-root
     elif [ -f "../venv/bin/pip" ]; then
         ../venv/bin/pip install -r requirements.txt
     else
