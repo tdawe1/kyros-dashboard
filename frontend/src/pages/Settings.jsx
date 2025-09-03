@@ -354,7 +354,7 @@ export default function Settings() {
                     type="password"
                     placeholder="Enter your OpenAI API key"
                     value={config?.openaiApiKey || ""}
-                    onChange={(e) => {
+                    onChange={() => {
                       // TODO: Implement API key persistence
                       // API key changed - implement secure storage
                     }}

@@ -9,7 +9,7 @@ import {
   FileText,
 } from "lucide-react";
 import { useJobs } from "../hooks/useJobs";
-import SkeletonLoader from "./SkeletonLoader";
+import { SkeletonTable } from "./SkeletonLoader";
 
 const statusColors = {
   completed: "bg-green-500",
@@ -66,7 +66,7 @@ export default function JobTable() {
           </h3>
         </div>
         <div className="p-6">
-          <SkeletonLoader count={4} />
+          <SkeletonTable />
         </div>
       </div>
     );

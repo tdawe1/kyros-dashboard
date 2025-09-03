@@ -164,18 +164,18 @@ test.describe('Kyros Dashboard - Studio Page', () => {
 
   test('export functionality', async ({ page }) => {
     // Generate content first
-    const textarea = page.locator('textarea, [data-testid="content-input"]').first();
-    const generateButton = page.locator('button:has-text("Generate"), button:has-text("Create")').first();
+    const textarea = page.locator('[data-testid="content-input"]');
+    const generateButton = page.locator('[data-testid="generate-button"]');
 
     await textarea.fill('This is a test article for export functionality testing.');
-    await page.check('input[type="checkbox"][value="linkedin"]');
+    await page.click('[data-testid="channel-linkedin"]');
     await generateButton.click();
 
     // Wait for variants
-    await expect(page.locator('[data-testid="variant-card"], .variant-card').first()).toBeVisible({ timeout: 30000 });
+    await expect(page.locator('[data-testid="variant-card"]').first()).toBeVisible({ timeout: 30000 });
 
     // Test export button
-    const exportButton = page.locator('button:has-text("Export"), button:has-text("Download")').first();
+    const exportButton = page.locator('[data-testid="export-button"]');
     if (await exportButton.isVisible()) {
       await exportButton.click();
 
@@ -204,8 +204,8 @@ test.describe('Kyros Dashboard - Studio Page', () => {
   });
 
   test('error handling', async ({ page }) => {
-    const textarea = page.locator('textarea, [data-testid="content-input"]').first();
-    const generateButton = page.locator('button:has-text("Generate"), button:has-text("Create")').first();
+    const textarea = page.locator('[data-testid="content-input"]');
+    const generateButton = page.locator('[data-testid="generate-button"]');
 
     // Test with very large content
     const largeContent = 'A'.repeat(200000); // Very large content
@@ -232,12 +232,12 @@ test.describe('Kyros Dashboard - Studio Page', () => {
     await expect(focusedElement).toBeVisible();
 
     // Test ARIA labels
-    const textarea = page.locator('textarea, [data-testid="content-input"]').first();
+    const textarea = page.locator('[data-testid="content-input"]');
     const ariaLabel = await textarea.getAttribute('aria-label');
     expect(ariaLabel).toBeTruthy();
 
     // Test form validation with screen reader
-    const generateButton = page.locator('button:has-text("Generate"), button:has-text("Create")').first();
+    const generateButton = page.locator('[data-testid="generate-button"]');
     await generateButton.click();
 
     // Check for error announcements
