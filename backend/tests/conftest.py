@@ -18,6 +18,8 @@ def pytest_configure(config):
     Pytest hook to configure and patch settings before tests are run.
     This is used to mock the Redis client at the earliest point possible
     to prevent connection attempts during module import.
+
+    Updated to fix CI compatibility issues with pytest 8.4.1.
     """
     # Create a mock Redis client that can be used by SecureRedisClient
     mock_redis_instance = MagicMock()
