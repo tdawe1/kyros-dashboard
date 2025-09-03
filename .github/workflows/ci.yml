@@ -136,24 +136,67 @@ jobs:
         cd backend
         python -m pip install --upgrade pip
         pip install -r requirements.txt
-        python -m uvicorn main:app --host 0.0.0.0 --port 8000 &
-        sleep 10
+        nohup python -m uvicorn main:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 &
+        echo $! > backend.pid
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
     - name: Start frontend
-      run: npm run dev &
+      run: |
+        nohup npm run dev > frontend.log 2>&1 &
+        echo $! > frontend.pid
       working-directory: ./frontend
 
     - name: Wait for services
       run: |
-        sleep 15
-        curl -f http://localhost:8000/health || exit 1
-        curl -f http://localhost:5173 || exit 1
+        echo "Waiting for services to start..."
+        for i in {1..30}; do
+          if curl -f http://localhost:8000/health >/dev/null 2>&1; then
+            echo "Backend is ready!"
+            break
+          fi
+          echo "Waiting for backend... ($i/30)"
+          sleep 2
+        done
+
+        for i in {1..30}; do
+          if curl -f http://localhost:5173 >/dev/null 2>&1; then
+            echo "Frontend is ready!"
+            break
+          fi
+          echo "Waiting for frontend... ($i/30)"
+          sleep 2
+        done
+
+        # Final health checks
+        curl -f http://localhost:8000/health || (echo "Backend health check failed" && cat backend.log && exit 1)
+        curl -f http://localhost:5173 || (echo "Frontend health check failed" && cat frontend.log && exit 1)
 
     - name: Run E2E tests
       run: npm run test:e2e
       working-directory: ./frontend
+
+    - name: Cleanup services
+      if: always()
+      run: |
+        echo "Cleaning up services..."
+        if [ -f backend.pid ]; then
+          kill $(cat backend.pid) 2>/dev/null || true
+          rm -f backend.pid
+        fi
+        if [ -f frontend.pid ]; then
+          kill $(cat frontend.pid) 2>/dev/null || true
+          rm -f frontend.pid
+        fi
+        # Show logs for debugging
+        if [ -f backend.log ]; then
+          echo "=== Backend Logs ==="
+          cat backend.log
+        fi
+        if [ -f frontend.log ]; then
+          echo "=== Frontend Logs ==="
+          cat frontend.log
+        fi
 
   security-scan:
     name: Security Scan
