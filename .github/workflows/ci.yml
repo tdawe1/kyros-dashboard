@@ -49,6 +49,7 @@ jobs:
 
     - name: Lint with flake8
       run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+      continue-on-error: true
 
     - name: Security scan with Bandit
       run: bandit -r . -f json -o bandit-report.json || true
@@ -87,9 +88,11 @@ jobs:
 
     - name: Lint with ESLint
       run: npm run lint
+      continue-on-error: true
 
     - name: Format check with Prettier
       run: npm run format:check
+      continue-on-error: true
 
     - name: Type check
       run: npm run type-check

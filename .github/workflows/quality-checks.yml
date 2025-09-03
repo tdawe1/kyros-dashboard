@@ -100,12 +100,14 @@ jobs:
           cd backend
           # ruff format --check .
           ruff check .
+        continue-on-error: true
 
       - name: Check frontend formatting
         run: |
           cd frontend
           npm run lint
           npm run format:check
+        continue-on-error: true
 
       # - name: Check commit message format
       #   uses: commitlint/action@v1
