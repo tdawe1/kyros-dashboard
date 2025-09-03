@@ -83,7 +83,7 @@ TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engin
 
 
 @pytest.fixture(scope="function")
-def db_session(set_test_environment):
+def db_session():
     """Create a new database session for a test."""
     Base.metadata.create_all(bind=engine)
     db = TestingSessionLocal()
@@ -95,7 +95,7 @@ def db_session(set_test_environment):
 
 
 @pytest.fixture(scope="function")
-def client(db_session, set_test_environment):
+def client(db_session):
     """Create a test client that uses the test database."""
 
     def override_get_db():
@@ -141,10 +141,18 @@ def clean_storage():
 @pytest.fixture
 def mock_redis(monkeypatch):
     """Mock Redis client for testing."""
-    with (
-        patch("utils.quotas.get_secure_redis_client") as mock_redis_client,
-        patch("middleware.rate_limiter.get_secure_redis_client") as mock_redis_url,
-    ):
+    mock_redis_instance = Mock()
+    mock_redis_instance.get.return_value = None
+    mock_redis_instance.incr.return_value = 1
+    mock_redis_instance.expire.return_value = True
+    mock_redis_instance.delete.return_value = True
+    mock_redis_instance.hgetall.return_value = {}
+    mock_redis_instance.hset.return_value = True
+    mock_redis_instance.expire.return_value = True
+
+    with patch("utils.quotas.get_secure_redis_client") as mock_redis_client, patch(
+        "middleware.rate_limiter.get_secure_redis_client"
+    ) as mock_redis_url:
         # Create a mock Redis instance
         mock_redis_instance = Mock()
         mock_redis_instance.get.return_value = None
@@ -153,6 +161,7 @@ def mock_redis(monkeypatch):
         mock_redis_instance.delete.return_value = True
         mock_redis_instance.hgetall.return_value = {}
         mock_redis_instance.hset.return_value = True
+        mock_redis_instance.expire.return_value = True
 
         # Mock the pipeline
         mock_pipeline = Mock()
@@ -163,7 +172,7 @@ def mock_redis(monkeypatch):
             mock_redis_instance.get.return_value,
             mock_redis_instance.incr.return_value,
         ]
-        mock_redis_instance.pipeline.return_value = mock_pipeline
+        mock_redis_instance._client.pipeline.return_value = mock_pipeline
 
         mock_redis_client.return_value = mock_redis_instance
         mock_redis_url.return_value = mock_redis_instance

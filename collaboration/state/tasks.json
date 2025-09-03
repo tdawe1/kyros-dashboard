@@ -5,6 +5,7 @@
       "id": "task-001",
       "title": "Auth package refactor",
       "description": "Refactor authentication to package-based structure and update imports.",
+<<<<<<< HEAD
       "status": "in_progress",
       "assignee": "codex-cli",
       "priority": "P2",
@@ -12,6 +13,12 @@
         "backend",
         "auth"
       ],
+=======
+      "status": "done",
+      "assignee": "codex-cli",
+      "priority": "P2",
+      "labels": ["backend", "auth"],
+>>>>>>> develop
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
@@ -31,17 +38,25 @@
       "status": "done",
       "assignee": "gemini-cli",
       "priority": "P2",
+<<<<<<< HEAD
       "labels": [
         "docs"
       ],
+=======
+      "labels": ["docs"],
+>>>>>>> develop
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
+<<<<<<< HEAD
       "dod": [
         "Docs updated"
       ],
+=======
+      "dod": ["Docs updated"],
+>>>>>>> develop
       "needs": null
     },
     {
@@ -51,18 +66,26 @@
       "status": "done",
       "assignee": "codex-cli",
       "priority": "P1",
+<<<<<<< HEAD
       "labels": [
         "ci"
       ],
+=======
+      "labels": ["ci"],
+>>>>>>> develop
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
+<<<<<<< HEAD
       "dod": [
         "CI green",
         "Docs updated"
       ],
+=======
+      "dod": ["CI green", "Docs updated"],
+>>>>>>> develop
       "needs": null
     },
     {
@@ -72,18 +95,26 @@
       "status": "done",
       "assignee": "gemini-cli",
       "priority": "P2",
+<<<<<<< HEAD
       "labels": [
         "frontend",
         "e2e"
       ],
+=======
+      "labels": ["frontend", "e2e"],
+>>>>>>> develop
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
+<<<<<<< HEAD
       "dod": [
         "Playwright config consistent"
       ],
+=======
+      "dod": ["Playwright config consistent"],
+>>>>>>> develop
       "needs": null
     },
     {
@@ -93,18 +124,26 @@
       "status": "done",
       "assignee": "gemini-cli",
       "priority": "P3",
+<<<<<<< HEAD
       "labels": [
         "docs",
         "collab"
       ],
+=======
+      "labels": ["docs", "collab"],
+>>>>>>> develop
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
+<<<<<<< HEAD
       "dod": [
         "Docs updated"
       ],
+=======
+      "dod": ["Docs updated"],
+>>>>>>> develop
       "needs": null
     },
     {
@@ -112,16 +151,23 @@
       "title": "Audit report & initial docs",
       "description": "Generate audit report and initial documentation as per Axiom's audit.",
       "status": "in_progress",
+<<<<<<< HEAD
       "assignee": "gemini-cli-1",
       "priority": "P3",
       "labels": [
         "docs"
       ],
+=======
+      "assignee": "gemini-cli",
+      "priority": "P3",
+      "labels": ["docs"],
+>>>>>>> develop
       "dependencies": [],
       "blockers": [],
       "branch": "develop",
       "created_at": "2025-09-03T12:55:00Z",
       "updated_at": "2025-09-03T12:55:00Z",
+<<<<<<< HEAD
       "dod": [
         "Docs updated"
       ],
@@ -382,6 +428,9 @@
         "CI feasibility noted",
         "Recommendation documented"
       ],
+=======
+      "dod": ["Docs updated"],
+>>>>>>> develop
       "needs": null
     }
   ]

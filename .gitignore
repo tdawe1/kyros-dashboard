@@ -4,6 +4,7 @@
 .env.development.local
 .env.test.local
 .env.production.local
+collaboration/environment.json
 
 # Python
 __pycache__/
@@ -149,14 +150,14 @@ config.local.json
 
 # Project archives
 *.zip
-kyros-dashboard-project.zip
-
-# Collaboration env (MCP)
-collaboration/.env
-collaboration/environment.json
-
-# Python coverage artifacts
-.coverage
+  kyros-dashboard-project.zip
+  
+  # Collaboration env (MCP)
+  collaboration/.env
+  collaboration/environment.json
+  
+  # Python coverage artifacts
+  .coverage
 htmlcov/
 backend/.coverage
 backend/htmlcov/

@@ -1,8 +1,6 @@
 """
 Unit tests for rate limiting functionality.
 """
-
-import os
 import pytest
 import time
 from unittest.mock import Mock, patch
@@ -82,12 +80,8 @@ class TestTokenBucketRateLimiter:
         assert rate_info["window"] == RATE_LIMIT_WINDOW
         assert rate_info["burst"] == RATE_LIMIT_BURST
 
-    @patch("time.time")
-    def test_is_allowed_existing_bucket_with_tokens(self, mock_time, mock_redis):
+    def test_is_allowed_existing_bucket_with_tokens(self, mock_redis):
         """Test rate limiting with existing bucket that has tokens."""
-        # Mock time to be deterministic
-        mock_time.return_value = 1000.0
-
         limiter = TokenBucketRateLimiter()
 
         request = Mock()
@@ -98,7 +92,7 @@ class TestTokenBucketRateLimiter:
         # Mock existing bucket with tokens
         mock_redis.hgetall.return_value = {
             "tokens": "5.0",
-            "last_refill": "990.0",  # 10 seconds ago
+            "last_refill": str(time.time() - 10),
         }
         mock_redis.hset.return_value = True
         mock_redis.expire.return_value = True
@@ -108,12 +102,8 @@ class TestTokenBucketRateLimiter:
         assert is_allowed is True
         assert rate_info["remaining"] >= 0
 
-    @patch("time.time")
-    def test_is_allowed_existing_bucket_no_tokens(self, mock_time, mock_redis):
+    def test_is_allowed_existing_bucket_no_tokens(self, mock_redis):
         """Test rate limiting with existing bucket that has no tokens."""
-        # Mock time to be deterministic
-        mock_time.return_value = 1000.0
-
         limiter = TokenBucketRateLimiter()
 
         request = Mock()
@@ -124,7 +114,7 @@ class TestTokenBucketRateLimiter:
         # Mock existing bucket with no tokens
         mock_redis.hgetall.return_value = {
             "tokens": "0.0",
-            "last_refill": "999.0",  # 1 second ago
+            "last_refill": str(time.time() - 1),
         }
         mock_redis.hset.return_value = True
         mock_redis.expire.return_value = True
@@ -151,12 +141,8 @@ class TestTokenBucketRateLimiter:
         ):
             limiter.is_allowed(request)
 
-    @patch("time.time")
-    def test_token_refill_calculation(self, mock_time, mock_redis):
+    def test_token_refill_calculation(self, mock_redis):
         """Test token refill calculation based on time elapsed."""
-        # Mock time to be deterministic
-        mock_time.return_value = 1000.0
-
         limiter = TokenBucketRateLimiter()
 
         request = Mock()
@@ -165,9 +151,10 @@ class TestTokenBucketRateLimiter:
         request.client.host = "192.168.1.1"
 
         # Mock bucket with old timestamp (should refill tokens)
+        old_time = time.time() - 3600  # 1 hour ago
         mock_redis.hgetall.return_value = {
             "tokens": "1.0",
-            "last_refill": "-2600.0",  # 1 hour ago
+            "last_refill": str(old_time),
         }
         mock_redis.hset.return_value = True
         mock_redis.expire.return_value = True
@@ -337,35 +324,20 @@ class TestRateLimitConfiguration:
 
     def test_rate_limit_environment_variables(self):
         """Test rate limit environment variable configuration."""
-        # Store original environment
-        original_env = {}
-        env_vars = ["RATE_LIMIT_REQUESTS", "RATE_LIMIT_WINDOW", "RATE_LIMIT_BURST"]
+        with patch.dict(
+            "os.environ",
+            {
+                "RATE_LIMIT_REQUESTS": "200",
+                "RATE_LIMIT_WINDOW": "1800",
+                "RATE_LIMIT_BURST": "20",
+            },
+        ):
+            # Re-import to get updated values
+            import importlib
+            import middleware.rate_limiter
 
-        for var in env_vars:
-            original_env[var] = os.environ.get(var)
+            importlib.reload(middleware.rate_limiter)
 
-        try:
-            with patch.dict(
-                "os.environ",
-                {
-                    "RATE_LIMIT_REQUESTS": "200",
-                    "RATE_LIMIT_WINDOW": "1800",
-                    "RATE_LIMIT_BURST": "20",
-                },
-            ):
-                # Re-import to get updated values
-                import importlib
-                import middleware.rate_limiter
-
-                importlib.reload(middleware.rate_limiter)
-
-                assert middleware.rate_limiter.RATE_LIMIT_REQUESTS == 200
-                assert middleware.rate_limiter.RATE_LIMIT_WINDOW == 1800
-                assert middleware.rate_limiter.RATE_LIMIT_BURST == 20
-        finally:
-            # Restore original environment
-            for var, value in original_env.items():
-                if value is None:
-                    os.environ.pop(var, None)
-                else:
-                    os.environ[var] = value
+            assert middleware.rate_limiter.RATE_LIMIT_REQUESTS == 200
+            assert middleware.rate_limiter.RATE_LIMIT_WINDOW == 1800
+            assert middleware.rate_limiter.RATE_LIMIT_BURST == 20

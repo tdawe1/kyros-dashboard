@@ -14,22 +14,12 @@ fi
 cd backend
 
 # Prefer Poetry if available
-if [ -f pyproject.toml ]; then
-    if ! command -v poetry >/dev/null 2>&1; then
-        echo "⚠️  Poetry not found. Installing Poetry locally..."
-        curl -sSL https://install.python-poetry.org | python3 - >/dev/null 2>&1 || true
-        export PATH="$HOME/.local/bin:$PATH"
-    fi
-    if command -v poetry >/dev/null 2>&1; then
-        echo "📥 Installing dependencies with Poetry..."
-        poetry install --no-interaction --no-ansi
-        echo "🌟 Starting FastAPI server on http://localhost:8000"
-        echo "📚 API docs: http://localhost:8000/docs"
-        poetry run uvicorn main:app --reload --port 8000
-    else
-        echo "❌ Poetry is required but could not be installed automatically."
-        exit 1
-    fi
+if command -v poetry >/dev/null 2>&1 && [ -f pyproject.toml ]; then
+    echo "📥 Installing dependencies with Poetry..."
+    poetry install --no-interaction --no-ansi
+    echo "🌟 Starting FastAPI server on http://localhost:8000"
+    echo "📚 API docs: http://localhost:8000/docs"
+    poetry run uvicorn main:app --reload --port 8000
 else
     # Fallback to venv + pip if requirements.txt exists
     if [ ! -f requirements.txt ]; then

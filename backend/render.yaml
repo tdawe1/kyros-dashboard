@@ -2,7 +2,6 @@ services:
   - type: web
     name: kyros-dashboard-api
     env: python
-    rootDir: backend
     buildCommand: |
       pip install --upgrade pip && pip install poetry \
       && poetry install --no-interaction --no-ansi
