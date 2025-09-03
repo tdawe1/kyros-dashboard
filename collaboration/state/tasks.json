@@ -197,7 +197,7 @@
       "id": "task-008-02",
       "title": "Critic: run gates and review",
       "description": "Run format/lint/tests/secret-scan; verify Playwright/E2E on port 3001 and backend Poetry flow; request changes or approve.",
-      "status": "queued",
+      "status": "approved",
       "assignee": "gemini-cli-1",
       "priority": "P1",
       "labels": [
@@ -209,7 +209,7 @@
       "blockers": [],
       "branch": "merge/batch-develop-20250903-162907",
       "created_at": "2025-09-03T16:08:55Z",
-      "updated_at": "2025-09-03T16:08:55Z",
+      "updated_at": "2025-09-03T16:58:01Z",
       "dod": [
         "Quality gates executed",
         "Review submitted with approve or actionable feedback"
@@ -220,7 +220,7 @@
       "id": "task-008-03",
       "title": "Implementer: address CI/test feedback and align ports/docs",
       "description": "Fix any CI/test failures; ensure README/scripts show Poetry for backend and port 3001 for frontend/dev/E2E.",
-      "status": "queued",
+      "status": "done",
       "assignee": "codex-cli-1",
       "priority": "P1",
       "labels": [
@@ -232,7 +232,7 @@
       "blockers": [],
       "branch": "merge/batch-develop-20250903-162907",
       "created_at": "2025-09-03T16:08:55Z",
-      "updated_at": "2025-09-03T16:08:55Z",
+      "updated_at": "2025-09-03T16:58:01Z",
       "dod": [
         "CI green after fixes",
         "Docs/scripts updated for Poetry and port 3001"
@@ -243,7 +243,7 @@
       "id": "task-008-04",
       "title": "Integrator: merge PR and update changelog",
       "description": "On approval and green checks, merge PR into develop and update CHANGELOG.md if maintained.",
-      "status": "queued",
+      "status": "merging",
       "assignee": "codex-cli-2",
       "priority": "P2",
       "labels": [
@@ -254,7 +254,7 @@
       "blockers": [],
       "branch": "merge/batch-develop-20250903-162907",
       "created_at": "2025-09-03T16:08:55Z",
-      "updated_at": "2025-09-03T16:08:55Z",
+      "updated_at": "2025-09-03T16:58:01Z",
       "dod": [
         "PR merged into develop",
         "Changelog updated (if applicable)",

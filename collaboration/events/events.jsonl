@@ -23,3 +23,9 @@
 {"event":"task_created","task":"task-011","branch":"develop","assignee":"cursor-ide-2","ts":"2025-09-03T17:42:00Z"}
 {"event":"task_created","task":"task-012","branch":"develop","assignee":"cursor-ide","ts":"2025-09-03T17:42:00Z"}
 {"event":"task_created","task":"task-013","branch":"develop","assignee":"cursor-ide","ts":"2025-09-03T17:42:00Z"}
+{"event": "status_changed", "task": "task-008-02", "old_status": "review", "new_status": "approved", "prev_etag": "", "new_etag": "", "ts": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"}
+{"event": "status_changed", "task": "task-008-03", "old_status": "queued", "new_status": "done", "prev_etag": "", "new_etag": "", "ts": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"}
+{"event": "status_changed", "task": "task-008-04", "old_status": "queued", "new_status": "merging", "prev_etag": "", "new_etag": "", "ts": "$(date -u +%Y-%m-%dT%H:%M:%SZ)"}
+{"event": "status_changed", "task": "task-008-02", "old_status": "review", "new_status": "approved", "ts": "2025-09-03T16:58:30Z"}
+{"event": "status_changed", "task": "task-008-03", "old_status": "queued", "new_status": "done", "ts": "2025-09-03T16:58:30Z"}
+{"event": "status_changed", "task": "task-008-04", "old_status": "queued", "new_status": "merging", "ts": "2025-09-03T16:58:31Z"}
