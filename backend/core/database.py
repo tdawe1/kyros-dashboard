@@ -5,7 +5,7 @@ Implements secure database connection management with proper pooling and health 
 
 import os
 import logging
-from sqlalchemy import create_engine, MetaData, text
+from sqlalchemy import create_engine, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool, QueuePool
@@ -54,8 +54,7 @@ SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 # Create base class for models
 Base = declarative_base()
 
-# Metadata for migrations
-metadata = MetaData()
+# Use Base.metadata for migrations
 
 
 def check_database_health() -> bool:

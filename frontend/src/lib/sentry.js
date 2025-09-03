@@ -29,8 +29,9 @@ export function initSentry() {
           integrations: [
             sentry.browserTracingIntegration(),
             sentry.replayIntegration({
-              maskAllText: false,
-              blockAllMedia: false,
+              maskAllText: true,
+              blockAllMedia: true,
+              maskAllInputs: true,
             }),
           ],
           tracesSampleRate: environment === "production" ? 0.1 : 1.0,
@@ -46,9 +47,10 @@ export function initSentry() {
 }
 
 // Capture exceptions
-export function captureException(error, context = {}) {
-  if (import.meta.env.VITE_SENTRY_DSN && Sentry) {
-    Sentry.captureException(error, {
+export async function captureException(error, context = {}) {
+  const sentry = await loadSentry();
+  if (import.meta.env.VITE_SENTRY_DSN && sentry) {
+    sentry.captureException(error, {
       tags: {
         component: "frontend",
         ...context.tags,

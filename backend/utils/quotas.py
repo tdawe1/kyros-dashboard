@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Optional
 import logging
-from core.security import get_secure_redis_client, secure_operation, SecurityMode
+from ..core.security import get_secure_redis_client, secure_operation, SecurityMode
 
 logger = logging.getLogger(__name__)
 
@@ -24,7 +24,7 @@ def can_create_job(user_id: str, daily_limit: int = 10) -> tuple[bool, int]:
     key = f"jobs:{user_id}:{today}"
 
     # Use Redis pipeline for atomic operations
-    pipe = r._client.pipeline()
+    pipe = r.pipeline()
 
     # Check current count first
     pipe.get(key)

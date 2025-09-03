@@ -1,0 +1,37 @@
+name: MCP Servers
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+  push:
+    branches: [ main, develop ]
+
+jobs:
+  mcp-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install kyros-mcp package (editable)
+        working-directory: ./mcp
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+          python -m pip install pytest
+
+      - name: Smoke run kyros collab server
+        run: |
+          timeout 2s python mcp/kyros_collab_server.py || true
+
+      - name: Lint MCP package
+        run: |
+          python -m pip install ruff
+          ruff check mcp
+      - name: Run MCP tests
+        run: |
+          pytest -q mcp/tests

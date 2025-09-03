@@ -27,19 +27,20 @@ jobs:
       with:
         python-version: ${{ env.PYTHON_VERSION }}
 
-    - name: Cache pip dependencies
+    - name: Cache Poetry dependencies
       uses: actions/cache@v3
       with:
-        path: ~/.cache/pip
-        key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+        path: |
+          ~/.cache/pypoetry
+        key: ${{ runner.os }}-poetry-${{ hashFiles('backend/poetry.lock') }}
         restore-keys: |
-          ${{ runner.os }}-pip-
+          ${{ runner.os }}-poetry-
 
-    - name: Install dependencies
+    - name: Install Poetry and backend deps
       run: |
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        pip install ruff isort flake8 pytest pytest-cov bandit
+        pip install poetry
+        poetry install --no-interaction --no-ansi
 
     # - name: Format check with Ruff
     #   run: ruff format --check .
@@ -47,16 +48,16 @@ jobs:
     # - name: Import sorting check with isort
     #   run: isort --check-only --diff .
 
-    - name: Lint with flake8
-      run: flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
+    - name: Lint with ruff
+      run: poetry run ruff check . --output-format=github
       continue-on-error: true
 
     - name: Security scan with Bandit
-      run: bandit -r . -f json -o bandit-report.json || true
+      run: poetry run bandit -r . -f json -o bandit-report.json || true
       continue-on-error: true
 
     - name: Run tests
-      run: pytest --cov=. --cov-report=xml --cov-report=term-missing
+      run: poetry run pytest --cov=. --cov-report=xml --cov-report=term-missing
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
@@ -134,13 +135,28 @@ jobs:
       run: npx playwright install --with-deps
       working-directory: ./frontend
 
+    - name: Set up Python for backend
+      uses: actions/setup-python@v4
+      with:
+        python-version: ${{ env.PYTHON_VERSION }}
+
+    - name: Cache backend dependencies
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/pypoetry
+        key: ${{ runner.os }}-poetry-${{ hashFiles('backend/poetry.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-poetry-
+
     - name: Start backend services
       run: |
-        cd backend
-        python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        nohup python -m uvicorn main:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 &
-        echo $! > backend.pid
+          cd backend
+          python -m pip install --upgrade pip
+          pip install poetry
+          poetry install --no-interaction --no-ansi
+          nohup poetry run uvicorn main:app --host 0.0.0.0 --port 8000 > backend.log 2>&1 &
+          echo $! > backend.pid
       env:
         OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
 
@@ -154,7 +170,7 @@ jobs:
       run: |
         echo "Waiting for services to start..."
         for i in {1..30}; do
-          if curl -f http://localhost:8000/health >/dev/null 2>&1; then
+          if curl -f http://localhost:8000/api/health >/dev/null 2>&1; then
             echo "Backend is ready!"
             break
           fi
@@ -163,7 +179,7 @@ jobs:
         done
 
         for i in {1..30}; do
-          if curl -f http://localhost:5173 >/dev/null 2>&1; then
+          if curl -f http://localhost:3001 >/dev/null 2>&1; then
             echo "Frontend is ready!"
             break
           fi
@@ -172,8 +188,8 @@ jobs:
         done
 
         # Final health checks
-        curl -f http://localhost:8000/health || (echo "Backend health check failed" && cat backend.log && exit 1)
-        curl -f http://localhost:5173 || (echo "Frontend health check failed" && cat frontend.log && exit 1)
+        curl -f http://localhost:8000/api/health || (echo "Backend health check failed" && cat backend.log && exit 1)
+        curl -f http://localhost:3001 || (echo "Frontend health check failed" && cat frontend.log && exit 1)
 
     - name: Run E2E tests
       run: npm run test:e2e
@@ -262,8 +278,9 @@ jobs:
       run: |
         cd backend
         python -m pip install --upgrade pip
-        pip install -r requirements.txt
-        python -c "import main; print('Backend imports successfully')"
+        pip install poetry
+        poetry install --no-interaction --no-ansi
+        poetry run python -c "import main; print('Backend imports successfully')"
 
     - name: Build frontend
       run: |

@@ -9,7 +9,7 @@ class TestOpenAIClient:
     def test_init_with_api_key(self):
         """Test client initialization with API key."""
         client = OpenAIClient(api_key="test-key-12345")
-        assert client.api_key == "test-key"
+        assert client.api_key == "test-key-12345"
 
     @patch.dict("os.environ", {"OPENAI_API_KEY": "env-key"})
     def test_init_with_env_key(self):
@@ -32,11 +32,11 @@ class TestOpenAIClient:
     def test_validate_model_invalid(self):
         """Test model validation with invalid models."""
         client = OpenAIClient(api_key="test-key-12345")
-        invalid_models = ["gpt-3.5-turbo", "invalid-model", "claude-3"]
+        invalid_models = ["invalid-model", "claude-3", "gpt-3.5", "text-davinci-003"]
         for model in invalid_models:
             assert client.validate_model(model) is False
 
-    @patch("api.core.openai_client.OpenAI")
+    @patch("core.openai_client.OpenAI")
     def test_chat_completion_success(self, mock_openai_class):
         """Test successful chat completion."""
         # Mock the OpenAI client and response
@@ -73,7 +73,7 @@ class TestOpenAIClient:
                 model="invalid-model",
             )
 
-    @patch("api.core.openai_client.OpenAI")
+    @patch("core.openai_client.OpenAI")
     def test_chat_completion_retry_logic(self, mock_openai_class):
         """Test retry logic on API failures."""
         # Mock the OpenAI client to fail twice then succeed
@@ -103,7 +103,7 @@ class TestOpenAIClient:
         assert result["content"] == "Success after retry"
         assert mock_client.chat.completions.create.call_count == 3
 
-    @patch("api.core.openai_client.OpenAI")
+    @patch("core.openai_client.OpenAI")
     def test_chat_completion_max_retries_exceeded(self, mock_openai_class):
         """Test behavior when max retries are exceeded."""
         mock_client = MagicMock()
@@ -131,6 +131,16 @@ class TestOpenAIClient:
         # Test gpt-4o
         cost = client.estimate_cost(1000, 500, "gpt-4o")
         expected_cost = (1000 / 1000) * 0.005 + (500 / 1000) * 0.015
+        assert abs(cost - expected_cost) < 0.0001
+
+        # Test gpt-4
+        cost = client.estimate_cost(1000, 500, "gpt-4")
+        expected_cost = (1000 / 1000) * 0.03 + (500 / 1000) * 0.06
+        assert abs(cost - expected_cost) < 0.0001
+
+        # Test gpt-4-turbo
+        cost = client.estimate_cost(1000, 500, "gpt-4-turbo")
+        expected_cost = (1000 / 1000) * 0.01 + (500 / 1000) * 0.03
         assert abs(cost - expected_cost) < 0.0001
 
     def test_estimate_cost_unknown_model(self):

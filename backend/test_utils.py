@@ -3,12 +3,8 @@
 Simple test script to verify Phase B utilities work correctly.
 """
 
-import sys
-
-sys.path.append(".")
-
-from utils.token_utils import estimate_tokens, validate_input_limits  # noqa: E402
-from utils.quotas import can_create_job  # noqa: E402
+from utils.token_utils import estimate_tokens, validate_input_limits
+from utils.quotas import can_create_job
 
 
 def test_token_estimation():
@@ -26,7 +22,8 @@ def test_token_estimation():
         f"  Large text estimation: {large_tokens} tokens for {len(large_text)} characters"
     )
 
-    return True
+    assert tokens > 0
+    assert large_tokens > 0
 
 
 def test_input_validation():
@@ -39,17 +36,18 @@ def test_input_validation():
     )
     validation = validate_input_limits(valid_text)
     print(
-        f'  Valid input: Valid={validation["valid"]}, Tokens={validation["stats"]["estimated_tokens"]}'
+        f"  Valid input: Valid={validation['valid']}, Tokens={validation['stats']['estimated_tokens']}"
     )
+    assert validation["valid"] is True
 
     # Test invalid input (too large)
     large_text = "This is a test sentence. " * 5000  # ~125,000 characters
     validation = validate_input_limits(large_text)
     print(
-        f'  Large input: Valid={validation["valid"]}, Errors={len(validation["errors"])}'
+        f"  Large input: Valid={validation['valid']}, Errors={len(validation['errors'])}"
     )
 
-    return True
+    assert validation["valid"] is False
 
 
 def test_quota_system():
@@ -59,31 +57,8 @@ def test_quota_system():
     try:
         can_create, count = can_create_job("test_user", 10)
         print(f"  Quota check: Can create={can_create}, Count={count}")
-        return True
+        assert can_create is True
     except Exception as e:
         print(f"  Quota check: Expected error (Redis not running): {e}")
-        return True  # This is expected if Redis is not running
-
-
-def main():
-    """Run all tests"""
-    print("Phase B Utilities Test")
-    print("=" * 30)
-
-    try:
-        test_token_estimation()
-        print()
-        test_input_validation()
-        print()
-        test_quota_system()
-        print()
-        print("All tests completed successfully!")
-        return True
-    except Exception as e:
-        print(f"Test failed with error: {e}")
-        return False
-
-
-if __name__ == "__main__":
-    success = main()
-    sys.exit(0 if success else 1)
+        # This is expected if Redis is not running
+        pass

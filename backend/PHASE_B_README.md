@@ -71,7 +71,7 @@ RATE_LIMIT_BURST=10
 ### Stress Test Script
 Run the comprehensive stress test:
 ```bash
-cd api
+cd backend
 python test_stress.py
 ```
 
@@ -109,7 +109,7 @@ The stress test covers:
 
 ### File Structure
 ```
-api/
+backend/
 ├── main.py                 # Main FastAPI application
 ├── utils/
 │   ├── quotas.py          # User quota management

@@ -8,10 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 import os
 import logging
+import uuid
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 # Create FastAPI app
 app = FastAPI(
@@ -169,14 +171,15 @@ if core_auth_router:
     try:
         from core.auth_router import router as auth_router
 
-        app.include_router(auth_router, prefix="/api/auth", tags=["authentication"])
+        # Router already defines its own prefix/tags; include without extra prefix
+        app.include_router(auth_router)
         logger.info("Auth router added successfully")
     except Exception as e:
         logger.warning(f"Failed to add auth router: {e}")
 
 if core_scheduler:
     try:
-        from core.scheduler import scheduler_router
+        from core.scheduler.router import router as scheduler_router
 
         app.include_router(
             scheduler_router, prefix="/api/scheduler", tags=["scheduler"]
@@ -198,33 +201,85 @@ if tools_registry:
 
 
 # Add basic endpoints that work even without other modules
-@app.get("/api/config")
-async def get_config():
-    """Get API configuration for frontend"""
-    try:
-        return {
-            "api_mode": os.getenv("API_MODE", "demo"),
-            "default_model": os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
-            "max_input_characters": int(os.getenv("MAX_INPUT_CHARACTERS", "100000")),
-            "max_tokens_per_job": int(os.getenv("MAX_TOKENS_PER_JOB", "50000")),
-            "daily_job_limit": int(os.getenv("DAILY_JOB_LIMIT", "10")),
-        }
-    except Exception as e:
-        return {"error": str(e)}
+try:
+    from api import router as api_router
+
+    app.include_router(api_router, prefix="/api", tags=["api"])
+    logger.info("API router added successfully")
+except Exception as e:
+    logger.warning(f"Failed to add API router: {e}")
 
 
 # Add a simple generate endpoint that works without full functionality
 @app.post("/api/generate")
 async def generate_simple(request: dict):
     """Simple generate endpoint for basic functionality"""
-    try:
-        if generator:
-            from generator import generate_content
+    from fastapi.responses import JSONResponse
 
-            return await generate_content(request)
-        else:
+    def create_error_response(
+        status_code: int, code: str, message: str
+    ) -> JSONResponse:
+        """Helper function to create standardized error responses."""
+        return JSONResponse(
+            status_code=status_code,
+            content={
+                "error": {
+                    "code": code,
+                    "message": message,
+                    "details": {},
+                }
+            },
+        )
+
+    try:
+        if not generator:
             return {"error": "Generator module not available", "status": "demo"}
+
+        # Validate input text
+        input_text = request.get("input_text")
+        if not input_text or len(input_text) < 20:
+            return create_error_response(
+                400, "VALIDATION_ERROR", "Input text too short"
+            )
+
+        if len(input_text) > 100000:
+            return create_error_response(400, "VALIDATION_ERROR", "Input text too long")
+
+        # Check quotas if available
+        if utils_quotas:
+            from utils.quotas import can_create_job
+
+            can_create, _ = can_create_job(request.get("user_id", "anonymous"))
+            if not can_create:
+                return create_error_response(400, "QUOTA_EXCEEDED", "Quota exceeded")
+
+        # Generate content
+        from generator import generate_content
+        from utils.token_storage import get_token_usage
+
+        job_id = f"job_{uuid.uuid4()}"
+        variants = await generate_content(
+            input_text=input_text,
+            channels=request.get("channels", ["linkedin"]),
+            tone=request.get("tone", "professional"),
+            model=request.get("model"),
+            job_id=job_id,
+        )
+
+        token_usage = get_token_usage(job_id)
+        return {
+            "job_id": job_id,
+            "status": "completed",
+            "variants": variants,
+            "token_usage": token_usage,
+            "model": request.get("model") or os.getenv("DEFAULT_MODEL", "gpt-4o-mini"),
+            "api_mode": os.getenv("API_MODE", "demo"),
+        }
+
+    except HTTPException as e:
+        raise e
     except Exception as e:
+        logger.error(f"Error in generate_simple: {e}")
         return {"error": str(e), "status": "error"}
 
 
@@ -234,7 +289,6 @@ if core_error_handling:
         from core.error_handling import (
             handle_kyros_exception,
             handle_validation_error,
-            handle_http_exception,
             handle_generic_exception,
             KyrosException,
         )
@@ -248,9 +302,7 @@ if core_error_handling:
         async def validation_exception_handler(request, exc):
             return handle_validation_error(request, exc)
 
-        @app.exception_handler(HTTPException)
-        async def http_exception_handler(request, exc):
-            return handle_http_exception(request, exc)
+        # Use FastAPI default HTTPException response format (detail) expected by tests.
 
         @app.exception_handler(Exception)
         async def generic_exception_handler(request, exc):

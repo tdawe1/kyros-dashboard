@@ -4,9 +4,9 @@ Implements secure configuration loading with validation and environment-specific
 """
 
 import logging
-import secrets
 from typing import List, Optional
-from pydantic import BaseSettings, validator, Field
+from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -53,7 +53,8 @@ class Settings(BaseSettings):
         default=7, env="JWT_REFRESH_TOKEN_EXPIRE_DAYS"
     )
     admin_password: str = Field(
-        default_factory=lambda: secrets.token_urlsafe(16), env="ADMIN_PASSWORD"
+        default_factory=lambda: __import__("secrets").token_urlsafe(16),
+        env="ADMIN_PASSWORD",
     )
 
     # Database settings
@@ -88,7 +89,11 @@ class Settings(BaseSettings):
 
     # CORS settings
     allowed_origins: List[str] = Field(
-        default=["http://localhost:5173", "http://localhost:3000"],
+        default=[
+            "http://localhost:3001",
+            "http://localhost:5173",
+            "http://localhost:3000",
+        ],
         env="ALLOWED_ORIGINS",
     )
 
@@ -104,14 +109,14 @@ class Settings(BaseSettings):
         default=60, env="CIRCUIT_BREAKER_RECOVERY_TIMEOUT"
     )
 
-    @validator("allowed_origins", pre=True)
+    @field_validator("allowed_origins", mode="before")
     def parse_allowed_origins(cls, v):
         """Parse comma-separated origins."""
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(",")]
         return v
 
-    @validator("environment", pre=True)
+    @field_validator("environment", mode="before")
     def validate_environment(cls, v):
         """Validate environment setting."""
         if isinstance(v, str):
@@ -122,7 +127,7 @@ class Settings(BaseSettings):
                 return Environment.DEVELOPMENT
         return v
 
-    @validator("jwt_secret_key")
+    @field_validator("jwt_secret_key")
     def validate_jwt_secret(cls, v):
         """Validate JWT secret key."""
         if not v or len(v) < 32:
@@ -132,7 +137,7 @@ class Settings(BaseSettings):
             return secrets.token_urlsafe(32)
         return v
 
-    @validator("openai_api_key")
+    @field_validator("openai_api_key")
     def validate_openai_key(cls, v):
         """Validate OpenAI API key format."""
         if v and not v.startswith("sk-"):
@@ -194,8 +199,10 @@ def get_cors_origins() -> List[str]:
         # In development, allow localhost origins
         return settings.allowed_origins + [
             "http://localhost:3000",
+            "http://localhost:3001",
             "http://localhost:5173",
             "http://127.0.0.1:3000",
+            "http://127.0.0.1:3001",
             "http://127.0.0.1:5173",
         ]
 

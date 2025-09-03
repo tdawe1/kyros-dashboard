@@ -27,7 +27,7 @@ backend/
 │   └── hello/              # Demo tool
 └── tools_registry.py       # Tool discovery and registration
 
-ui/src/
+frontend/src/
 ├── core/                   # Shared frontend services
 ├── tools/                  # Individual tool UI components
 
@@ -114,7 +114,7 @@ The modular tools architecture has been successfully implemented and is ready fo
 1. Create `backend/tools/{tool_name}/` directory
 2. Implement required files: `router.py`, `generator.py`, `schemas.py`
 3. Add tool to `backend/tools/registry.py`
-4. Create `ui/src/tools/{tool_name}/` directory
+4. Create `frontend/src/tools/{tool_name}/` directory
 5. Implement UI components and add to `toolRegistry.js`
 6. Add tests and documentation
 

@@ -19,24 +19,18 @@ if ! command -v node &> /dev/null; then
     exit 1
 fi
 
-# Create virtual environment if it doesn't exist
-if [ ! -d "venv" ]; then
-    echo "📦 Creating Python virtual environment..."
-    python3 -m venv venv
+echo "📥 Installing backend Python dependencies..."
+if command -v poetry >/dev/null 2>&1 && [ -f "backend/pyproject.toml" ]; then
+    (cd backend && poetry install --no-interaction --no-ansi)
+else
+    echo "❌ Poetry not found or backend/pyproject.toml missing."
+    echo "   Please install Poetry (https://python-poetry.org/docs/#installation) and re-run this script."
+    exit 1
 fi
-
-# Activate virtual environment
-echo "🔧 Activating virtual environment..."
-source venv/bin/activate
-
-# Install Python dependencies
-echo "📥 Installing Python dependencies..."
-pip install --upgrade pip
-pip install -r api/requirements.txt
 
 # Install Node.js dependencies
 echo "📥 Installing Node.js dependencies..."
-cd ui
+cd frontend
 npm install
 cd ..
 
@@ -49,11 +43,11 @@ pre-commit install --hook-type commit-msg
 echo "🔍 Initializing secrets detection baseline..."
 detect-secrets scan --baseline .secrets.baseline
 
-# Create .env file from example if it doesn't exist
-if [ ! -f ".env" ]; then
-    echo "📝 Creating .env file from example..."
-    cp .env.example .env
-    echo "⚠️  Please update .env with your actual secrets before running the application."
+# Create backend .env file from example if it doesn't exist
+if [ ! -f "backend/.env" ] && [ -f "backend/.env.example" ]; then
+    echo "📝 Creating backend .env file from example..."
+    cp backend/.env.example backend/.env
+    echo "⚠️  Please update backend/.env with your actual secrets before running the application."
 fi
 
 # Set up git hooks
@@ -64,9 +58,8 @@ echo "✅ Development environment setup complete!"
 echo ""
 echo "Next steps:"
 echo "1. Update .env with your actual API keys and secrets"
-echo "2. Run 'source venv/bin/activate' to activate the virtual environment"
-echo "3. Start the API server: 'cd api && python main.py'"
-echo "4. Start the UI server: 'cd ui && npm run dev'"
+echo "2. Start the API server: 'cd backend && poetry run uvicorn main:app --reload --port 8000'"
+echo "3. Start the Frontend server: 'cd frontend && npm run dev' (default port 3001)"
 echo ""
 echo "Security features enabled:"
 echo "- Pre-commit hooks for code quality and security"
