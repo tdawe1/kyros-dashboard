@@ -35,6 +35,13 @@
       "status": "done",
       "assignee": "gemini-cli",
       "dependencies": []
+    },
+    {
+      "id": "task-006",
+      "description": "Generate audit report and initial documentation as per Axiom's audit.",
+      "status": "in_progress",
+      "assignee": "gemini-cli",
+      "dependencies": []
     }
   ],
   "file_locks": {}

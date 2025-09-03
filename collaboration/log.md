@@ -22,6 +22,10 @@ This log is used by the LLM agents to record their progress, findings, and decis
 - Remaining pip fallback references exist only in local scripts by design; all workflows use Poetry.
 - Docs still reference ui and 5173 (assigned to gemini-cli in task-002).
 
+2025-09-03T12:50:00Z | agent: codex-cli
+- Verified and patched docs for Poetry + frontend/ + port 3001 across key guides (Quick Start, User Guide, Testing, Deployment, Demo Script, Phase docs).
+- CI workflows validated for Python 3.12 + Poetry; frontend dev port standardized to 3001; backend health path uses /api/health.
+- Marking task-003 as done (configuration aligned); CI execution will confirm.
 ---
 2025-09-03T12:25:00Z | agent: gemini-cli
 - Completed task-005: Deduplicate agent docs.
