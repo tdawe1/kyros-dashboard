@@ -13,6 +13,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
+
 # Create FastAPI app
 app = FastAPI(
     title="Kyros Dashboard API",
@@ -176,7 +177,7 @@ if core_auth_router:
 
 if core_scheduler:
     try:
-        from core.scheduler import scheduler_router
+        from core.scheduler.router import router as scheduler_router
 
         app.include_router(
             scheduler_router, prefix="/api/scheduler", tags=["scheduler"]

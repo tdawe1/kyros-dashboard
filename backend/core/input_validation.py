@@ -7,7 +7,7 @@ import re
 import html
 import bleach
 from typing import Any, Dict, List, Optional
-from pydantic import BaseModel, validator, Field
+from pydantic import BaseModel, Field, field_validator
 import logging
 
 logger = logging.getLogger(__name__)
@@ -160,11 +160,11 @@ class SecureGenerateRequest(BaseModel):
     preset: str = Field(default="default", max_length=100)
     model: Optional[str] = Field(None, max_length=100)
 
-    @validator("input_text")
+    @field_validator("input_text")
     def validate_input_text(cls, v):
         return InputValidator.sanitize_text(v)
 
-    @validator("channels")
+    @field_validator("channels")
     def validate_channels(cls, v):
         valid_channels = ["linkedin", "twitter", "newsletter", "blog"]
         for channel in v:
@@ -172,14 +172,14 @@ class SecureGenerateRequest(BaseModel):
                 raise ValueError(f"Invalid channel: {channel}")
         return v
 
-    @validator("tone")
+    @field_validator("tone")
     def validate_tone(cls, v):
         valid_tones = ["professional", "casual", "engaging", "formal", "friendly"]
         if v not in valid_tones:
             raise ValueError(f"Invalid tone: {v}")
         return v
 
-    @validator("model")
+    @field_validator("model")
     def validate_model(cls, v):
         if v is not None:
             valid_models = ["gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-4o-mini"]
@@ -196,15 +196,15 @@ class SecureUserCreate(BaseModel):
     password: str = Field(..., min_length=8, max_length=128)
     role: str = Field(default="user", max_length=20)
 
-    @validator("username")
+    @field_validator("username")
     def validate_username(cls, v):
         return InputValidator.validate_username(v)
 
-    @validator("email")
+    @field_validator("email")
     def validate_email(cls, v):
         return InputValidator.validate_email(v)
 
-    @validator("password")
+    @field_validator("password")
     def validate_password(cls, v):
         # Check password strength
         if len(v) < 8:
@@ -217,7 +217,7 @@ class SecureUserCreate(BaseModel):
 
         return v
 
-    @validator("role")
+    @field_validator("role")
     def validate_role(cls, v):
         valid_roles = ["admin", "user", "readonly"]
         if v not in valid_roles:

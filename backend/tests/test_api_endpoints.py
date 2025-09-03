@@ -503,3 +503,67 @@ class TestTokenStatsEndpoint:
         assert token_stats["character_count"] == len(large_text)
         assert token_stats["estimated_tokens"] > 0
         assert token_stats["usage_percentage"]["characters"] > 0
+
+
+class TestAuthEndpoints:
+    """Test authentication endpoints."""
+
+    def test_login_success(self, client, test_user):
+        """Test successful login."""
+        response = client.post(
+            "/api/auth/login",
+            json={"username": test_user.username, "password": test_user.plain_password},
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert "access_token" in data
+        assert "refresh_token" in data
+
+    def test_login_failure_wrong_password(self, client, test_user):
+        """Test login with wrong password."""
+        response = client.post(
+            "/api/auth/login",
+            json={"username": test_user.username, "password": "wrongpassword"},
+        )
+        assert response.status_code == 401
+        data = response.json()
+        assert "detail" in data
+        assert "Incorrect username or password" in data["detail"]
+
+    def test_login_failure_wrong_username(self, client):
+        """Test login with wrong username."""
+        response = client.post(
+            "/api/auth/login",
+            json={"username": "wronguser", "password": "somepassword"},
+        )
+        assert response.status_code == 401
+
+    def test_get_me_success(self, client, test_user):
+        """Test getting current user info with a valid token."""
+        # First, log in to get a token
+        login_response = client.post(
+            "/api/auth/login",
+            json={"username": test_user.username, "password": test_user.plain_password},
+        )
+        token = login_response.json()["access_token"]
+
+        # Now, access the /me endpoint
+        response = client.get(
+            "/api/auth/me", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["username"] == test_user.username
+        assert data["email"] == test_user.email
+
+    def test_get_me_failure_no_token(self, client):
+        """Test getting current user info without a token."""
+        response = client.get("/api/auth/me")
+        assert response.status_code == 401
+
+    def test_get_me_failure_invalid_token(self, client):
+        """Test getting current user info with an invalid token."""
+        response = client.get(
+            "/api/auth/me", headers={"Authorization": "Bearer invalidtoken"}
+        )
+        assert response.status_code == 401

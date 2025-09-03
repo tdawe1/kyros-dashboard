@@ -3,25 +3,29 @@ Authentication router for Kyros Dashboard.
 Handles login, logout, token refresh, and user management.
 """
 
-from datetime import datetime, timedelta
+from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials
-from typing import List
+from sqlalchemy.orm import Session
 
-from .auth import (
-    User,
-    UserLogin,
-    Token,
+from .database import get_db
+from .auth.schemas import User, UserLogin, Token, UserRole
+from .auth.dependencies import get_current_user, require_role
+from .auth.service import (
     authenticate_user,
-    get_current_user,
-    require_role,
-    UserRole,
+    get_users,
+    create_user as create_user_in_db,
+    get_user_by_username,
+    update_user_active_status,
+    delete_user_from_db,
+)
+from .auth.security import (
     create_access_token,
     create_refresh_token,
     verify_token,
-    hash_password,
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES,
 )
+from .models import User as UserModel
 from .input_validation import SecureUserCreate
 import logging
 
@@ -31,11 +35,13 @@ router = APIRouter(prefix="/api/auth", tags=["authentication"])
 
 
 @router.post("/login", response_model=Token)
-async def login(user_credentials: UserLogin):
+async def login(user_credentials: UserLogin, db: Session = Depends(get_db)):
     """
     Authenticate user and return access and refresh tokens.
     """
-    user = authenticate_user(user_credentials.username, user_credentials.password)
+    user = authenticate_user(
+        db, username=user_credentials.username, password=user_credentials.password
+    )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -45,11 +51,11 @@ async def login(user_credentials: UserLogin):
 
     access_token_expires = timedelta(minutes=JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
-        data={"sub": user.id, "username": user.username, "role": user.role},
+        data={"sub": str(user.id), "username": user.username, "role": user.role},
         expires_delta=access_token_expires,
     )
     refresh_token = create_refresh_token(
-        data={"sub": user.id, "username": user.username, "role": user.role}
+        data={"sub": str(user.id), "username": user.username, "role": user.role}
     )
 
     logger.info(f"User {user.username} logged in successfully")
@@ -99,7 +105,7 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Depends()):
 
 
 @router.get("/me", response_model=User)
-async def get_current_user_info(current_user: User = Depends(get_current_user)):
+async def get_current_user_info(current_user: UserModel = Depends(get_current_user)):
     """
     Get current user information.
     """
@@ -107,7 +113,7 @@ async def get_current_user_info(current_user: User = Depends(get_current_user)):
 
 
 @router.post("/logout")
-async def logout(current_user: User = Depends(get_current_user)):
+async def logout(current_user: UserModel = Depends(get_current_user)):
     """
     Logout user (client should discard tokens).
     """
@@ -115,99 +121,89 @@ async def logout(current_user: User = Depends(get_current_user)):
     return {"message": "Successfully logged out"}
 
 
-@router.get("/users", response_model=List[User])
-async def list_users(current_user: User = Depends(require_role(UserRole.ADMIN))):
+async def list_users(
+    db: Session = Depends(get_db),
+    skip: int = 0,
+    limit: int = 100,
+    current_user: UserModel = Depends(require_role(UserRole.ADMIN)),
+):
     """
     List all users (admin only).
     """
-    from .auth import _users_db
-
-    return list(_users_db.values())
+    users = get_users(db, skip=skip, limit=limit)
+    return users
 
 
 @router.post("/users", response_model=User)
 async def create_user(
     user_data: SecureUserCreate,
-    current_user: User = Depends(require_role(UserRole.ADMIN)),
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(require_role(UserRole.ADMIN)),
 ):
     """
     Create new user (admin only).
     """
-    from .auth import _users_db, _user_credentials
-
-    if user_data.username in _users_db:
+    db_user = get_user_by_username(db, username=user_data.username)
+    if db_user:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Username already exists"
         )
 
-    # Hash password
-    hashed_password = hash_password(user_data.password)
-    _user_credentials[user_data.username] = hashed_password
-
-    # Create user
-    new_user = User(
-        id=user_data.username,  # Simple ID for demo
-        username=user_data.username,
-        email=user_data.email,
-        role=user_data.role,
-        is_active=True,
-        created_at=datetime.utcnow(),
-    )
-    _users_db[user_data.username] = new_user
-
-    logger.info(f"User {user_data.username} created by {current_user.username}")
-
+    new_user = create_user_in_db(db=db, user=user_data)
+    logger.info(f"User {new_user.username} created by {current_user.username}")
     return new_user
 
 
 @router.put("/users/{username}/activate")
 async def toggle_user_status(
-    username: str, current_user: User = Depends(require_role(UserRole.ADMIN))
+    username: str,
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(require_role(UserRole.ADMIN)),
 ):
     """
     Toggle user active status (admin only).
     """
-    from .auth import _users_db
-
-    if username not in _users_db:
+    user_to_update = get_user_by_username(db, username=username)
+    if not user_to_update:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
-    user = _users_db[username]
-    user.is_active = not user.is_active
+    updated_user = update_user_active_status(
+        db, user=user_to_update, is_active=not user_to_update.is_active
+    )
 
     logger.info(
-        f"User {username} status changed to {'active' if user.is_active else 'inactive'} by {current_user.username}"
+        f"User {username} status changed to {'active' if updated_user.is_active else 'inactive'} by {current_user.username}"
     )
 
     return {
-        "message": f"User {username} is now {'active' if user.is_active else 'inactive'}"
+        "message": f"User {username} is now {'active' if updated_user.is_active else 'inactive'}"
     }
 
 
 @router.delete("/users/{username}")
 async def delete_user(
-    username: str, current_user: User = Depends(require_role(UserRole.ADMIN))
+    username: str,
+    db: Session = Depends(get_db),
+    current_user: UserModel = Depends(require_role(UserRole.ADMIN)),
 ):
     """
     Delete user (admin only).
     """
-    from .auth import _users_db, _user_credentials
-
-    if username not in _users_db:
+    user_to_delete = get_user_by_username(db, username=username)
+    if not user_to_delete:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="User not found"
         )
 
-    if username == current_user.username:
+    if user_to_delete.username == current_user.username:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Cannot delete your own account",
         )
 
-    del _users_db[username]
-    del _user_credentials[username]
+    delete_user_from_db(db, user=user_to_delete)
 
     logger.info(f"User {username} deleted by {current_user.username}")
 

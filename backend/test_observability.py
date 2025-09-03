@@ -8,7 +8,7 @@ import asyncio
 import logging
 import os
 import sys
-
+import pytest
 import sentry_sdk
 
 # Add the api directory to the path
@@ -30,6 +30,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 
+@pytest.mark.asyncio
 async def test_token_usage_logging():
     """Test token usage logging functionality."""
     print("🧪 Testing token usage logging...")
@@ -86,6 +87,7 @@ async def test_token_usage_logging():
     print("🎉 Token usage logging tests passed!")
 
 
+@pytest.mark.asyncio
 async def test_sentry_integration():
     """Test Sentry integration with job context."""
     print("🧪 Testing Sentry integration...")
@@ -122,6 +124,7 @@ async def test_sentry_integration():
     print("🎉 Sentry integration tests passed!")
 
 
+@pytest.mark.asyncio
 async def test_content_generation_with_logging():
     """Test content generation with token logging."""
     print("🧪 Testing content generation with logging...")

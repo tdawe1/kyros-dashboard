@@ -22,8 +22,8 @@ class TokenBucketRateLimiter:
     Token bucket rate limiter implementation using Redis.
     """
 
-    def __init__(self):
-        self.redis_client = get_secure_redis_client()
+    def __init__(self, redis_client=None):
+        self.redis_client = redis_client or get_secure_redis_client()
 
     def _get_client_identifier(self, request: Request) -> str:
         """
@@ -140,10 +140,6 @@ class TokenBucketRateLimiter:
         return is_allowed, rate_limit_info
 
 
-# Global rate limiter instance
-rate_limiter = TokenBucketRateLimiter()
-
-
 async def rate_limit_middleware(request: Request, call_next):
     """
     FastAPI middleware for rate limiting.
@@ -153,6 +149,7 @@ async def rate_limit_middleware(request: Request, call_next):
         return await call_next(request)
 
     # Check rate limit
+    rate_limiter = TokenBucketRateLimiter()
     is_allowed, rate_info = rate_limiter.is_allowed(request)
 
     if not is_allowed:

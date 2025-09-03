@@ -62,7 +62,6 @@ class TestTokenBucketRateLimiter:
     def test_is_allowed_new_bucket(self, mock_redis):
         """Test rate limiting with new bucket."""
         limiter = TokenBucketRateLimiter()
-        limiter.redis_client = mock_redis
 
         request = Mock()
         request.headers = {}
@@ -84,7 +83,6 @@ class TestTokenBucketRateLimiter:
     def test_is_allowed_existing_bucket_with_tokens(self, mock_redis):
         """Test rate limiting with existing bucket that has tokens."""
         limiter = TokenBucketRateLimiter()
-        limiter.redis_client = mock_redis
 
         request = Mock()
         request.headers = {}
@@ -107,7 +105,6 @@ class TestTokenBucketRateLimiter:
     def test_is_allowed_existing_bucket_no_tokens(self, mock_redis):
         """Test rate limiting with existing bucket that has no tokens."""
         limiter = TokenBucketRateLimiter()
-        limiter.redis_client = mock_redis
 
         request = Mock()
         request.headers = {}
@@ -130,7 +127,6 @@ class TestTokenBucketRateLimiter:
     def test_is_allowed_redis_error(self, mock_redis):
         """Test rate limiting with Redis error (fail open)."""
         limiter = TokenBucketRateLimiter()
-        limiter.redis_client = mock_redis
 
         request = Mock()
         request.headers = {}
@@ -150,7 +146,6 @@ class TestTokenBucketRateLimiter:
     def test_token_refill_calculation(self, mock_redis):
         """Test token refill calculation based on time elapsed."""
         limiter = TokenBucketRateLimiter()
-        limiter.redis_client = mock_redis
 
         request = Mock()
         request.headers = {}

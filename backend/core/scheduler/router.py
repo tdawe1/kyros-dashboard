@@ -23,16 +23,18 @@ from .schemas import (
 )
 from .models import JobRun
 from core.database import get_db
-from core.auth import User, get_current_user
+from core.auth.dependencies import get_current_user
+from core.models import User as UserModel
+
 
 router = APIRouter()
 
 
-def get_current_user_id(current_user: User = Depends(get_current_user)) -> str:
+def get_current_user_id(current_user: UserModel = Depends(get_current_user)) -> str:
     """
     Get current user ID from JWT token.
     """
-    return current_user.id
+    return str(current_user.id)
 
 
 @router.post("/", response_model=CreateScheduleResponse)
@@ -61,7 +63,7 @@ async def list_schedules(
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Page size"),
     status: Optional[str] = Query(None, description="Filter by status"),
-    user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """List scheduled jobs for the current user."""
@@ -78,7 +80,9 @@ async def list_schedules(
 
 @router.get("/{job_id}", response_model=ScheduleDetailResponse)
 async def get_schedule_detail(
-    job_id: str, user_id: str = Depends(get_current_user), db: Session = Depends(get_db)
+    job_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Get detailed information about a scheduled job."""
     try:
@@ -99,7 +103,7 @@ async def get_schedule_detail(
 async def update_schedule(
     job_id: str,
     request: UpdateScheduleRequest,
-    user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """Update a scheduled job."""
@@ -122,7 +126,9 @@ async def update_schedule(
 
 @router.delete("/{job_id}")
 async def delete_schedule(
-    job_id: str, user_id: str = Depends(get_current_user), db: Session = Depends(get_db)
+    job_id: str,
+    user_id: str = Depends(get_current_user_id),
+    db: Session = Depends(get_db),
 ):
     """Delete a scheduled job."""
     try:
@@ -143,7 +149,7 @@ async def delete_schedule(
 async def run_job_now(
     job_id: str,
     request: RunNowRequest,
-    user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """Run a scheduled job immediately."""
@@ -174,7 +180,7 @@ async def list_job_runs(
     job_id: str,
     page: int = Query(1, ge=1, description="Page number"),
     page_size: int = Query(20, ge=1, le=100, description="Page size"),
-    user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """List runs for a specific scheduled job."""
@@ -198,7 +204,7 @@ async def list_job_runs(
 async def get_job_run(
     job_id: str,
     run_id: str,
-    user_id: str = Depends(get_current_user),
+    user_id: str = Depends(get_current_user_id),
     db: Session = Depends(get_db),
 ):
     """Get details of a specific job run."""

@@ -139,14 +139,14 @@ fi
 if [ "$RUN_BACKEND" = true ]; then
     print_status "Running backend tests..."
 
-    cd api
+    cd backend
 
     # Install Python dependencies
     print_status "Installing Python dependencies..."
     if [ -f requirements.txt ]; then
         python3 -m pip install -r requirements.txt
     else
-        print_error "requirements.txt not found in api directory"
+        print_error "requirements.txt not found in backend directory"
         exit 1
     fi
 
@@ -163,9 +163,9 @@ if [ "$RUN_BACKEND" = true ]; then
     # Run tests
     print_status "Running pytest..."
     if [ "$RUN_COVERAGE" = true ]; then
-        pytest --cov=. --cov-report=term-missing --cov-report=html -v
+        python3 -m pytest --cov=. --cov-report=term-missing --cov-report=html -v
     else
-        pytest -v
+        python3 -m pytest -v
     fi
 
     if [ $? -eq 0 ]; then
@@ -182,14 +182,14 @@ fi
 if [ "$RUN_FRONTEND" = true ]; then
     print_status "Running frontend tests..."
 
-    cd ui
+    cd frontend
 
     # Install Node.js dependencies
     print_status "Installing Node.js dependencies..."
     if [ -f package.json ]; then
         npm ci
     else
-        print_error "package.json not found in ui directory"
+        print_error "package.json not found in frontend directory"
         exit 1
     fi
 
@@ -225,13 +225,13 @@ if [ "$RUN_E2E" = true ]; then
 
     # Install API dependencies for E2E
     print_status "Installing API dependencies for E2E tests..."
-    cd api
+    cd backend
     python3 -m pip install -r requirements.txt
     cd ..
 
     # Install UI dependencies for E2E
     print_status "Installing UI dependencies for E2E tests..."
-    cd ui
+    cd frontend
     npm ci || npm install
 
     # Check if Playwright is installed
@@ -243,7 +243,7 @@ if [ "$RUN_E2E" = true ]; then
 
     # Start backend server in background
     print_status "Starting backend server..."
-    cd ../api
+    cd ../backend
     if port_in_use 8000; then
         print_warning "Port 8000 is already in use. Please stop the service and try again."
         exit 1
@@ -255,7 +255,7 @@ if [ "$RUN_E2E" = true ]; then
 
     # Start frontend server in background
     print_status "Starting frontend server..."
-    cd ../ui
+    cd ../frontend
     if port_in_use 5173; then
         print_warning "Port 5173 is already in use. Please stop the service and try again."
         kill $BACKEND_PID

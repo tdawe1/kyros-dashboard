@@ -2,6 +2,9 @@
 """
 Test script for API endpoints related to observability.
 """
+
+# This is not a pytest file, so we disable pytest discovery
+__test__ = False
 import requests
 import time
 import sys
