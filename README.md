@@ -1,66 +1,40 @@
-# Kyros Repurposer Dashboard
+# Kyros Dashboard
 
-A modern React + Tailwind dashboard for the kyros Repurposer, replacing the existing Streamlit UI with a sleek, responsive interface that matches the kyros.solutions aesthetic.
+A comprehensive AI-powered content generation and scheduling platform with a modern React frontend and robust FastAPI backend. The dashboard provides tools for content repurposing, automated scheduling, and extensible tool management.
 
 ## 🚀 Features
 
-- **Modern Dashboard**: Clean, responsive UI with navy gradient header and teal accents
+### Core Functionality
+- **Modern Dashboard**: Clean, responsive UI with dark theme and professional design
 - **Content Generation**: Transform source content into multiple channel formats (LinkedIn, Twitter, Newsletter, Blog)
 - **Variant Management**: Edit, accept, copy, and export generated content variants
-- **Job Monitoring**: Track and manage content repurposing jobs
+- **Job Monitoring**: Track and manage content repurposing jobs with real-time status updates
 - **Preset Management**: Create and manage custom content generation presets
+
+### Advanced Features
+- **Scheduler System**: Automated job scheduling with recurrence patterns and timezone support
+- **Tool Registry**: Extensible plugin system for custom tools and integrations
+- **Authentication**: Secure JWT-based authentication with user management
+- **Rate Limiting**: Built-in rate limiting and quota management
+- **Database Integration**: PostgreSQL with Alembic migrations
 - **Real-time Updates**: Live KPI tracking and job status updates
+- **Error Handling**: Comprehensive error handling with Sentry integration
 
 ## 🛠️ Tech Stack
 
-### Frontend
-- **React 19** with Vite for fast development
-- **Tailwind CSS** for styling with custom kyros color scheme
-- **React Router** for navigation
-- **TanStack Query** for API state management
-- **Lucide React** for icons
-- **Axios** for HTTP requests
-
-### Backend
-- **FastAPI** for API endpoints
-- **Pydantic** for data validation
-- **Uvicorn** for ASGI server
+**Frontend:** React 18, Vite, Tailwind CSS, TanStack Query, TypeScript
+**Backend:** FastAPI, PostgreSQL, Redis, Celery, JWT Auth
+**Testing:** Playwright, Vitest, pytest
+**Deployment:** GitHub Actions, Vercel, Railway/Render
 
 ## 📁 Project Structure
 
 ```
 kyros-dashboard/
-├── ui/                          # Frontend React application
-│   ├── src/
-│   │   ├── pages/              # Page components
-│   │   │   ├── Dashboard.jsx
-│   │   │   ├── Jobs.jsx
-│   │   │   ├── Studio.jsx
-│   │   │   └── Settings.jsx
-│   │   ├── ui/                 # Reusable UI components
-│   │   │   ├── Sidebar.jsx
-│   │   │   ├── Topbar.jsx
-│   │   │   ├── KPICards.jsx
-│   │   │   ├── JobTable.jsx
-│   │   │   ├── StudioPanel.jsx
-│   │   │   ├── VariantCard.jsx
-│   │   │   ├── EditorModal.jsx
-│   │   │   └── VariantsGallery.jsx
-│   │   ├── hooks/              # Custom React hooks
-│   │   │   ├── useKPIs.js
-│   │   │   ├── useJobs.js
-│   │   │   ├── useGenerate.js
-│   │   │   └── usePresets.js
-│   │   ├── lib/                # API client and utilities
-│   │   │   └── api.js
-│   │   └── layouts/            # Layout components
-│   │       └── AppShell.jsx
-│   ├── package.json
-│   └── tailwind.config.js
-├── api/                        # Backend FastAPI application
-│   ├── main.py                 # FastAPI app with mock endpoints
-│   └── requirements.txt
-└── README.md
+├── frontend/          # React app (pages, components, hooks)
+├── backend/           # FastAPI app (core, scheduler, tools, utils)
+├── docs/              # Documentation
+└── scripts/           # Development scripts
 ```
 
 ## 🚀 Getting Started
@@ -68,190 +42,97 @@ kyros-dashboard/
 ### Prerequisites
 - Node.js 18+ and npm
 - Python 3.8+
+- PostgreSQL (for production)
+- Redis (for caching and rate limiting)
 
-### Frontend Setup
+### Quick Start
 
-1. Navigate to the UI directory:
+The easiest way to get started is using the provided scripts:
+
 ```bash
-cd ui
+# Start both frontend and backend
+./scripts/start-both.sh
+
+# Or start them separately
+./scripts/start-frontend.sh  # Terminal 1
+./scripts/start-backend.sh   # Terminal 2
 ```
 
-2. Install dependencies:
+### Manual Setup
+
+**Frontend:**
 ```bash
-npm install
+cd frontend && npm install && npm run dev
 ```
 
-3. Start the development server:
+**Backend:**
 ```bash
-npm run dev
-```
-
-The frontend will be available at `http://localhost:5173`
-
-### Backend Setup
-
-1. Navigate to the API directory:
-```bash
-cd api
-```
-
-2. Create a virtual environment:
-```bash
-python -m venv .venv
-```
-
-3. Activate the virtual environment:
-```bash
-# On Linux/Mac
-source .venv/bin/activate
-
-# On Windows
-.venv\Scripts\activate
-```
-
-4. Install dependencies:
-```bash
+cd backend
+python -m venv venv
+source venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
-```
-
-5. Start the FastAPI server:
-```bash
+cp env.example .env  # Edit with your config
+alembic upgrade head
 uvicorn main:app --reload --port 8000
 ```
 
-The API will be available at `http://localhost:8000`
-
 ### Environment Variables
 
-Create a `.env` file in the `ui` directory:
+**Frontend:** `VITE_API_BASE_URL=http://localhost:8000`
+**Backend:** See `backend/env.example` for required variables (database, Redis, OpenAI, JWT, etc.)
 
-```env
-VITE_API_BASE_URL=http://localhost:8000
-```
+## 📱 Key Features
 
-## 📱 Pages & Features
+- **Dashboard** - KPIs, recent jobs, quick content generation
+- **Studio** - Content repurposing with channel-specific formatting
+- **Scheduler** - Automated job scheduling with recurrence patterns
+- **Jobs** - Job monitoring, history, and management
+- **Settings** - Presets, configuration, and tool management
 
-### Dashboard (`/`)
-- KPI cards showing jobs processed, hours saved, average edit time, and export bundles
-- Recent jobs table with sortable columns
-- Quick studio panel for fast content generation
 
-### Job Monitor (`/jobs`)
-- Comprehensive job listing with search and filtering
-- Real-time job status updates
-- Bulk actions for job management
 
-### Repurposer Studio (`/studio`)
-- Source content input with character count validation
-- Channel selection (LinkedIn, Twitter, Newsletter, Blog)
-- Tone and preset configuration
-- Generated variants gallery with inline editing
-- Export functionality for selected variants
+## 🔌 API
 
-### Settings (`/settings`)
-- Preset management (create, edit, delete)
-- Glossary and terms management
-- API configuration
-- Export settings
-
-## 🎨 Design System
-
-### Colors
-- **Primary Navy**: `#1e1b4b` to `#0f1724` (gradient)
-- **Accent Teal**: `#07c6b7`
-- **Background**: `#042f2e` (navy-950)
-- **Cards**: `#1e293b` (navy-800) with `#334155` (navy-700) borders
-
-### Typography
-- System default fonts with 16px base size
-- Font weights: 400 (normal), 500 (medium), 600 (semibold), 700 (bold)
-
-### Components
-- Rounded corners: 8px (lg) for buttons, 12px (xl) for cards
-- Shadows: `shadow-sm` for subtle elevation
-- Transitions: 150ms ease-in-out for hover states
-
-## 🔌 API Endpoints
-
-### Health & Status
-- `GET /api/health` - Health check
-
-### KPIs
-- `GET /api/kpis` - Get dashboard KPIs
-
-### Jobs
-- `GET /api/jobs` - List all jobs
-- `GET /api/jobs/{job_id}` - Get specific job
-
-### Content Generation
-- `POST /api/generate` - Generate content variants
-- `POST /api/export` - Export selected variants
-
-### Presets
-- `GET /api/presets` - List presets
-- `POST /api/presets` - Create preset
-- `PUT /api/presets/{preset_id}` - Update preset
-- `DELETE /api/presets/{preset_id}` - Delete preset
+RESTful API with endpoints for authentication, content generation, scheduling, and tool management.
+See `http://localhost:8000/docs` for interactive API documentation.
 
 ## 🧪 Testing
 
-### Frontend Tests
 ```bash
-cd ui
-npm test
-```
+# Run all tests
+./scripts/run-tests.sh
 
-### API Tests
-```bash
-cd api
-python -m pytest
+# Frontend: npm test, npm run test:e2e
+# Backend: python -m pytest
 ```
 
 ## 🚀 Deployment
 
-### Automatic Deployment
-The project is configured for automatic deployment using GitHub Actions:
+**Automatic:** GitHub Actions deploys on merge to `main`
+**Manual:** Frontend (Vercel), Backend (Railway/Render)
+**Setup:** See [Deployment Guide](docs/DEPLOYMENT.md)
 
-- **Production**: Merging to `main` branch automatically deploys to production
-- **Staging**: Pushing to `develop` or `feature/*` branches deploys to staging
-- **Quality Checks**: All PRs run comprehensive tests and security scans
+## 📝 Status
 
-### Manual Deployment
-
-#### Frontend (Vercel)
-1. Connect your GitHub repository to Vercel
-2. Set environment variables:
-   - `VITE_API_BASE_URL`: Your API base URL
-3. Deploy from the `main` branch
-
-#### Backend (Railway/Render)
-1. Deploy the `api/` directory
-2. Set environment variables as needed
-3. Update frontend API base URL
-
-### Setup Instructions
-See [Deployment Guide](docs/DEPLOYMENT.md) for complete setup instructions including:
-- GitHub Actions configuration
-- Required secrets and environment variables
-- Platform-specific setup (Vercel, Railway, Render)
-- Troubleshooting guide
-
-## 📝 Development Notes
-
-- The current implementation uses mock data for demonstration
-- Real backend integration requires updating API endpoints in `ui/src/lib/api.js`
-- All components are responsive and follow accessibility best practices
-- The design system is consistent with kyros.solutions branding
+**Production Ready** with authentication, database integration, and comprehensive testing.
+**Extensible** plugin-based architecture with CI/CD pipeline.
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/amazing-feature`
-3. Commit your changes: `git commit -m 'Add amazing feature'`
-4. Push to the branch: `git push origin feature/amazing-feature`
-5. Open a Pull Request
+2. Create a feature branch: `git checkout -b feature/amazing-feature` [[memory:7928543]]
+3. Commit frequently with clear messages [[memory:7940605]]
+4. Open a Pull Request targeting `main`
+
+**Requirements:** All code must pass tests, linting, and security checks. PRs require code review approval.
 
 ## 📄 License
 
 This project is part of the kyros Repurposer suite. All rights reserved.
-# Test change for branch protection setup
+
+## 📚 Documentation
+
+- [Quick Start](docs/QUICK_START.md) - Get running in 2 minutes
+- [Deployment](docs/DEPLOYMENT.md) - Complete setup guide
+- [Testing](docs/TESTING.md) - Testing strategies
+- [User Guide](docs/TEST_USER_GUIDE.md) - End-user documentation
