@@ -8,23 +8,45 @@ test.describe('Kyros Dashboard - Navigation', () => {
   });
 
   test('navigation between main pages', async ({ page }) => {
-    // Test Dashboard page
-    await page.click('text=Dashboard');
+    // Prefer sidebar links if available
+    const sidebar = page.locator('[data-testid="sidebar"]');
+
+    const navClick = async (label) => {
+      const candidates = [label, label === 'Jobs' ? 'Job Monitor' : null].filter(Boolean);
+      for (const candidate of candidates) {
+        if (await sidebar.isVisible()) {
+          const link = sidebar.locator(`text=${candidate}, a:has-text("${candidate}")`).first();
+          if (await link.isVisible()) {
+            await link.click();
+            return true;
+          }
+        }
+        const pageLink = page.locator(`text=${candidate}`).first();
+        if (await pageLink.isVisible()) {
+          await pageLink.click();
+          return true;
+        }
+      }
+      return false;
+    };
+
+    // Dashboard
+    await navClick('Dashboard');
     await expect(page).toHaveURL(/.*dashboard|.*\/$/);
     await expect(page.locator('[data-testid="page-title"]').first()).toBeVisible();
 
-    // Test Studio page
-    await page.click('text=Studio');
+    // Studio
+    await navClick('Studio');
     await expect(page).toHaveURL(/.*studio/);
     await expect(page.locator('[data-testid="content-input"]').first()).toBeVisible();
 
-    // Test Jobs page
-    await page.click('text=Jobs');
+    // Jobs
+    await navClick('Jobs');
     await expect(page).toHaveURL(/.*jobs/);
     await expect(page.locator('[data-testid="jobs-table"]').first()).toBeVisible();
 
-    // Test Settings page
-    await page.click('text=Settings');
+    // Settings
+    await navClick('Settings');
     await expect(page).toHaveURL(/.*settings/);
     await expect(page.locator('[data-testid="page-title"]').first()).toBeVisible();
   });
@@ -38,7 +60,8 @@ test.describe('Kyros Dashboard - Navigation', () => {
       const navItems = ['Dashboard', 'Studio', 'Jobs', 'Settings'];
 
       for (const item of navItems) {
-        const navLink = sidebar.locator(`text=${item}, a:has-text("${item}")`).first();
+        const candidate = item === 'Jobs' ? 'Job Monitor' : item;
+        const navLink = sidebar.locator(`text=${candidate}, a:has-text("${candidate}")`).first();
         if (await navLink.isVisible()) {
           await navLink.click();
           await expect(page.locator('[data-testid="page-title"]').first()).toBeVisible();
@@ -89,7 +112,8 @@ test.describe('Kyros Dashboard - Navigation', () => {
       const navItems = ['Dashboard', 'Studio', 'Jobs', 'Settings'];
 
       for (const item of navItems) {
-        const navLink = mobileMenu.locator(`text=${item}, a:has-text("${item}")`).first();
+        const candidate = item === 'Jobs' ? 'Job Monitor' : item;
+        const navLink = mobileMenu.locator(`text=${candidate}, a:has-text("${candidate}")`).first();
         if (await navLink.isVisible()) {
           await navLink.click();
           await expect(page.locator('[data-testid="page-title"]').first()).toBeVisible();

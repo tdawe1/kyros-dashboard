@@ -46,7 +46,7 @@ export default function Settings() {
     }
   };
 
-  const handleDeletePreset = async id => {
+  const handleDeletePreset = async (id) => {
     try {
       await deletePreset.mutateAsync(id);
     } catch (error) {
@@ -64,8 +64,8 @@ export default function Settings() {
     setEditingGlossary(newTerm.id);
   };
 
-  const handleDeleteGlossary = id => {
-    setGlossary(glossary.filter(g => g.id !== id));
+  const handleDeleteGlossary = (id) => {
+    setGlossary(glossary.filter((g) => g.id !== id));
   };
 
   return (
@@ -85,7 +85,7 @@ export default function Settings() {
       {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="-mb-px flex space-x-8">
-          {tabs.map(tab => (
+          {tabs.map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
@@ -123,7 +123,7 @@ export default function Settings() {
                 Loading presets...
               </div>
             ) : (
-              presets?.map(preset => (
+              presets?.map((preset) => (
                 <div
                   key={preset.id}
                   className="bg-white dark:bg-gray-800 rounded-lg p-6 border border-gray-200 dark:border-gray-700"
@@ -218,7 +218,7 @@ export default function Settings() {
               </h3>
             </div>
             <div className="divide-y divide-gray-200 dark:divide-gray-700">
-              {glossary.map(item => (
+              {glossary.map((item) => (
                 <div key={item.id} className="p-6">
                   {editingGlossary === item.id ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -319,10 +319,10 @@ export default function Settings() {
                 </label>
                 <select
                   value={selectedModel}
-                  onChange={e => updateModel(e.target.value)}
+                  onChange={(e) => updateModel(e.target.value)}
                   className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-accent"
                 >
-                  {validModels.map(model => (
+                  {validModels.map((model) => (
                     <option key={model} value={model}>
                       {model}
                     </option>
@@ -384,7 +384,7 @@ export default function Settings() {
                 </label>
                 <select
                   value={exportFormat}
-                  onChange={e => setExportFormat(e.target.value)}
+                  onChange={(e) => setExportFormat(e.target.value)}
                   className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white"
                 >
                   <option value="csv">CSV</option>

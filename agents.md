@@ -43,7 +43,6 @@ collaboration/
 
 ---
 
-<<<<<<< HEAD
 ## Quickstart (TL;DR)
 
 1. Sync repo and read state: pull latest `main`, inspect `collaboration/state/*` and prune stale leases if required.
@@ -105,8 +104,6 @@ Operational notes
 - Emit `context_reset` event with `{task, subtask, reason: "boundary"}`.
 - If an agent needs broader context, read the code/state again; avoid long free‑form recap.
 
-=======
->>>>>>> develop
 ## Task lifecycle (state machine)
 
 Statuses and transitions:
@@ -122,15 +119,12 @@ Rules:
 * Transitions must be recorded as events with `old_status`, `new_status`, and `reason` when relevant.
 * A task in `blocked` must include a `needs` field (what’s required to unblock).
 
-<<<<<<< HEAD
 ## Handoff Minimization
 
 - Implementer owns fixes: when a review results in `changes_requested`, the original implementer remains the owner and addresses feedback (no separate "fixer" role by default).
 - Exceptions: the planner may reassign fixes only for load-balancing or domain mismatch; record the reassignment reason in events.
 - Separation of duties remains: critics review and integrators merge; implementers must not self-approve or self-merge.
 
-=======
->>>>>>> develop
 ---
 
 ## Definition of Done (DoD)
@@ -141,10 +135,7 @@ A task is **not** `approved` until all are true:
 * Static checks: formatter, linter, type checker (if applicable).
 * Secret scan clean (no tokens/keys).
 * Docs updated (README/architecture/ADR if design changed).
-<<<<<<< HEAD
 * Changelog updated: add a concise entry to `CHANGELOG.md` for user‑facing changes (Implementer proposes in PR; Integrator finalizes on merge).
-=======
->>>>>>> develop
 * Backwards-compatibility considered (document any breaks).
 * Reviewed by a **critic** agent (not the implementer).
 
@@ -174,7 +165,6 @@ Defaults and behaviour:
 
 ---
 
-<<<<<<< HEAD
 ## Changelog Policy
 
 - File: `CHANGELOG.md` (maintained by Integrator); follow Keep a Changelog + SemVer.
@@ -186,8 +176,6 @@ Defaults and behaviour:
 
 ---
 
-=======
->>>>>>> develop
 ## State write protocol (atomic + optimistic)
 
 1. Read `state/*` and compute an ETag as `sha256` of the file bytes (hex-encoded).
@@ -244,7 +232,6 @@ Defaults and behaviour:
 
 ---
 
-<<<<<<< HEAD
 ## RPC Cheat Sheet (collab.*)
 
 - `collab.get_state` (kind): Return `{data, etag}` for `tasks|locks|agents`, or `{text, etag}` for `events|log`.
@@ -276,8 +263,6 @@ Examples (stdio): see `mcp/README.md` for `python -m mcp.kyros_collab_server` pi
 
 ---
 
-=======
->>>>>>> develop
 ## Commit message template
 
 ```
@@ -458,7 +443,6 @@ The helper implements ETag-checked atomic writes to `state/*`, lease management 
 
 ---
 
-<<<<<<< HEAD
 ## MCP servers: env and launch
 
 - Env loading: MCP servers auto-load `.env` and `collaboration/.env` at startup without overriding existing variables. Keep real tokens in those files (never commit them) or inject via your IDE/runner.
@@ -587,8 +571,6 @@ Lightweight tracking (optional)
 
 ---
 
-=======
->>>>>>> develop
 ## Migration plan (from v1 state.json)
 
 1. Create the new `collaboration/state/*.json`, `collaboration/events/events.jsonl`, and `collaboration/logs/log.md` files.
@@ -621,10 +603,7 @@ Lightweight tracking (optional)
 * [ ] Add pre-commit hooks (format, lint, type, unit, secrets).
 * [ ] Define planner → implementer → critic → integrator assignments in `agents.json`.
 * [ ] Enforce PR review before merge.
-<<<<<<< HEAD
 * [ ] Create and maintain `CHANGELOG.md`; add entries at PR time and finalize on merge.
-=======
->>>>>>> develop
 
 ---
 
