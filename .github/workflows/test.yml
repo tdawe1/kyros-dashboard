@@ -87,7 +87,7 @@ jobs:
         MAX_TOKENS_PER_JOB: 50000
         DAILY_JOB_LIMIT: 10
       run: |
-        poetry run pytest --cov=. --cov-report=xml --cov-report=html --junitxml=pytest-report.xml -v
+        PYTHONPATH=. poetry run pytest --cov=. --cov-report=xml --cov-report=html --junitxml=pytest-report.xml -v
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
