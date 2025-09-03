@@ -6,9 +6,12 @@ const FormInput = forwardRef(
     return (
       <div className="space-y-2">
         {label && (
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+          <label
+            htmlFor={props.id}
+            className="block text-sm font-medium text-gray-700 dark:text-gray-300"
+          >
             {label}
-            {required && <span className="text-red-400 ml-1">*</span>}
+            {required && <span className="text-red-400 ml-1" aria-label="required">*</span>}
           </label>
         )}
         <div className="relative">
@@ -19,6 +22,8 @@ const FormInput = forwardRef(
                 ? "border-red-500 focus:ring-red-500"
                 : "border-gray-300 dark:border-gray-600"
             } ${className}`}
+            aria-invalid={error ? "true" : "false"}
+            aria-describedby={error ? `${props.id}-error` : undefined}
             {...props}
           />
           {error && (
@@ -28,8 +33,8 @@ const FormInput = forwardRef(
           )}
         </div>
         {error && (
-          <p className="text-sm text-red-400 flex items-center space-x-1">
-            <AlertCircle className="w-3 h-3" />
+          <p id={`${props.id}-error`} className="text-sm text-red-400 flex items-center space-x-1" role="alert">
+            <AlertCircle className="w-3 h-3" aria-hidden="true" />
             <span>{error}</span>
           </p>
         )}

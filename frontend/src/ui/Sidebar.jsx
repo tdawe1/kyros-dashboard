@@ -63,6 +63,8 @@ export default function Sidebar({ isOpen, onClose }) {
           "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:inset-auto flex flex-col",
           isOpen ? "translate-x-0" : "-translate-x-full",
         )}
+        role="navigation"
+        aria-label="Main navigation"
       >
         {/* Header */}
         <div className="flex items-center justify-between h-16 px-6 border-b border-gray-200 dark:border-gray-700">
@@ -72,14 +74,15 @@ export default function Sidebar({ isOpen, onClose }) {
           <button
             onClick={onClose}
             className="lg:hidden text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            aria-label="Close navigation menu"
           >
             <X className="w-6 h-6" />
           </button>
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 mt-6 px-3">
-          <div className="space-y-1">
+        <nav className="flex-1 mt-6 px-3" aria-label="Main navigation menu">
+          <div className="space-y-1" role="list">
             {navigation.map((item) => {
               // Handle tool routes - check if current path starts with tool path
               const isActive = item.tool
@@ -95,6 +98,8 @@ export default function Sidebar({ isOpen, onClose }) {
                       ? "bg-accent text-white"
                       : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100",
                   )}
+                  role="listitem"
+                  aria-current={isActive ? "page" : undefined}
                 >
                   <item.icon
                     className={clsx(
