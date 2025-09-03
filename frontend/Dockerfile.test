@@ -1,14 +1,15 @@
 FROM node:18-alpine
 
-# Force CI cache invalidation - updated to fix lifecycle script issues
+# Force CI cache invalidation with a unique build argument
+ENV CACHE_BUSTER=20250903-030000
+
 WORKDIR /app
 
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies. The "prepare" script was removed from package.json
-# to prevent issues in the CI build environment.
-RUN npm ci --no-audit --no-fund
+# Install dependencies (CI fix: prevent phantom lifecycle scripts from running)
+RUN npm ci --ignore-scripts --no-audit --no-fund
 
 # Copy application code
 COPY . .
