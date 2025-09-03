@@ -9,6 +9,8 @@ permissions:
 jobs:
   import:
     runs-on: ubuntu-latest
+    outputs:
+      branch_name: ${{ steps.stage.outputs.BRANCH_NAME }}
     steps:
       - uses: actions/checkout@v4
 
@@ -60,5 +62,36 @@ jobs:
           PY
 
       - name: Stage PlanSpec into repo
+        id: stage
         run: |
           mkdir -p collaboration/plans/inbox
+          cp planspec.yml collaboration/plans/inbox/
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          
+          # Create timestamped branch name
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          BRANCH_NAME="merge/plan-import-${TIMESTAMP}"
+          
+          # Create and switch to new branch
+          git checkout -b "$BRANCH_NAME"
+          
+          # Add and commit the plan
+          git add collaboration/plans/inbox/planspec.yml
+          git commit -m "Import latest plan from Drive (${TIMESTAMP})"
+          
+          # Push the branch
+          git push origin "$BRANCH_NAME"
+          
+          # Output branch name for next workflow
+          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          
+          # Also save to a file for the next workflow to read
+          echo "$BRANCH_NAME" > branch_name.txt
+
+      - name: Upload branch name artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: branch-name
+          path: branch_name.txt
+          retention-days: 1
