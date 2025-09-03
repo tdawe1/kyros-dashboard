@@ -7,7 +7,7 @@ test.describe('Kyros Dashboard - Full Flow', () => {
     await page.goto('/');
 
     // Wait for the page to load
-    await expect(page.locator('h1')).toBeVisible();
+    await expect(page.locator('[data-testid="page-title"]')).toBeVisible();
   });
 
   test('complete content generation flow', async ({ page }) => {

@@ -135,6 +135,7 @@ A task is **not** `approved` until all are true:
 * Static checks: formatter, linter, type checker (if applicable).
 * Secret scan clean (no tokens/keys).
 * Docs updated (README/architecture/ADR if design changed).
+* Changelog updated: add a concise entry to `CHANGELOG.md` for user‑facing changes (Implementer proposes in PR; Integrator finalizes on merge).
 * Backwards-compatibility considered (document any breaks).
 * Reviewed by a **critic** agent (not the implementer).
 
@@ -161,6 +162,17 @@ Defaults and behaviour:
 * Typical events: `task_created`, `task_claimed`, `status_changed`, `file_locked`, `lease_renewed`, `locks_reclaimed`, `tests_run`, `pr_opened`, `review_requested`, `review_feedback`, `approved`, `merged`, `released`, `error`.
 * To reduce conflicts, agents may append to per-agent files under `collaboration/events/agents/<agent>.jsonl` and periodically consolidate.
 * Human-readable `logs/log.md` is generated from these events.
+
+---
+
+## Changelog Policy
+
+- File: `CHANGELOG.md` (maintained by Integrator); follow Keep a Changelog + SemVer.
+- Implementer: when opening a PR, add an entry under `Unreleased` grouped by Added/Changed/Fixed/Security with a short, user‑facing summary. Reference the task id and PR number.
+  - Example: `- Fixed: lint/format gating and secrets baseline (task-008, PR #9).`
+- Critic: ensure the entry is scoped, accurate, and avoids internal/leaky details.
+- Integrator: on merge, finalize the entry. If a release is cut, move it under a new version heading with a date; otherwise keep under `Unreleased`.
+- Internal refactors/docs‑only may be skipped unless they impact users or CI; prefer concise entries over exhaustive ones.
 
 ---
 
@@ -591,6 +603,7 @@ Lightweight tracking (optional)
 * [ ] Add pre-commit hooks (format, lint, type, unit, secrets).
 * [ ] Define planner → implementer → critic → integrator assignments in `agents.json`.
 * [ ] Enforce PR review before merge.
+* [ ] Create and maintain `CHANGELOG.md`; add entries at PR time and finalize on merge.
 
 ---
 

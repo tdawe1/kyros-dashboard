@@ -29,7 +29,10 @@ export default function Topbar({ onMenuClick }) {
 
         {/* Page title - dynamic based on route */}
         <div className="flex-1 lg:flex-none flex items-center space-x-3">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h1
+            data-testid="page-title"
+            className="text-xl font-semibold text-gray-900 dark:text-gray-100"
+          >
             {pageTitle}
           </h1>
           {isDemoMode && (

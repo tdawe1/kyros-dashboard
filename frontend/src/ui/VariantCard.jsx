@@ -11,11 +11,13 @@ import {
 export default function VariantCard({
   variant,
   channel,
+  isSelected,
   onEdit,
   onAccept,
   onCopy,
   onDownload,
   onToggleFavorite,
+  onSelect,
 }) {
   const [isFavorited, setIsFavorited] = useState(false);
 
@@ -87,6 +89,14 @@ export default function VariantCard({
         </div>
 
         <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            data-testid="select-variant"
+            checked={!!isSelected}
+            onChange={() => onSelect?.()}
+            className="w-4 h-4 accent-accent cursor-pointer"
+            aria-label="Select variant"
+          />
           <button
             onClick={handleToggleFavorite}
             className={`p-2 rounded-lg transition-colors ${
