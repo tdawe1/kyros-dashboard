@@ -273,8 +273,8 @@ if [ "$RUN_E2E" = true ]; then
     # Start frontend server in background
     print_status "Starting frontend server..."
     cd ../frontend
-    if port_in_use 5173; then
-        print_warning "Port 5173 is already in use. Please stop the service and try again."
+    if port_in_use 3001; then
+        print_warning "Port 3001 is already in use. Please stop the service and try again."
         kill $BACKEND_PID
         exit 1
     fi
