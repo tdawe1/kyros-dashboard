@@ -144,7 +144,12 @@ if [ "$RUN_BACKEND" = true ]; then
     # Install Python dependencies
     print_status "Installing Python dependencies..."
     if [ -f requirements.txt ]; then
-        python3 -m pip install -r requirements.txt
+        # Use virtual environment if it exists, otherwise use system python
+        if [ -f "../venv/bin/pip" ]; then
+            ../venv/bin/pip install -r requirements.txt
+        else
+            python3 -m pip install -r requirements.txt
+        fi
     else
         print_error "requirements.txt not found in backend directory"
         exit 1
@@ -163,9 +168,17 @@ if [ "$RUN_BACKEND" = true ]; then
     # Run tests
     print_status "Running pytest..."
     if [ "$RUN_COVERAGE" = true ]; then
-        pytest --cov=. --cov-report=term-missing --cov-report=html -v
+        if [ -f "../venv/bin/pytest" ]; then
+            ../venv/bin/pytest --cov=. --cov-report=term-missing --cov-report=html -v
+        else
+            pytest --cov=. --cov-report=term-missing --cov-report=html -v
+        fi
     else
-        pytest -v
+        if [ -f "../venv/bin/pytest" ]; then
+            ../venv/bin/pytest -v
+        else
+            pytest -v
+        fi
     fi
 
     if [ $? -eq 0 ]; then
@@ -226,7 +239,11 @@ if [ "$RUN_E2E" = true ]; then
     # Install API dependencies for E2E
     print_status "Installing API dependencies for E2E tests..."
     cd backend
-    python3 -m pip install -r requirements.txt
+    if [ -f "../venv/bin/pip" ]; then
+        ../venv/bin/pip install -r requirements.txt
+    else
+        python3 -m pip install -r requirements.txt
+    fi
     cd ..
 
     # Install UI dependencies for E2E
