@@ -168,16 +168,20 @@ if [ "$RUN_BACKEND" = true ]; then
     # Run tests
     print_status "Running pytest..."
     if [ "$RUN_COVERAGE" = true ]; then
-        if [ -f "../venv/bin/pytest" ]; then
+        if [ -f "../venv/bin/python" ]; then
+            ../venv/bin/python -m pytest --cov=. --cov-report=term-missing --cov-report=html -v
+        elif [ -f "../venv/bin/pytest" ]; then
             ../venv/bin/pytest --cov=. --cov-report=term-missing --cov-report=html -v
         else
-            pytest --cov=. --cov-report=term-missing --cov-report=html -v
+            python3 -m pytest --cov=. --cov-report=term-missing --cov-report=html -v
         fi
     else
-        if [ -f "../venv/bin/pytest" ]; then
+        if [ -f "../venv/bin/python" ]; then
+            ../venv/bin/python -m pytest -v
+        elif [ -f "../venv/bin/pytest" ]; then
             ../venv/bin/pytest -v
         else
-            pytest -v
+            python3 -m pytest -v
         fi
     fi
 

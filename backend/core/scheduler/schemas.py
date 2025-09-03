@@ -4,7 +4,7 @@ Pydantic schemas for the scheduler API.
 
 from datetime import datetime
 from typing import Optional, Dict, Any, List
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from enum import Enum
 from uuid import UUID
 
@@ -58,7 +58,7 @@ class CreateScheduleRequest(BaseModel):
         None, description="Idempotency key to prevent duplicates"
     )
 
-    @validator("tool")
+    @field_validator("tool")
     def validate_tool(cls, v):
         """Validate that the tool exists in the registry."""
         from tools.registry import is_tool_enabled
@@ -67,7 +67,7 @@ class CreateScheduleRequest(BaseModel):
             raise ValueError(f"Tool '{v}' is not available or enabled")
         return v
 
-    @validator("recurrence")
+    @field_validator("recurrence")
     def validate_recurrence(cls, v):
         """Validate recurrence pattern."""
         if v is None:
@@ -93,7 +93,7 @@ class UpdateScheduleRequest(BaseModel):
     status: Optional[JobStatus] = None
     max_runs: Optional[int] = None
 
-    @validator("recurrence")
+    @field_validator("recurrence")
     def validate_recurrence(cls, v):
         """Validate recurrence pattern."""
         if v is None:

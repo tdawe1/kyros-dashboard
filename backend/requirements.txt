@@ -45,6 +45,9 @@ celery>=5.3.0
 celery[redis]>=5.3.0
 
 # Testing
+aiohttp>=3.8.0
+bleach>=5.0.0
+pydantic-settings>=2.0.0
 pytest>=7.4.0
 pytest-asyncio>=0.21.0
 pytest-cov>=4.1.0

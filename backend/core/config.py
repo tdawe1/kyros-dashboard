@@ -6,7 +6,8 @@ Implements secure configuration loading with validation and environment-specific
 import logging
 import secrets
 from typing import List, Optional
-from pydantic import BaseSettings, validator, Field
+from pydantic_settings import BaseSettings
+from pydantic import Field, field_validator
 from enum import Enum
 
 logger = logging.getLogger(__name__)
@@ -104,14 +105,14 @@ class Settings(BaseSettings):
         default=60, env="CIRCUIT_BREAKER_RECOVERY_TIMEOUT"
     )
 
-    @validator("allowed_origins", pre=True)
+    @field_validator("allowed_origins", mode="before")
     def parse_allowed_origins(cls, v):
         """Parse comma-separated origins."""
         if isinstance(v, str):
             return [origin.strip() for origin in v.split(",")]
         return v
 
-    @validator("environment", pre=True)
+    @field_validator("environment", mode="before")
     def validate_environment(cls, v):
         """Validate environment setting."""
         if isinstance(v, str):
@@ -122,7 +123,7 @@ class Settings(BaseSettings):
                 return Environment.DEVELOPMENT
         return v
 
-    @validator("jwt_secret_key")
+    @field_validator("jwt_secret_key")
     def validate_jwt_secret(cls, v):
         """Validate JWT secret key."""
         if not v or len(v) < 32:
@@ -132,7 +133,7 @@ class Settings(BaseSettings):
             return secrets.token_urlsafe(32)
         return v
 
-    @validator("openai_api_key")
+    @field_validator("openai_api_key")
     def validate_openai_key(cls, v):
         """Validate OpenAI API key format."""
         if v and not v.startswith("sk-"):

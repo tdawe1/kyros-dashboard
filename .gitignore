@@ -150,3 +150,9 @@ config.local.json
 # Project archives
 *.zip
 kyros-dashboard-project.zip
+
+# Python coverage artifacts
+.coverage
+htmlcov/
+backend/.coverage
+backend/htmlcov/

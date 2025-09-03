@@ -5,7 +5,6 @@ This module provides scheduling functionality for running tools at specified tim
 or on recurring schedules.
 """
 
-from .router import router as scheduler_router
 from .models import ScheduledJob, JobRun, IdempotencyKey
 from .service import SchedulerService
 from .schemas import (
@@ -24,7 +23,6 @@ from .schemas import (
 )
 
 __all__ = [
-    "scheduler_router",
     "ScheduledJob",
     "JobRun",
     "IdempotencyKey",
