@@ -78,7 +78,7 @@ export default defineConfig({
   ...(process.env.SKIP_WEBSERVER ? {} : {
     webServer: {
       command: 'npm run dev',
-      url: 'http://localhost:5173',
+      url: 'http://localhost:3001',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
     },
