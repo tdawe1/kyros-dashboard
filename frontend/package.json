@@ -2,7 +2,7 @@
   "name": "kyros-dashboard-ui",
   "private": true,
   "version": "0.0.0",
-  "description": "Kyros Dashboard Frontend - Fixed for CI compatibility",
+  "description": "Kyros Dashboard Frontend - CI FIXED: No prepare script exists",
   "type": "module",
   "scripts": {
     "dev": "vite",

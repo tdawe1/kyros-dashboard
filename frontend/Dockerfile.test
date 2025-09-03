@@ -6,8 +6,9 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies (CI fix: prevent lifecycle scripts from running during npm ci)
-RUN npm ci --ignore-scripts --no-audit --no-fund
+# Install dependencies. The "prepare" script was removed from package.json
+# to prevent issues in the CI build environment.
+RUN npm ci --no-audit --no-fund
 
 # Copy application code
 COPY . .
