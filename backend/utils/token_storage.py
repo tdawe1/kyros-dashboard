@@ -100,7 +100,9 @@ def save_token_usage(
             # Update total tokens and cost (configurable cost per 1K tokens)
             total_tokens = token_usage.get("total_tokens", 0)
             _token_usage_storage[job_id]["total_tokens"] += total_tokens
-            _token_usage_storage[job_id]["total_cost"] += total_tokens * DEFAULT_TOKEN_COST
+            _token_usage_storage[job_id]["total_cost"] += (
+                total_tokens * DEFAULT_TOKEN_COST
+            )
 
             # Store per-channel usage (maintain list of entries per channel)
             if "channels" not in _token_usage_storage[job_id]:

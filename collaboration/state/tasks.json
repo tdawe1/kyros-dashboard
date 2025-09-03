@@ -5,7 +5,7 @@
       "id": "task-001",
       "title": "Auth package refactor",
       "description": "Refactor authentication to package-based structure and update imports.",
-      "status": "done",
+      "status": "in_progress",
       "assignee": "codex-cli",
       "priority": "P2",
       "labels": [
@@ -209,7 +209,7 @@
       "blockers": [],
       "branch": "merge/batch-develop-20250903-162907",
       "created_at": "2025-09-03T16:08:55Z",
-      "updated_at": "2025-09-03T16:58:01Z",
+      "updated_at": "2025-09-03T17:10:30Z",
       "dod": [
         "Quality gates executed",
         "Review submitted with approve or actionable feedback"
@@ -243,7 +243,7 @@
       "id": "task-008-04",
       "title": "Integrator: merge PR and update changelog",
       "description": "On approval and green checks, merge PR into develop and update CHANGELOG.md if maintained.",
-      "status": "merging",
+      "status": "blocked",
       "assignee": "codex-cli-2",
       "priority": "P2",
       "labels": [
@@ -254,13 +254,13 @@
       "blockers": [],
       "branch": "merge/batch-develop-20250903-162907",
       "created_at": "2025-09-03T16:08:55Z",
-      "updated_at": "2025-09-03T16:58:01Z",
+      "updated_at": "2025-09-03T17:10:30Z",
       "dod": [
         "PR merged into develop",
         "Changelog updated (if applicable)",
         "Events/log regenerated"
       ],
-      "needs": null
+      "needs": "PR #9 checks green (CI + security)"
     },
     {
       "id": "task-008-05",
