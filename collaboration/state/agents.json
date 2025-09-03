@@ -2,7 +2,6 @@
   "version": 1,
   "agents": [
     {
-<<<<<<< HEAD
       "id": "codex-cli-1",
       "model": "gpt-5-high",
       "provider": "OpenAI",
@@ -58,48 +57,6 @@
       "skills": ["frontend", "e2e"],
       "status": "idle",
       "last_seen": null
-=======
-      "id": "codex-cli",
-      "role": "implementer",
-      "skills": ["python", "fastapi", "pytest", "ci"],
-      "status": "idle",
-      "last_seen": "2025-09-03T12:55:00Z"
-    },
-    {
-      "id": "gemini-cli",
-      "role": "critic",
-      "skills": ["docs", "e2e", "review"],
-      "status": "idle",
-      "last_seen": "2025-09-03T12:55:00Z"
-    },
-    {
-      "id": "gemini-2.5-flash",
-      "role": "implementer",
-      "skills": ["javascript", "playwright", "docs"],
-      "status": "idle",
-      "last_seen": "2025-09-03T12:55:00Z"
-    },
-    {
-      "id": "cursor-gpt5-high",
-      "role": "critic",
-      "skills": ["tests", "coverage", "security"],
-      "status": "idle",
-      "last_seen": "2025-09-03T12:55:00Z"
-    },
-    {
-      "id": "cursor-gpt5",
-      "role": "implementer",
-      "skills": ["python", "react", "devops"],
-      "status": "idle",
-      "last_seen": "2025-09-03T12:55:00Z"
-    },
-    {
-      "id": "cursor-4.1-sonnet",
-      "role": "integrator",
-      "skills": ["git", "release", "changelog"],
-      "status": "idle",
-      "last_seen": "2025-09-03T12:55:00Z"
->>>>>>> develop
     }
   ]
 }

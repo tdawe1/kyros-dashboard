@@ -36,23 +36,10 @@ class TokenBucketRateLimiter:
 
         # Check X-Forwarded-For header (case-insensitive)
         forwarded_for = None
-        raw_headers = getattr(request, "headers", {}) or {}
-        try:
-            items_iter = raw_headers.items() if hasattr(raw_headers, "items") else []
-        except Exception:
-            items_iter = []
-        try:
-            for header_name, header_value in items_iter:
-                try:
-                    header_name_l = header_name.lower()
-                except Exception:
-                    continue
-                if header_name_l == "x-forwarded-for":
-                    forwarded_for = header_value
-                    break
-        except TypeError:
-            # Non-iterable headers mock
-            pass
+        for header_name, header_value in request.headers.items():
+            if header_name.lower() == "x-forwarded-for":
+                forwarded_for = header_value
+                break
 
         if forwarded_for:
             # Split on commas, trim whitespace and quotes, take first non-empty token
@@ -64,20 +51,10 @@ class TokenBucketRateLimiter:
         else:
             # Check X-Real-IP header
             real_ip = None
-            try:
-                iter2 = items_iter
-            except Exception:
-                iter2 = []
-            try:
-                for header_name, header_value in iter2:
-                    try:
-                        if header_name.lower() == "x-real-ip":
-                            real_ip = header_value
-                            break
-                    except Exception:
-                        continue
-            except TypeError:
-                pass
+            for header_name, header_value in request.headers.items():
+                if header_name.lower() == "x-real-ip":
+                    real_ip = header_value
+                    break
 
             if real_ip and real_ip.lower() != "unknown":
                 client_ip = real_ip
@@ -138,12 +115,7 @@ class TokenBucketRateLimiter:
             is_allowed = False
 
         # Use pipeline for atomic operations
-        # Use underlying Redis client pipeline if wrapped
-        client = self.redis_client
-        if hasattr(client, "pipeline") and callable(getattr(client, "pipeline")):
-            pipe = client.pipeline()
-        else:
-            pipe = getattr(client, "_client").pipeline()
+        pipe = self.redis_client.pipeline()
         pipe.hset(bucket_key, mapping={"tokens": tokens, "last_refill": current_time})
         pipe.expire(bucket_key, RATE_LIMIT_WINDOW * 2)
         pipe.execute()
