@@ -9,7 +9,7 @@ class TestOpenAIClient:
     def test_init_with_api_key(self):
         """Test client initialization with API key."""
         client = OpenAIClient(api_key="test-key-12345")
-        assert client.api_key == "test-key"
+        assert client.api_key == "test-key-12345"
 
     @patch.dict("os.environ", {"OPENAI_API_KEY": "env-key"})
     def test_init_with_env_key(self):
@@ -36,7 +36,7 @@ class TestOpenAIClient:
         for model in invalid_models:
             assert client.validate_model(model) is False
 
-    @patch("api.core.openai_client.OpenAI")
+    @patch("core.openai_client.OpenAI")
     def test_chat_completion_success(self, mock_openai_class):
         """Test successful chat completion."""
         # Mock the OpenAI client and response
@@ -73,7 +73,7 @@ class TestOpenAIClient:
                 model="invalid-model",
             )
 
-    @patch("api.core.openai_client.OpenAI")
+    @patch("core.openai_client.OpenAI")
     def test_chat_completion_retry_logic(self, mock_openai_class):
         """Test retry logic on API failures."""
         # Mock the OpenAI client to fail twice then succeed
@@ -103,7 +103,7 @@ class TestOpenAIClient:
         assert result["content"] == "Success after retry"
         assert mock_client.chat.completions.create.call_count == 3
 
-    @patch("api.core.openai_client.OpenAI")
+    @patch("core.openai_client.OpenAI")
     def test_chat_completion_max_retries_exceeded(self, mock_openai_class):
         """Test behavior when max retries are exceeded."""
         mock_client = MagicMock()

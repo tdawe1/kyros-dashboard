@@ -1,7 +1,7 @@
 """
 Unit tests for quota management functionality.
 """
-
+import pytest
 from utils.quotas import can_create_job, get_user_quota_status, reset_user_quota
 
 
@@ -51,14 +51,11 @@ class TestCanCreateJob:
         mock_redis.incr.assert_not_called()
 
     def test_can_create_job_redis_error(self, mock_redis):
-        """Test quota check with Redis error (fail open)."""
+        """Test quota check with Redis error (fail closed)."""
         mock_redis.get.side_effect = Exception("Redis connection failed")
 
-        can_create, count = can_create_job("error_user", 10)
-
-        # Should fail open - allow job creation
-        assert can_create is True
-        assert count == 0
+        with pytest.raises(Exception, match="Operation failed - failing closed for security"):
+            can_create_job("error_user", 10)
 
     def test_can_create_job_custom_limit(self, mock_redis):
         """Test quota check with custom daily limit."""
@@ -113,14 +110,8 @@ class TestGetUserQuotaStatus:
         """Test quota status with Redis error."""
         mock_redis.get.side_effect = Exception("Redis connection failed")
 
-        status = get_user_quota_status("error_user", 10)
-
-        # Should return default values with error info
-        assert status["user_id"] == "error_user"
-        assert status["current_count"] == 0
-        assert status["remaining"] == 10
-        assert status["can_create"] is True
-        assert "error" in status
+        with pytest.raises(Exception, match="Operation failed - failing closed for security"):
+            get_user_quota_status("error_user", 10)
 
     def test_get_user_quota_status_custom_limit(self, mock_redis):
         """Test quota status with custom limit."""

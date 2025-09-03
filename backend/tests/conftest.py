@@ -4,7 +4,7 @@ Pytest configuration and fixtures for the Kyros API tests.
 
 import os
 import sys
-from unittest.mock import Mock, patch, MagicMock
+from unittest.mock import Mock, patch, MagicMock, AsyncMock
 
 import pytest
 from fastapi.testclient import TestClient
@@ -72,8 +72,8 @@ def clean_storage():
 @pytest.fixture
 def mock_redis():
     """Mock Redis client for testing."""
-    with patch("utils.quotas.get_redis_client") as mock_redis_client, patch(
-        "middleware.rate_limiter.redis.from_url"
+    with patch("utils.quotas.get_secure_redis_client") as mock_redis_client, patch(
+        "middleware.rate_limiter.get_secure_redis_client"
     ) as mock_redis_url:
         # Create a mock Redis instance
         mock_redis_instance = Mock()
@@ -85,6 +85,17 @@ def mock_redis():
         mock_redis_instance.hset.return_value = True
         mock_redis_instance.expire.return_value = True
 
+        # Mock the pipeline
+        mock_pipeline = Mock()
+        mock_pipeline.get.return_value = mock_pipeline
+        mock_pipeline.incr.return_value = mock_pipeline
+        mock_pipeline.expire.return_value = mock_pipeline
+        mock_pipeline.execute.return_value = [
+            mock_redis_instance.get.return_value,
+            mock_redis_instance.incr.return_value,
+        ]
+        mock_redis_instance._client.pipeline.return_value = mock_pipeline
+
         mock_redis_client.return_value = mock_redis_instance
         mock_redis_url.return_value = mock_redis_instance
 
@@ -94,7 +105,7 @@ def mock_redis():
 @pytest.fixture
 def mock_openai():
     """Mock OpenAI client for testing."""
-    with patch("generator.OpenAI") as mock_openai_class:
+    with patch("generator.AsyncOpenAI") as mock_openai_class:
         mock_client = Mock()
         mock_response = Mock()
         mock_response.choices = [Mock()]
@@ -106,7 +117,7 @@ def mock_openai():
         mock_response.usage.completion_tokens = 100
         mock_response.usage.total_tokens = 150
 
-        mock_client.chat.completions.create.return_value = mock_response
+        mock_client.chat.completions.create = AsyncMock(return_value=mock_response)
         mock_openai_class.return_value = mock_client
 
         yield mock_client

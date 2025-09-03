@@ -1,7 +1,7 @@
 """
 Unit tests for rate limiting functionality.
 """
-
+import pytest
 import time
 from unittest.mock import Mock, patch
 from fastapi.responses import JSONResponse
@@ -128,7 +128,7 @@ class TestTokenBucketRateLimiter:
         assert rate_info["remaining"] == 0
 
     def test_is_allowed_redis_error(self, mock_redis):
-        """Test rate limiting with Redis error (fail open)."""
+        """Test rate limiting with Redis error (fail closed)."""
         limiter = TokenBucketRateLimiter()
         limiter.redis_client = mock_redis
 
@@ -140,12 +140,8 @@ class TestTokenBucketRateLimiter:
         # Mock Redis error
         mock_redis.hgetall.side_effect = Exception("Redis connection failed")
 
-        is_allowed, rate_info = limiter.is_allowed(request)
-
-        # Should fail open - allow request
-        assert is_allowed is True
-        assert "error" in rate_info
-        assert rate_info["error"] == "Rate limiting temporarily disabled"
+        with pytest.raises(Exception, match="Operation failed - failing closed for security"):
+            limiter.is_allowed(request)
 
     def test_token_refill_calculation(self, mock_redis):
         """Test token refill calculation based on time elapsed."""
@@ -176,6 +172,7 @@ class TestTokenBucketRateLimiter:
 class TestRateLimitMiddleware:
     """Test rate limiting middleware."""
 
+    @pytest.mark.asyncio
     async def test_rate_limit_middleware_health_check_bypass(self, mock_redis):
         """Test that health checks bypass rate limiting."""
         request = Mock()
@@ -197,6 +194,7 @@ class TestRateLimitMiddleware:
             mock_is_allowed.assert_not_called()
             assert response.status_code == 200
 
+    @pytest.mark.asyncio
     async def test_rate_limit_middleware_docs_bypass(self, mock_redis):
         """Test that docs endpoints bypass rate limiting."""
         request = Mock()
@@ -215,6 +213,7 @@ class TestRateLimitMiddleware:
             mock_is_allowed.assert_not_called()
             assert response.status_code == 200
 
+    @pytest.mark.asyncio
     async def test_rate_limit_middleware_allowed_request(self, mock_redis):
         """Test middleware with allowed request."""
         request = Mock()
@@ -247,6 +246,7 @@ class TestRateLimitMiddleware:
             assert "X-RateLimit-Remaining" in response.headers
             assert "X-RateLimit-Reset" in response.headers
 
+    @pytest.mark.asyncio
     async def test_rate_limit_middleware_rate_limited(self, mock_redis):
         """Test middleware with rate limited request."""
         request = Mock()
@@ -279,6 +279,7 @@ class TestRateLimitMiddleware:
             assert "Rate limit exceeded" in response.body.decode()
             assert "Retry-After" in response.headers
 
+    @pytest.mark.asyncio
     async def test_rate_limit_middleware_headers(self, mock_redis):
         """Test that rate limit headers are properly set."""
         request = Mock()

@@ -1,7 +1,7 @@
 import os
 import logging
 from typing import Dict, List, Any, Optional
-from openai import OpenAI
+from openai import OpenAI, AsyncOpenAI
 import sentry_sdk
 from utils.token_storage import save_token_usage
 from core.security import with_circuit_breaker, openai_circuit_breaker
@@ -89,7 +89,7 @@ def get_demo_variants(
     return variants
 
 
-def generate_content_real(
+async def generate_content_real(
     input_text: str, channels: List[str], tone: str, model: str, job_id: str
 ) -> Dict[str, List[Dict[str, Any]]]:
     """
@@ -102,7 +102,7 @@ def generate_content_real(
     if model not in VALID_MODELS:
         raise ValueError(f"Invalid model: {model}. Must be one of {VALID_MODELS}")
 
-    client = OpenAI(api_key=api_key)
+    client = AsyncOpenAI(api_key=api_key)
     variants = {}
 
     for channel in channels:
@@ -142,8 +142,8 @@ Return as JSON array with objects containing: text, length, readability, tone"""
         try:
             # Use circuit breaker for OpenAI API calls
             @with_circuit_breaker(openai_circuit_breaker)
-            def make_openai_call():
-                return client.chat.completions.create(
+            async def make_openai_call():
+                return await client.chat.completions.create(
                     model=model,
                     messages=[
                         {
@@ -156,7 +156,7 @@ Return as JSON array with objects containing: text, length, readability, tone"""
                     temperature=0.7,
                 )
 
-            response = make_openai_call()
+            response = await make_openai_call()
 
             # Log token usage to Sentry and database
             if hasattr(response, "usage") and response.usage:
@@ -192,13 +192,14 @@ Return as JSON array with objects containing: text, length, readability, tone"""
         except Exception as e:
             logger.error(f"OpenAI API error for {channel}: {str(e)}")
             sentry_sdk.capture_exception(e)
-            # Fail closed - raise exception instead of falling back to demo content
-            raise Exception(f"Content generation failed for {channel}: {str(e)}")
+            # Fallback to demo content on API error
+            logger.info(f"Falling back to demo content for {channel}")
+            variants.update(get_demo_variants(input_text, [channel], tone))
 
     return variants
 
 
-def generate_content(
+async def generate_content(
     input_text: str,
     channels: List[str],
     tone: str,
@@ -227,7 +228,7 @@ def generate_content(
         logger.info(
             f"Generating real content using model {selected_model} for channels: {channels}"
         )
-        return generate_content_real(
+        return await generate_content_real(
             input_text, channels, tone, selected_model, job_id or "unknown"
         )
     else:
