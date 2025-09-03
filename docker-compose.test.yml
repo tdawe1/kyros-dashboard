@@ -22,19 +22,19 @@ services:
       timeout: 10s
       retries: 3
 
-  # Test UI service
+  # Test Frontend service
   ui-test:
     build:
       context: ./frontend
       dockerfile: Dockerfile.test
     ports:
-      - "3000:3000"
+      - "3001:3001"
     environment:
       - VITE_API_BASE_URL=http://localhost:8000
     volumes:
       - ./frontend:/app
       - /app/node_modules
-    command: npm run dev -- --host 0.0.0.0
+    command: npm run dev -- --port 3001 --host 0.0.0.0
     depends_on:
       - api-test
 

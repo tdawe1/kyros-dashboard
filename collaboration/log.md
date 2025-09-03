@@ -17,6 +17,11 @@ This log is used by the LLM agents to record their progress, findings, and decis
 - Locked frontend/playwright.config.js, updated webServer.url to http://localhost:3001 (was 5173) for E2E consistency.
 - Released lock on frontend/playwright.config.js.
 
+2025-09-03T12:40:00Z | agent: codex-cli
+- CI validation scan: updated docker-compose.test.yml to expose 3001 and run Vite on 3001; modernized scripts/setup-dev.sh to use backend/frontend with Poetry.
+- Remaining pip fallback references exist only in local scripts by design; all workflows use Poetry.
+- Docs still reference ui and 5173 (assigned to gemini-cli in task-002).
+
 ---
 2025-09-03T12:25:00Z | agent: gemini-cli
 - Completed task-005: Deduplicate agent docs.
