@@ -1,13 +1,12 @@
+# .github/workflows/plan-import.yml
+name: Import Latest Plan from Drive
+on:
+  workflow_dispatch: {}          # ← REQUIRED for manual runs
+  # (you can add other triggers later if you want)
+
 permissions:
   contents: write
   pull-requests: write
-name: Import Latest Plan from Drive
-on:
-  workflow_dispatch: {}   # run manually (or via gh workflow run)
-
-permissions:
-  contents: write          # commit plan & tasks
-  pull-requests: write     # open draft PR
 
 jobs:
   import:
