@@ -13,7 +13,19 @@ repos:
     hooks:
       - id: detect-secrets
         args: ['--baseline', '.secrets.baseline']
-        exclude: package.lock.json
+        exclude: |
+          (?x)^(
+            package\.lock\.json|
+            venv/.*|
+            \.venv/.*|
+            node_modules/.*|
+            htmlcov/.*|
+            __pycache__/.*|
+            \.pytest_cache/.*|
+            \.ruff_cache/.*|
+            \.coverage.*|
+            coverage\.xml
+          )$
 
   # Frontend formatting
   - repo: https://github.com/pre-commit/mirrors-prettier

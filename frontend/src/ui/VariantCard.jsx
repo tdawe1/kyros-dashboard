@@ -11,11 +11,13 @@ import {
 export default function VariantCard({
   variant,
   channel,
+  isSelected,
   onEdit,
   onAccept,
   onCopy,
   onDownload,
   onToggleFavorite,
+  onSelect,
 }) {
   const [isFavorited, setIsFavorited] = useState(false);
 
@@ -33,7 +35,7 @@ export default function VariantCard({
     }
   };
 
-  const getReadabilityColor = readability => {
+  const getReadabilityColor = (readability) => {
     switch (readability.toLowerCase()) {
       case "excellent":
         return "text-green-400";
@@ -48,7 +50,7 @@ export default function VariantCard({
     }
   };
 
-  const getChannelIcon = channel => {
+  const getChannelIcon = (channel) => {
     switch (channel.toLowerCase()) {
       case "linkedin":
         return "💼";
@@ -87,6 +89,14 @@ export default function VariantCard({
         </div>
 
         <div className="flex items-center space-x-2">
+          <input
+            type="checkbox"
+            data-testid="select-variant"
+            checked={!!isSelected}
+            onChange={() => onSelect?.()}
+            className="w-4 h-4 accent-accent cursor-pointer"
+            aria-label="Select variant"
+          />
           <button
             onClick={handleToggleFavorite}
             className={`p-2 rounded-lg transition-colors ${
