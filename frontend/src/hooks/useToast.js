@@ -3,8 +3,12 @@ import { useState, useCallback } from "react";
 export const useToast = () => {
   const [toasts, setToasts] = useState([]);
 
+  const removeToast = useCallback((id) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  }, []);
+
   const addToast = useCallback(
-    toast => {
+    (toast) => {
       const id = Date.now().toString();
       const newToast = {
         id,
@@ -13,7 +17,7 @@ export const useToast = () => {
         ...toast,
       };
 
-      setToasts(prev => [...prev, newToast]);
+      setToasts((prev) => [...prev, newToast]);
 
       if (newToast.duration > 0) {
         setTimeout(() => {
@@ -23,39 +27,35 @@ export const useToast = () => {
 
       return id;
     },
-    [removeToast]
+    [removeToast],
   );
-
-  const removeToast = useCallback(id => {
-    setToasts(prev => prev.filter(toast => toast.id !== id));
-  }, []);
 
   const success = useCallback(
     (message, options = {}) => {
       return addToast({ type: "success", message, ...options });
     },
-    [addToast]
+    [addToast],
   );
 
   const error = useCallback(
     (message, options = {}) => {
       return addToast({ type: "error", message, ...options });
     },
-    [addToast]
+    [addToast],
   );
 
   const info = useCallback(
     (message, options = {}) => {
       return addToast({ type: "info", message, ...options });
     },
-    [addToast]
+    [addToast],
   );
 
   const warning = useCallback(
     (message, options = {}) => {
       return addToast({ type: "warning", message, ...options });
     },
-    [addToast]
+    [addToast],
   );
 
   return {

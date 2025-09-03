@@ -4,12 +4,15 @@ This guide covers how to test your Kyros Dashboard application locally and valid
 
 ## 🧪 Local Testing Options
 
+### E2E Testing
+For comprehensive End-to-End testing with Playwright, see the [E2E Testing Guide](./E2E_TESTING.md).
+
 ### Option 1: Quick Local Test (Recommended)
 
 Run the automated test script to validate everything works:
 
 ```bash
-./test-local.sh
+./scripts/test-local.sh
 ```
 
 This script will:
@@ -67,7 +70,7 @@ Test the complete application stack using Docker:
 docker-compose -f docker-compose.test.yml up --build
 
 # Access the application
-# Frontend: http://localhost:3000
+# Frontend: http://localhost:3001
 # Backend: http://localhost:8000
 # API Health: http://localhost:8000/api/health
 ```
@@ -207,7 +210,7 @@ node --version
 npm --version
 
 # Check if ports are in use
-lsof -i :3000
+lsof -i :3001
 lsof -i :8000
 
 # Check build output

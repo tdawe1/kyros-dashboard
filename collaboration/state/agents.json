@@ -2,6 +2,63 @@
   "version": 1,
   "agents": [
     {
+<<<<<<< HEAD
+      "id": "codex-cli-1",
+      "model": "gpt-5-high",
+      "provider": "OpenAI",
+      "role": "implementer",
+      "skills": ["python", "fastapi", "pytest", "ci", "integrator"],
+      "status": "active",
+      "last_seen": "2025-09-03T12:55:00Z"
+    },
+    {
+      "id": "cursor-ide",
+      "model": "auto",
+      "provider": "Cursor",
+      "alts": ["claude-4.1-sonnet", "gpt-5-high", "gemini-2.5-pro"],
+      "role": "implementer",
+      "skills": ["frontend", "e2e", "tooling", "multi-file-refactor"],
+      "status": "active",
+      "last_seen": "2025-09-03T12:55:00Z"
+    },
+    {
+      "id": "codex-cli-2",
+      "model": "gpt-5",
+      "provider": "OpenAI",
+      "role": "implementer",
+      "skills": ["backend", "devops", "workflows"],
+      "status": "active",
+      "last_seen": "2025-09-03T12:55:00Z"
+    },
+    {
+      "id": "cursor-ide-2",
+      "model": "gpt-5",
+      "provider": "Cursor",
+      "alts": ["gemini-2.5-flash", "claude-4.1-sonnet"],
+      "role": "implementer",
+      "skills": ["frontend", "docs", "e2e"],
+      "status": "active",
+      "last_seen": "2025-09-03T12:55:00Z"
+    },
+    {
+      "id": "gemini-cli-1",
+      "model": "gemini-2.5-flash",
+      "provider": "Google",
+      "role": "critic",
+      "skills": ["planning", "review", "docs", "watchdog"],
+      "status": "active",
+      "last_seen": "2025-09-03T12:55:00Z"
+    },
+    {
+      "id": "cursor-ide-N",
+      "model": "auto",
+      "provider": "Cursor",
+      "alts": ["gpt-5", "gemini-2.5-flash", "claude-4.1-sonnet"],
+      "role": "implementer",
+      "skills": ["frontend", "e2e"],
+      "status": "idle",
+      "last_seen": null
+=======
       "id": "codex-cli",
       "role": "implementer",
       "skills": ["python", "fastapi", "pytest", "ci"],
@@ -42,6 +99,7 @@
       "skills": ["git", "release", "changelog"],
       "status": "idle",
       "last_seen": "2025-09-03T12:55:00Z"
+>>>>>>> develop
     }
   ]
 }

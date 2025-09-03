@@ -37,14 +37,29 @@ def load_tool_routers() -> List[Tuple[str, APIRouter]]:
     routers = []
 
     for tool in TOOLS:
+        # Validate required tool fields
+        required_fields = ["name", "module", "router", "title", "description"]
+        validation_failed = False
+        for field in required_fields:
+            if field not in tool:
+                logger.error(f"Tool missing required field '{field}': {tool}")
+                validation_failed = True
+                break
+            if not tool[field] or not isinstance(tool[field], str):
+                logger.error(f"Tool field '{field}' must be a non-empty string: {tool}")
+                validation_failed = True
+                break
+
+        if validation_failed:
+            continue
+
         if not tool.get("enabled", True):
             logger.info(f"Tool {tool['name']} is disabled, skipping")
             continue
 
         try:
             # Import the tool module
-            module_path = f"{tool['module']}.{tool['router']}"
-            module = importlib.import_module(module_path)
+            module = importlib.import_module(tool["module"])
 
             # Get the router from the module
             router = getattr(module, tool["router"])

@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://kyros.local/schema/agents.json",
+  "type": "object",
+  "required": ["version", "agents"],
+  "properties": {
+    "version": {"type": "integer"},
+    "agents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "role"],
+        "properties": {
+          "id": {"type": "string"},
+          "role": {"type": "string"},
+          "model": {"type": ["string", "null"]},
+          "provider": {"type": ["string", "null"]},
+          "skills": {"type": "array", "items": {"type": "string"}},
+          "status": {"type": ["string", "null"]},
+          "last_seen": {"type": ["string", "null"]},
+          "alts": {"type": "array", "items": {"type": "string"}}
+        }
+      }
+    }
+  }
+}

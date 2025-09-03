@@ -3,7 +3,11 @@ import logging
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
+<<<<<<< HEAD
+from generator import VALID_MODELS
+=======
 from .generator import VALID_MODELS
+>>>>>>> develop
 
 router = APIRouter()
 

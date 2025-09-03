@@ -20,6 +20,7 @@ export default function Topbar({ onMenuClick }) {
       <div className="flex items-center justify-between h-16 px-6">
         {/* Mobile menu button */}
         <button
+          data-testid="mobile-menu"
           onClick={onMenuClick}
           className="lg:hidden text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
         >
@@ -28,7 +29,10 @@ export default function Topbar({ onMenuClick }) {
 
         {/* Page title - dynamic based on route */}
         <div className="flex-1 lg:flex-none flex items-center space-x-3">
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+          <h1
+            data-testid="page-title"
+            className="text-xl font-semibold text-gray-900 dark:text-gray-100"
+          >
             {pageTitle}
           </h1>
           {isDemoMode && (

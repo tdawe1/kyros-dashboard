@@ -7,12 +7,12 @@ export default function KyrosLogo({ className = "w-8 h-8", showText = true }) {
       <img
         src="/kyros-logo.svg"
         alt="Kyros Logo"
-        className="h-24 w-auto dark:hidden"
+        className={`h-24 w-auto dark:hidden ${className}`}
       />
       <img
         src="/kyros-logo-white.svg"
         alt="Kyros Logo"
-        className="h-24 w-auto hidden dark:block"
+        className={`h-24 w-auto hidden dark:block ${className}`}
       />
 
       {/* Text label */}
@@ -31,7 +31,7 @@ export function KyrosLogoCompact({ className = "w-6 h-6" }) {
     <div className={`flex items-center ${className}`}>
       <svg
         viewBox="0 0 24 24"
-        className="h-6 w-6"
+        className={`h-6 w-6 ${className}`}
         fill="none"
         xmlns="http://www.w3.org/2000/svg"
       >

@@ -3,12 +3,8 @@
 Simple test script to verify Phase B utilities work correctly.
 """
 
-import sys
-
-sys.path.append(".")
-
-from utils.token_utils import estimate_tokens, validate_input_limits  # noqa: E402
-from utils.quotas import can_create_job  # noqa: E402
+from utils.token_utils import estimate_tokens, validate_input_limits
+from utils.quotas import can_create_job
 
 
 def test_token_estimation():
@@ -40,7 +36,7 @@ def test_input_validation():
     )
     validation = validate_input_limits(valid_text)
     print(
-        f'  Valid input: Valid={validation["valid"]}, Tokens={validation["stats"]["estimated_tokens"]}'
+        f"  Valid input: Valid={validation['valid']}, Tokens={validation['stats']['estimated_tokens']}"
     )
     assert validation["valid"] is True
 
@@ -48,7 +44,7 @@ def test_input_validation():
     large_text = "This is a test sentence. " * 5000  # ~125,000 characters
     validation = validate_input_limits(large_text)
     print(
-        f'  Large input: Valid={validation["valid"]}, Errors={len(validation["errors"])}'
+        f"  Large input: Valid={validation['valid']}, Errors={len(validation['errors'])}"
     )
 
     assert validation["valid"] is False

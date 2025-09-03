@@ -6,14 +6,14 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
   const [originalText, setOriginalText] = useState("");
 
   useEffect(() => {
-    if (variant) {
+    if (variant?.text) {
       setEditedText(variant.text);
       setOriginalText(variant.text);
     }
   }, [variant]);
 
   const handleSave = () => {
-    if (onSave) {
+    if (onSave && variant) {
       onSave({
         ...variant,
         text: editedText,
@@ -26,7 +26,7 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
     setEditedText(originalText);
   };
 
-  const handleKeyDown = e => {
+  const handleKeyDown = (e) => {
     if (e.key === "Escape") {
       onClose();
     } else if (e.key === "s" && (e.ctrlKey || e.metaKey)) {
@@ -68,7 +68,8 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
                 id="modal-description"
                 className="text-gray-600 dark:text-gray-300 text-sm mt-1"
               >
-                {variant.length} characters • {variant.readability} readability
+                {variant?.text?.length || 0} characters •{" "}
+                {variant?.readability || "N/A"} readability
               </p>
             </div>
             <button
@@ -89,8 +90,9 @@ export default function EditorModal({ isOpen, onClose, variant, onSave }) {
                   Content
                 </label>
                 <textarea
+                  data-testid="edit-modal"
                   value={editedText}
-                  onChange={e => setEditedText(e.target.value)}
+                  onChange={(e) => setEditedText(e.target.value)}
                   onKeyDown={handleKeyDown}
                   className="w-full h-96 p-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent focus:border-transparent resize-none font-mono text-sm leading-relaxed"
                   placeholder="Enter your content here..."

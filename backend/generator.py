@@ -112,7 +112,7 @@ async def generate_content_real(
 
 Tone: {tone}
 Format: Each post should be engaging, professional, and include relevant hashtags.
-Length: 150-200 characters each.
+Length: 500-1000 characters each (LinkedIn allows up to 3000 characters).
 Return as JSON array with objects containing: text, length, readability, tone"""
 
         elif channel == "twitter":

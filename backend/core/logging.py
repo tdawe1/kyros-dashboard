@@ -33,13 +33,23 @@ class JobLogger:
 
     def _init_sentry(self):
         """Initialize Sentry with proper configuration."""
-        sentry_sdk.init(
-            dsn=self.sentry_dsn,
-            traces_sample_rate=0.1,
-            environment=os.getenv("ENVIRONMENT", "development"),
-            release=os.getenv("RELEASE_VERSION", "1.0.0"),
-        )
-        logger.info("Sentry initialized successfully")
+        try:
+            sentry_sdk.init(
+                dsn=self.sentry_dsn,
+                traces_sample_rate=0.1,
+                environment=os.getenv("ENVIRONMENT", "development"),
+                release=os.getenv("RELEASE_VERSION", "1.0.0"),
+            )
+            logger.info("Sentry initialized successfully")
+        except Exception as e:
+            logger.warning(f"Failed to initialize Sentry: {e}")
+
+    def _is_sentry_available(self) -> bool:
+        """Check if Sentry is available and properly initialized."""
+        try:
+            return sentry_sdk.Hub.current and sentry_sdk.Hub.current.client is not None
+        except Exception:
+            return False
 
     def log_job_start(
         self,
@@ -69,7 +79,7 @@ class JobLogger:
         )
 
         # Set Sentry context
-        if sentry_sdk.Hub.current.client is not None:
+        if self._is_sentry_available():
             with sentry_sdk.configure_scope() as scope:
                 scope.set_tag("job_id", job_id)
                 scope.set_tag("tool_name", tool_name)
@@ -136,7 +146,7 @@ class JobLogger:
         )
 
         # Capture in Sentry
-        if sentry_sdk.Hub.current.client is not None:
+        if self._is_sentry_available():
             with sentry_sdk.configure_scope() as scope:
                 scope.set_tag("job_id", job_id)
                 scope.set_tag("tool_name", tool_name)

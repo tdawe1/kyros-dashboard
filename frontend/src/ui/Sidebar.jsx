@@ -33,7 +33,7 @@ const staticNavigation = [
 
 // Generate dynamic navigation from tools
 const getToolNavigation = () => {
-  return getEnabledTools().map(tool => ({
+  return getEnabledTools().map((tool) => ({
     name: tool.title,
     href: `/tools/${tool.name}`,
     icon: iconMap[tool.icon] || FileText, // Default to FileText if icon not found
@@ -61,7 +61,7 @@ export default function Sidebar({ isOpen, onClose }) {
       <div
         className={clsx(
           "fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transform transition-transform duration-300 ease-in-out lg:relative lg:translate-x-0 lg:inset-auto flex flex-col",
-          isOpen ? "translate-x-0" : "-translate-x-full"
+          isOpen ? "translate-x-0" : "-translate-x-full",
         )}
         role="navigation"
         aria-label="Main navigation"
@@ -81,9 +81,13 @@ export default function Sidebar({ isOpen, onClose }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 mt-6 px-3" aria-label="Main navigation menu">
+        <nav
+          data-testid="sidebar"
+          className="flex-1 mt-6 px-3"
+          aria-label="Main navigation menu"
+        >
           <div className="space-y-1" role="list">
-            {navigation.map(item => {
+            {navigation.map((item) => {
               // Handle tool routes - check if current path starts with tool path
               const isActive = item.tool
                 ? location.pathname.startsWith(item.href)
@@ -96,7 +100,7 @@ export default function Sidebar({ isOpen, onClose }) {
                     "group flex items-center px-3 py-2 text-sm font-medium rounded-lg transition-colors",
                     isActive
                       ? "bg-accent text-white"
-                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:text-gray-900 dark:hover:text-gray-100",
                   )}
                   role="listitem"
                   aria-current={isActive ? "page" : undefined}
@@ -106,7 +110,7 @@ export default function Sidebar({ isOpen, onClose }) {
                       "mr-3 h-5 w-5 flex-shrink-0",
                       isActive
                         ? "text-white"
-                        : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-100"
+                        : "text-gray-500 dark:text-gray-400 group-hover:text-gray-700 dark:group-hover:text-gray-100",
                     )}
                   />
                   {item.name}

@@ -43,6 +43,67 @@ collaboration/
 
 ---
 
+## Quickstart (TL;DR)
+
+1. Sync repo and read state: pull latest `main`, inspect `collaboration/state/*` and prune stale leases if required.
+2. Claim a task: pick highest‑priority `queued`, set `status: claimed`, set `assignee`, create branch `feat/<task-id>-slug`.
+3. Acquire leases: add leases only for files you will edit (TTL ≈ 15m; heartbeat every 5m).
+4. Implement: small commits; run gates (format, lint, type, unit tests, secret scan) locally.
+5. Open PR: set task `status: review`, assign a critic; release unneeded leases.
+6. Integrate: on approval → `approved → merging → done`, release all leases, regenerate logs.
+
+IDs: Current repo uses IDs like `task-00x`. Examples here also show `T-142` style. Either is acceptable; be consistent per task/thread and include the chosen ID in branches/commits.
+
+---
+
+## Task Slicing & Commits
+
+- Smallest viable steps: Aim for 10–60 minute subtasks that can be code‑reviewed independently and rolled back safely.
+- Commit cadence: Commit after every coherent change (1–5 files, ~10–200 LOC). Don’t batch unrelated edits.
+- Message format: Keep the template, but be specific to the subtask.
+  - `feat(task-007-01): add MCP env autoload`
+  - Why/Touches/Tests/Risks sections stay concise and focused.
+- Change size guardrails: Prefer ≤200 LOC per commit and ≤400 LOC per PR unless mechanical.
+- Branching: One branch per task; subtasks are sequential commits. If a subtask becomes large, branch off a temporary sub-branch and squash back before PR.
+
+Subtask IDs
+- Use `task-<parent>-NN` (e.g., `task-007-01`, `task-007-02`) or `task-007-a/b`.
+- Record subtask IDs in commit messages and events for traceability.
+
+Events to emit
+- `subtask_started` / `subtask_completed` with `{task, subtask, notes}`.
+- `commit_pushed` with `{task, subtask, sha, summary}` when applicable.
+- Continue emitting `tests_run`, `file_locked`, `lease_renewed`, etc.
+
+---
+
+## Context Reset Protocol
+
+Goal: minimize drift by clearing conversational context between subtasks.
+
+At every subtask boundary:
+- End the chat/session and start a new one (Cursor/Claude: open a fresh chat).
+- Rehydrate only minimal context:
+  - Task ID, title, acceptance criteria (DoD), and any blockers/dependencies.
+  - Current state from `collab.get_state(kind="tasks")` for the specific task.
+  - Open leases relevant to the next change (if any).
+- Post the following handoff snippet to kick off the next subtask:
+
+```
+Context Reset: New subtask
+Task: <task-id> — <title>
+Subtask: <task-id-NN> — <one-line goal>
+DoD: <bulleted acceptance criteria>
+Constraints: small diff, tests updated, no secrets, follow agents.md
+Plan: <3–5 steps>
+Output: code changes only; summarize what changed and next subtask suggestion
+```
+
+Operational notes
+- Don’t carry forward prior chat content. If needed, paste a one‑paragraph summary only.
+- Emit `context_reset` event with `{task, subtask, reason: "boundary"}`.
+- If an agent needs broader context, read the code/state again; avoid long free‑form recap.
+
 ## Task lifecycle (state machine)
 
 Statuses and transitions:
@@ -58,6 +119,12 @@ Rules:
 * Transitions must be recorded as events with `old_status`, `new_status`, and `reason` when relevant.
 * A task in `blocked` must include a `needs` field (what’s required to unblock).
 
+## Handoff Minimization
+
+- Implementer owns fixes: when a review results in `changes_requested`, the original implementer remains the owner and addresses feedback (no separate "fixer" role by default).
+- Exceptions: the planner may reassign fixes only for load-balancing or domain mismatch; record the reassignment reason in events.
+- Separation of duties remains: critics review and integrators merge; implementers must not self-approve or self-merge.
+
 ---
 
 ## Definition of Done (DoD)
@@ -68,6 +135,7 @@ A task is **not** `approved` until all are true:
 * Static checks: formatter, linter, type checker (if applicable).
 * Secret scan clean (no tokens/keys).
 * Docs updated (README/architecture/ADR if design changed).
+* Changelog updated: add a concise entry to `CHANGELOG.md` for user‑facing changes (Implementer proposes in PR; Integrator finalizes on merge).
 * Backwards-compatibility considered (document any breaks).
 * Reviewed by a **critic** agent (not the implementer).
 
@@ -94,6 +162,17 @@ Defaults and behaviour:
 * Typical events: `task_created`, `task_claimed`, `status_changed`, `file_locked`, `lease_renewed`, `locks_reclaimed`, `tests_run`, `pr_opened`, `review_requested`, `review_feedback`, `approved`, `merged`, `released`, `error`.
 * To reduce conflicts, agents may append to per-agent files under `collaboration/events/agents/<agent>.jsonl` and periodically consolidate.
 * Human-readable `logs/log.md` is generated from these events.
+
+---
+
+## Changelog Policy
+
+- File: `CHANGELOG.md` (maintained by Integrator); follow Keep a Changelog + SemVer.
+- Implementer: when opening a PR, add an entry under `Unreleased` grouped by Added/Changed/Fixed/Security with a short, user‑facing summary. Reference the task id and PR number.
+  - Example: `- Fixed: lint/format gating and secrets baseline (task-008, PR #9).`
+- Critic: ensure the entry is scoped, accurate, and avoids internal/leaky details.
+- Integrator: on merge, finalize the entry. If a release is cut, move it under a new version heading with a date; otherwise keep under `Unreleased`.
+- Internal refactors/docs‑only may be skipped unless they impact users or CI; prefer concise entries over exhaustive ones.
 
 ---
 
@@ -150,6 +229,37 @@ Defaults and behaviour:
 
    * If blocked or stalled, set `blocked` with a `reason` and `needs`.
    * Watchdog re-queues or splits the task after a grace period.
+
+---
+
+## RPC Cheat Sheet (collab.*)
+
+- `collab.get_state` (kind): Return `{data, etag}` for `tasks|locks|agents`, or `{text, etag}` for `events|log`.
+  - Params: `{"kind":"tasks"|"locks"|"agents"|"events"|"log"}`
+- `collab.list_tasks` (filters): List tasks, optionally by `status` and/or `assignee`.
+  - Params: `{status?: string, assignee?: string}`
+- `collab.create_task` (create): Create a task, defaults to `queued`.
+  - Params: `{title: string, description?: string, labels?: string[], priority?: string, assignee?: string, id?: string}`
+- `collab.update_task` (patch): Update fields on a task; validates status.
+  - Params: `{id: string, ...fields}`
+- `collab.transition_task` (status change): Enforce state machine transitions.
+  - Params: `{id: string, new_status: string, reason?: string}`
+- `collab.suggest_assignee` (heuristic): Recommend an assignee from agent pools.
+  - Params: `{labels?: string[]}`
+- `collab.auto_assign` (apply): Suggest and set an assignee on a task.
+  - Params: `{id: string, labels?: string[]}`
+- `collab.link_external` (refs): Attach external IDs to a task under `external_ids[provider][key]`.
+  - Params: `{id: string, provider: string, value: string, key?: string}`
+- `collab.emit_event` (append): Append any event to `events.jsonl`.
+  - Params: arbitrary event object
+- `collab.acquire_lease` / `collab.release_lease` (leases): Manage file leases with TTL + heartbeat.
+  - Params: `{path: string, owner: string, purpose?: string}` / `{lock_id: string, owner: string}`
+- `collab.list_agents` / `collab.update_agent` (agents): List or upsert agent metadata.
+  - Params: none / `{id: string, ...fields}`
+- `collab.generate_log` (md): Regenerate `collaboration/logs/log.md` from events.
+  - Params: none
+
+Examples (stdio): see `mcp/README.md` for `python -m mcp.kyros_collab_server` piping.
 
 ---
 
@@ -333,6 +443,134 @@ The helper implements ETag-checked atomic writes to `state/*`, lease management 
 
 ---
 
+## MCP servers: env and launch
+
+- Env loading: MCP servers auto-load `.env` and `collaboration/.env` at startup without overriding existing variables. Keep real tokens in those files (never commit them) or inject via your IDE/runner.
+- IDE/clients: `.cursor/environment.json` defines per-server env for Cursor; other MCP clients can pass env similarly.
+- Launch commands (preferred):
+  - `python -m mcp.kyros_collab_server`
+  - `python -m mcp.linear_server`
+  - `python -m mcp.railway_server`
+  - `python -m mcp.vercel_server`
+  - `python -m mcp.coderabbit_server`
+  These use stdio JSON-RPC as described in `mcp/README.md`.
+
+---
+
+## Local commands
+
+- Run tests:
+  - Full: `./scripts/run-tests.sh`
+  - Frontend: `cd frontend && npm test` (unit), `npm run test:e2e` (Playwright)
+  - Backend: `cd backend && python -m pytest`
+- Pre-commit (format, lint, checks): `pre-commit run -a` (install hooks with `pre-commit install`)
+- Regenerate human log: `python scripts/collab_cli.py generate-log` or RPC `collab.generate_log`
+
+---
+
+## Client config
+
+- Cursor: `.cursor/environment.json` contains MCP server commands and env mapping.
+- Generic clients: use `mcp/mcp.config.example.json` as a template; point commands to `python -m mcp.<server>` and pass env as needed.
+
+---
+
+## Codex Config and Profiles
+
+- Location: project `.codex/config.toml` and collaboration `.codex/config.toml` are provided.
+- Global copy: installed at `~/.codex/config.toml` for convenience.
+- File opener: `file_opener = "cursor"` to deep‑link files in Cursor Pro.
+- Auth: `preferred_auth_method = "chatgpt"` to sign in via ChatGPT UI.
+
+Profiles
+- default/dev: OpenAI `gpt-5`, `on-request`, `workspace-write`.
+- deep: OpenAI `o3` with high reasoning for complex refactors/debugging.
+- safe: `read-only` + `untrusted` for audits/reviews.
+- impl_a / impl_b: two parallel implementers on `gpt-5`.
+- review_strict: `gpt-5`, `read-only`, `untrusted`, concise summaries.
+- Optional (via proxy): `architect_sonnet` (claude-4.1-sonnet), `impl_gemini_pro` (gemini-2.5-pro), `speed_gemini_flash` (gemini-2.5-flash).
+
+Running Codex
+- Project root: `CODEX_HOME=$(pwd)/.codex codex --profile dev|deep|safe|impl_a|impl_b|review_strict`
+- Collaboration workspace: `cd collaboration && CODEX_HOME=$(pwd)/.codex codex --profile <profile>`
+- Global default: `codex` uses `~/.codex/config.toml` (already installed).
+
+Networking & Safety
+- Sandbox: `workspace-write` by default; network disabled inside sandbox.
+- Escalation: `on-request` default; prompts when elevated permissions are needed.
+- Env pass-through: minimal allowlist (HOME, PATH, USER, SHELL) to reduce secret exposure.
+
+Non‑OpenAI Models
+- Providers configured for OpenAI‑compatible proxies at `http://localhost:4000/v1` (Claude) and `http://localhost:4001/v1` (Gemini).
+- Set `ANTHROPIC_API_KEY` / `GOOGLE_API_KEY` and run a gateway, or use MCP servers that call native APIs.
+
+Assignment Pattern
+- Planner/Architect → `architect_sonnet` or `deep` (o3) for gnarly designs.
+- Implementers → `impl_a`, `impl_b` (gpt‑5) or `impl_gemini_pro`.
+- Speed/Scaffold → `speed_gemini_flash`.
+- Reviewer → `review_strict`.
+
+---
+
+## Resource Budgeting (ChatGPT Plus + Cursor Pro)
+
+Assumptions and posture
+- Daily numbers reflect typical usage; true caps are higher with an undisclosed weekly limit.
+- Plan daily with 20–40% headroom and protect the unknown weekly ceiling with rolling usage targets and spillover.
+
+Routing policy (efficient default)
+- Codex pool (ChatGPT Plus auth):
+  - Run 1–2 implementers on `gpt-5` (`impl_a`, `impl_b`); keep concurrent Codex sessions ≤2 to stretch 5‑hour windows.
+  - Use `deep` (o3) as short spikes for ambiguous work; close the session after the subtask.
+- Cursor pool (inside Cursor):
+  - Planner/Architect on Claude Sonnet for decompositions, risk calls, and PR reviews.
+  - Speed Coder on Gemini Flash for scaffolding, small refactors, and scripts.
+  - Optional Reviewer/overflow Implementer on GPT‑5 when Codex is saturated.
+
+Daily targets and headroom
+- Define soft daily budgets per pool and aim to consume ≤60–80% on typical days.
+- Reserve 20–40% for bursts (urgent fixes, long reviews, o3 spikes).
+- Front‑load Sonnet planning to unblock implementers; schedule long‑context work on Gemini Pro later if Sonnet runs hot.
+
+Rolling‑week safeguard (unknown weekly cap)
+- Track a 7‑day rolling sum of sessions/turns per pool.
+- If a pool exceeds its soft weekly target, shift upcoming subtasks to other pools for 24–48 hours.
+- Keep o3 usage bursty and rare; avoid daily recurring o3 turns.
+
+Backoff and failover
+- Codex rate friction in a 5‑hour window → pause that implementer, route the next subtask to Cursor GPT‑5 or Gemini Flash, resume Codex later.
+- Sonnet running hot → do planning in Cursor GPT‑5, reserve Sonnet for final sign‑off reviews.
+- Gemini near strain → use Cursor GPT‑5 for scaffolding; compress long‑context with a brief Sonnet summary before implementation.
+
+Turn budgets per subtask (stretch windows)
+- Planning (Sonnet): 15–30 turns → RFC/checklist + DoD.
+- Scaffold (Gemini Flash): 10–25 turns → files/tests/mechanical diffs.
+- Implement (Codex gpt‑5): 20–40 turns → small, test‑covered diff.
+- Review (Sonnet or Cursor gpt‑5): 10–20 turns → feedback + acceptance.
+- Deep (o3): ≤25 turns → isolate the hardest reasoning; hand back to implementer.
+
+Concurrency and sequencing
+- Run at most 2 Codex sessions concurrently; schedule `deep` when one lane is idle.
+- Prefer many small Cursor sessions over long chats; reset context between subtasks to reduce turn count and drift.
+
+Lightweight tracking (optional)
+- Maintain a simple per‑pool counter in `collaboration/state/agents.json` or a new `collaboration/state/usage.json` (turns/sessions, 7‑day rolling). Review daily and rebalance.
+
+---
+
+## Operating Plan (current)
+
+- Cursor agents: run two concurrent Cursor sessions using Auto model selection.
+  - `cursor.auto.1` and `cursor.auto.2` handle planning, scaffolding, and overflow implementation directly in Cursor.
+- Codex agent (this assistant): use `gpt5_high` profile for implementation.
+  - Run with: `CODEX_HOME=$(pwd)/.codex codex --profile gpt5_high` (project root) or from `collaboration/` with its local config.
+- Escalation for difficult/long tasks: pause and notify the operator.
+  - Operator will run Gemini 2.5 Pro and GPT‑o3 manually for those cases.
+- Keep changes small and test‑covered; prefer many short sessions over long ones.
+
+
+---
+
 ## Migration plan (from v1 state.json)
 
 1. Create the new `collaboration/state/*.json`, `collaboration/events/events.jsonl`, and `collaboration/logs/log.md` files.
@@ -365,6 +603,7 @@ The helper implements ETag-checked atomic writes to `state/*`, lease management 
 * [ ] Add pre-commit hooks (format, lint, type, unit, secrets).
 * [ ] Define planner → implementer → critic → integrator assignments in `agents.json`.
 * [ ] Enforce PR review before merge.
+* [ ] Create and maintain `CHANGELOG.md`; add entries at PR time and finalize on merge.
 
 ---
 

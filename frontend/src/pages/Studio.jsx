@@ -15,17 +15,17 @@ export default function Studio() {
   const [selectedTone, setSelectedTone] = useState("professional");
   const [selectedPreset, setSelectedPreset] = useState("default");
   const [generatedVariants, setGeneratedVariants] = useState(null);
-  const [_errors, setErrors] = useState({});
+  const [errors, setErrors] = useState({});
 
   const generateMutation = useGenerate();
   const toast = useToast();
   const { selectedModel } = useModelSelection();
 
-  const handleChannelToggle = channelId => {
-    setSelectedChannels(prev =>
+  const handleChannelToggle = (channelId) => {
+    setSelectedChannels((prev) =>
       prev.includes(channelId)
-        ? prev.filter(id => id !== channelId)
-        : [...prev, channelId]
+        ? prev.filter((id) => id !== channelId)
+        : [...prev, channelId],
     );
   };
 
@@ -85,7 +85,10 @@ export default function Studio() {
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+        <h1
+          data-testid="page-title"
+          className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-2"
+        >
           Repurposer Studio
         </h1>
         <p className="text-gray-600 dark:text-gray-400">
@@ -107,11 +110,22 @@ export default function Studio() {
               </span>
             </div>
             <textarea
+              data-testid="content-input"
               value={inputText}
-              onChange={e => setInputText(e.target.value)}
+              onChange={(e) => setInputText(e.target.value)}
               placeholder="Paste your source content here... (minimum 100 characters for best results)"
-              className="w-full h-64 p-4 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+              aria-label="Source content input"
+              className={`w-full h-64 p-4 bg-white dark:bg-gray-700 border rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:border-transparent resize-none ${
+                errors.inputText
+                  ? "border-red-500 focus:ring-red-500"
+                  : "border-gray-300 dark:border-gray-600 focus:ring-blue-500"
+              }`}
             />
+            {errors.inputText && (
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400">
+                {errors.inputText}
+              </p>
+            )}
           </div>
 
           {/* Channel Selection */}
@@ -120,9 +134,10 @@ export default function Studio() {
               Target Channels
             </h3>
             <div className="grid grid-cols-2 gap-3">
-              {CHANNELS.map(channel => (
+              {CHANNELS.map((channel) => (
                 <button
                   key={channel.id}
+                  data-testid={`channel-${channel.id}`}
                   onClick={() => handleChannelToggle(channel.id)}
                   className={`p-3 rounded-lg border transition-colors ${
                     selectedChannels.includes(channel.id)
@@ -148,9 +163,10 @@ export default function Studio() {
               Tone & Style
             </h3>
             <div className="space-y-1">
-              {TONES.map(tone => (
+              {TONES.map((tone) => (
                 <button
                   key={tone.id}
+                  data-testid={`tone-${tone.id}`}
                   onClick={() => setSelectedTone(tone.id)}
                   className={`w-full p-2 rounded-lg border transition-colors text-sm ${
                     selectedTone === tone.id
@@ -170,7 +186,7 @@ export default function Studio() {
               Preset
             </h3>
             <div className="space-y-1">
-              {PRESETS.map(preset => (
+              {PRESETS.map((preset) => (
                 <button
                   key={preset.id}
                   onClick={() => setSelectedPreset(preset.id)}
@@ -188,8 +204,12 @@ export default function Studio() {
 
           {/* Generate Button */}
           <button
+            data-testid="generate-button"
             onClick={handleGenerate}
-            disabled={generateMutation.isPending || inputText.length < 100}
+            disabled={
+              generateMutation.isPending ||
+              inputText.length < VALIDATION_RULES.MIN_INPUT_LENGTH
+            }
             className="w-full bg-blue-600 hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-gray-600 disabled:cursor-not-allowed text-white px-6 py-4 rounded-lg font-semibold transition-colors flex items-center justify-center space-x-2"
           >
             {generateMutation.isPending ? (
@@ -229,22 +249,22 @@ export default function Studio() {
         <div className="mt-8">
           <VariantsGallery
             variants={generatedVariants}
-            onVariantUpdate={updatedVariant => {
+            onVariantUpdate={(updatedVariant) => {
               // Update the variant in the state
-              setGeneratedVariants(prev =>
-                prev.map(job => ({
+              setGeneratedVariants((prev) =>
+                prev.map((job) => ({
                   ...job,
                   variants: Object.fromEntries(
                     Object.entries(job.variants).map(([channel, variants]) => [
                       channel,
-                      variants.map(variant =>
+                      variants.map((variant) =>
                         variant.id === updatedVariant.id
                           ? updatedVariant
-                          : variant
+                          : variant,
                       ),
-                    ])
+                    ]),
                   ),
-                }))
+                })),
               );
             }}
           />

@@ -5,7 +5,6 @@ FastAPI router for the scheduler API endpoints.
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
-from sqlalchemy import and_
 from uuid import UUID
 
 from .service import SchedulerService
@@ -21,7 +20,6 @@ from .schemas import (
     RunNowResponse,
     JobRunResponse,
 )
-from .models import JobRun
 from core.database import get_db
 from core.auth.dependencies import get_current_user
 from core.models import User as UserModel
@@ -216,17 +214,8 @@ async def get_job_run(
 
     service = SchedulerService(db)
 
-    # Verify the job belongs to the user
-    job = service.get_scheduled_job(job_uuid, user_id)
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
-
-    # Get the run
-    run = (
-        db.query(JobRun)
-        .filter(and_(JobRun.id == run_uuid, JobRun.scheduled_job_id == job_uuid))
-        .first()
-    )
+    # Get the run (this also verifies the job belongs to the user)
+    run = service.get_job_run(job_uuid, run_uuid, user_id)
 
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
