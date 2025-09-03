@@ -30,3 +30,9 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+playwright-report/
+.test-results/
+playwright/.cache/
+coverage/
+dist/
+.vite/
