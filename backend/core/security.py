@@ -198,6 +198,18 @@ class SecureRedisClient:
             raise Exception("Redis operation failed - failing closed for security")
         return result or {}
 
+    def pipeline(self):
+        """Get Redis pipeline with circuit breaker protection."""
+        if not self._client:
+            if self.security_mode == SecurityMode.FAIL_CLOSED:
+                raise Exception("Redis not available - failing closed for security")
+            return None
+        
+        def _get_pipeline():
+            return self._client.pipeline()
+        
+        return self._circuit_breaker.call(_get_pipeline)
+
 
 def secure_operation(
     security_mode: SecurityMode = SecurityMode.FAIL_CLOSED,
