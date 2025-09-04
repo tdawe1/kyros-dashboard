@@ -45,8 +45,13 @@ PY
           )
           TASK_LABELS=$(echo "$LABELS" | sed -n '1p')
           TASK_PRIORITY=$(echo "$LABELS" | sed -n '2p')
-          # Detect optional roadmap id from issue body e.g., a line like: Roadmap: R2.1.1
+          # Detect optional roadmap id from issue body
+          # 1) Direct line like: Roadmap: R2.1.1
           ROADMAP_ID=$(printf "%s" "$ISSUE_BODY" | sed -n 's/^Roadmap:[[:space:]]*\(R[0-9.][0-9.]*\).*/\1/p' | head -n1)
+          # 2) Issue form section heading ("### Roadmap") followed by next non-empty line matching R*
+          if [ -z "$ROADMAP_ID" ]; then
+            ROADMAP_ID=$(awk '/^###[[:space:]]+Roadmap/{flag=1;next} flag{if($0!~/^\s*$/){print;exit}}' <<< "$ISSUE_BODY" | sed -n 's/^\s*\(R[0-9.][0-9.]*\).*/\1/p' | head -n1)
+          fi
           TITLE="$ISSUE_TITLE"
           DESC=$(printf "Issue #%s\n\n%s\n" "$ISSUE_NUMBER" "${ISSUE_BODY:-}")
           python scripts/collab_cli.py create-task \

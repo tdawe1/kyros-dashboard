@@ -24,6 +24,14 @@ body:
         - label: Tests updated/passing
         - label: Static checks clean (lint/ruff/eslint)
         - label: Docs updated (if applicable)
+  - type: input
+    id: roadmap
+    attributes:
+      label: Roadmap
+      description: Optional roadmap ID to associate (e.g., R2.1.1). You can also add a line in the description like "Roadmap: R2.1.1".
+      placeholder: R2.1.1
+    validations:
+      required: false
   - type: dropdown
     id: priority
     attributes:
@@ -45,4 +53,3 @@ body:
         - ci
     validations:
       required: false
-
