@@ -23,25 +23,23 @@ jobs:
       - name: Check PR size
         id: pr_size
         run: |
-          # Get the diff stats
-          DIFF_STATS=$(git diff --stat ${{ github.base_ref }}...HEAD)
-          TOTAL_LINES=$(echo "$DIFF_STATS" | tail -1 | grep -o '[0-9]*' | head -1)
-          
-          echo "PR diff stats:"
-          echo "$DIFF_STATS"
-          echo "Total lines changed: $TOTAL_LINES"
-          
-          if [ "$TOTAL_LINES" -gt 1000 ]; then
+          # Robust total changed lines (additions + deletions), ignore binaries ('-')
+          TOTAL_LINES=$(git diff --numstat "${{ github.base_ref }}...HEAD" \
+            | awk '{a=$1; d=$2; if (a ~ /^[0-9]+$/) add+=a; if (d ~ /^[0-9]+$/) del+=d} END {print add+del+0}')
+
+          echo "Total lines changed: ${TOTAL_LINES:-0}"
+
+          if [ "${TOTAL_LINES:-0}" -gt 1000 ]; then
             echo "❌ PR is too large: $TOTAL_LINES lines changed (limit: 1000)"
             echo "Please split this PR into smaller, more manageable chunks."
             echo "Consider breaking down by feature or logical component."
-            echo "total_lines=$TOTAL_LINES" >> $GITHUB_OUTPUT
-            echo "is_large=true" >> $GITHUB_OUTPUT
+            echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
+            echo "is_large=true" >> "$GITHUB_OUTPUT"
             exit 1
           else
             echo "✅ PR size is acceptable: $TOTAL_LINES lines changed"
-            echo "total_lines=$TOTAL_LINES" >> $GITHUB_OUTPUT
-            echo "is_large=false" >> $GITHUB_OUTPUT
+            echo "total_lines=$TOTAL_LINES" >> "$GITHUB_OUTPUT"
+            echo "is_large=false" >> "$GITHUB_OUTPUT"
           fi
       
       # Add needs-split label for large PRs (if they somehow pass the check)
