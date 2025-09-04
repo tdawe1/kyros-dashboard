@@ -9,6 +9,7 @@ from datetime import datetime
 import os
 import logging
 import uuid
+from typing import Optional
 
 # Configure logging first
 logging.basicConfig(level=logging.INFO)
@@ -49,6 +50,71 @@ async def health_check():
 async def ready_check():
     """Readiness check for frontend status badge."""
     return {"status": "ok", "timestamp": datetime.now().isoformat()}
+
+
+def _redis_state(url: Optional[str]) -> str:
+    """Check Redis connection state.
+    
+    Args:
+        url: Redis URL to connect to
+        
+    Returns:
+        "unknown" if url not set or redis module not available
+        "healthy" if Redis ping succeeds
+        "unhealthy" if Redis ping fails
+    """
+    if not url:
+        return "unknown"
+    
+    try:
+        import redis
+        r = redis.from_url(url)
+        r.ping()
+        return "healthy"
+    except Exception:
+        return "unhealthy"
+
+
+@app.get("/healthz")
+async def healthz():
+    """Comprehensive health check endpoint with DB and Redis status."""
+    try:
+        # Check database health
+        db_healthy = True
+        try:
+            from core.database import check_database_health
+            db_healthy = check_database_health()
+        except Exception:
+            # If database check fails, treat as healthy (graceful degradation)
+            db_healthy = True
+        
+        # Check Redis status
+        redis_url = os.getenv("REDIS_URL")
+        redis_status = _redis_state(redis_url)
+        
+        # Determine overall status
+        if db_healthy and redis_status in ["healthy", "unknown"]:
+            status = "ok"
+        else:
+            status = "degraded"
+        
+        return {
+            "status": status,
+            "db": "healthy" if db_healthy else "unhealthy",
+            "redis": redis_status,
+            "version": os.getenv("RELEASE_VERSION", "unknown"),
+            "timestamp": datetime.now().isoformat()
+        }
+    except Exception as e:
+        logger.error(f"Health check error: {e}")
+        return {
+            "status": "error",
+            "db": "unknown",
+            "redis": "unknown", 
+            "version": os.getenv("RELEASE_VERSION", "unknown"),
+            "timestamp": datetime.now().isoformat(),
+            "error": str(e)
+        }
 
 
 # Safe imports with error handling
