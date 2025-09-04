@@ -93,4 +93,23 @@ describe("ReadyBadge", () => {
       expect(badge).toHaveClass("bg-red-100", "text-red-800");
     });
   });
+
+  it("shows LOADING state initially", () => {
+    // Mock a slow response to catch loading state
+    fetch.mockImplementation(() => new Promise(() => {})); // Never resolves
+
+    renderWithQueryClient(<ReadyBadge />);
+
+    expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
+    expect(screen.getByText("/ready:LOADING")).toBeInTheDocument();
+  });
+
+  it("applies correct styling for LOADING status", () => {
+    fetch.mockImplementation(() => new Promise(() => {})); // Never resolves
+
+    renderWithQueryClient(<ReadyBadge />);
+
+    const badge = screen.getByTestId("ready-badge");
+    expect(badge).toHaveClass("bg-yellow-100", "text-yellow-800");
+  });
 });

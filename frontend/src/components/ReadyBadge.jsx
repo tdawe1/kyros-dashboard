@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 
 const fetchReadyStatus = async () => {
@@ -10,8 +9,6 @@ const fetchReadyStatus = async () => {
 };
 
 export default function ReadyBadge() {
-  const [isVisible, setIsVisible] = useState(true);
-
   const { data, error, isLoading } = useQuery({
     queryKey: ["ready-status"],
     queryFn: fetchReadyStatus,
@@ -21,24 +18,21 @@ export default function ReadyBadge() {
     retryDelay: 1000,
   });
 
-  // Hide badge if there's an error and it's not loading
-  useEffect(() => {
-    if (error && !isLoading) {
-      setIsVisible(false);
-    } else {
-      setIsVisible(true);
+  // Map states to display text and colors
+  const getStatusInfo = () => {
+    if (isLoading) {
+      return { text: "LOADING", color: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300" };
     }
-  }, [error, isLoading]);
+    if (error) {
+      return { text: "DOWN", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300" };
+    }
+    if (data?.status === "ok") {
+      return { text: "UP", color: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300" };
+    }
+    return { text: "DOWN", color: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300" };
+  };
 
-  if (!isVisible) {
-    return null;
-  }
-
-  const isUp = data?.status === "ok" && !error;
-  const statusText = isUp ? "UP" : "DOWN";
-  const statusColor = isUp 
-    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-    : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300";
+  const { text: statusText, color: statusColor } = getStatusInfo();
 
   return (
     <span 
