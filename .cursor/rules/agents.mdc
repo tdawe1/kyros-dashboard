@@ -1,0 +1,42 @@
+---
+description: Agent Roles, DoD, and Task State Machine (summary of agents.md)
+globs:
+alwaysApply: true
+---
+
+# Agent Roles & Gates
+
+- Planner: decomposes work, defines acceptance, sets dependencies.
+- Implementer: writes code/tests/docs within changescope; small, reviewable diffs.
+- Critic: reviews PRs, runs quality gates, enforces DoD.
+- Integrator: merges approved work, updates changelog, tags releases.
+- Watchdog: reclaims stale leases, re-queues blocked tasks, heals state.
+
+# Task State Machine
+
+queued → claimed → in_progress → review → approved → merging → done
+  ↘ blocked ↘ failed ↘ abandoned ↘ changes_requested → in_progress
+
+Rules: emit events on transitions; blocked must include a `needs` field.
+
+# Definition of Done (DoD)
+
+- Unit tests added/updated and passing locally.
+- Static checks pass (format, lint, type where applicable).
+- Secret scan clean.
+- Docs updated if design/behavior changed.
+- Reviewed by a critic (not the implementer).
+
+# Commit & Branching
+
+- Conventional commits; example: `feat(task-007-01): add MCP env autoload`.
+- Prefer ≤200 LOC per commit; ≤400 LOC per PR unless mechanical.
+- Branch per task: `feat/<task-id>-slug`; include subtask suffixes when useful.
+
+# Context Reset Protocol
+
+- Reset chat between subtasks. Rehydrate only: Task ID, title, acceptance, changescope.
+- Include minimal plan: 3–5 steps; output code changes; summarize what changed.
+
+Reference: see `agents.md` for full details and examples.
+

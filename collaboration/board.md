@@ -1,20 +1,19 @@
 # Project Board
 
-Generated: 2025-09-04T08:42:26Z
+Generated: 2025-09-04T09:56:32Z
 
-## Now (0)
+## Now (2)
 
-- _None_
+- task-008 [P2] (cursor-ide-2) — Docs: finalize project management + dashboard
+- task-009 [P1] (codex-cli-1) — Backend: add /healthz endpoint with DB/Redis checks
 
-## Next (7)
+## Next (5)
 
-- task-011 [P2] (-) — Frontend: verify lint/test/E2E configs
-- task-012 [P2] (-) — E2E audit follow-ups
-- task-013 [P3] (-) — Docs: consolidation pass
-- task-014 [P2] (-) — Collab: lifecycle/schema/linking review
-- task-008 [P2] (-) — Docs: finalize project management + dashboard
-- task-009 [P1] (-) — Backend: add /healthz endpoint with DB/Redis checks
-- task-010 [P2] (-) — Backend: configuration hardening
+- task-010 [P2] (codex-cli-2) — Backend: configuration hardening
+- task-011 [P2] (cursor-ide) — Frontend: verify lint/test/E2E configs
+- task-012 [P2] (cursor-ide-2) — E2E audit follow-ups
+- task-013 [P3] (cursor-ide-2) — Docs: consolidation pass
+- task-014 [P2] (codex-cli-2) — Collab: lifecycle/schema/linking review
 
 ## Review / Blocked (0)
 

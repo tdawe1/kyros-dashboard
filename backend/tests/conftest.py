@@ -125,6 +125,21 @@ def test_user(db_session):
     return user
 
 
+@pytest.fixture(scope="function")
+def admin_user(db_session):
+    """Create an admin user in the database."""
+    user_data = UserCreate(
+        username="admin",
+        email="admin@example.com",
+        password="adminpassword",
+        role="admin",
+    )
+    user = create_user(db=db_session, user=user_data)
+    # Add password to the object for use in tests, since it's not stored in plain text
+    user.plain_password = "adminpassword"
+    return user
+
+
 @pytest.fixture
 def job_id():
     """Sample job ID for testing."""

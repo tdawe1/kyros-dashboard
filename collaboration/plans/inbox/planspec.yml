@@ -1,12 +1,52 @@
-plan_id: 2025-09-04-shake
-baseline_branch: develop
-lanes: { planner: gpt-5-high, frontend: claude-4-sonnet, critic: gpt-5-high }
+plan_id: 2025-09-04-fix-mcp-console-scripts
+baseline_branch: feat/task-009-healthz
+lanes:
+  planner: architect
+  backend_implementer: developer
+  critic: reviewer
+
 tasks:
-  - id: T-000
-    title: Add “/ready:UP” badge to header
-    lane: frontend
+  - id: T-206
+    title: Fix MCP package structure for console scripts
+    lane: backend
     acceptance:
-      - Badge shows “UP” when GET /ready=200 else “DOWN”
-      - Polls every 30s
-      - No console errors on preview
-    changescope: [ui/**]
+      - Console scripts execute without ModuleNotFoundError
+      - All MCP servers start via both console scripts and python -m
+      - Package imports work in both development and installed modes
+      - Installation instructions updated in CLAUDE.md
+    changescope: 
+      - mcp/pyproject.toml
+      - mcp/__init__.py
+    dependencies: []
+    estimate: S - Simple package configuration fix
+    risk: Low - well-understood Python packaging issue
+
+  - id: T-207
+    title: Validate MCP server functionality
+    lane: backend
+    acceptance:
+      - kyros-collab-mcp starts and responds to JSON-RPC calls
+      - All stub servers (coderabbit, linear, railway, vercel) start without errors
+      - Help/version flags work where applicable
+      - Can perform basic collaboration RPC test calls
+    changescope:
+      - mcp/*.py
+      - scripts/test-mcp-servers.sh
+    dependencies: [T-206]
+    estimate: S - Testing and validation script
+    risk: Low - servers already functional as modules
+
+  - id: T-208
+    title: Update documentation and installation guide
+    lane: docs
+    acceptance:
+      - CLAUDE.md updated with correct installation steps
+      - Troubleshooting section added for common issues
+      - Alternative module execution commands documented
+      - Quick verification steps included
+    changescope:
+      - CLAUDE.md
+      - mcp/README.md
+    dependencies: [T-206, T-207]
+    estimate: S - Documentation update
+    risk: Low - straightforward documentation task

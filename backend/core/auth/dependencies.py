@@ -59,7 +59,7 @@ def require_role(required_role: str):
     """Decorator to require specific role."""
 
     def role_checker(current_user: UserModel = Depends(get_current_user)) -> UserModel:
-        if current_user.role != required_role and current_user.role != UserRole.ADMIN:
+        if current_user.role != required_role and current_user.role != UserRole.ADMIN.value:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN, detail="Insufficient permissions"
             )

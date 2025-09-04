@@ -61,3 +61,24 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+      - name: Notify Discord (optional)
+        if: ${{ secrets.DISCORD_WEBHOOK_URL != '' || secrets.DISCORD_PM_WEBHOOK_URL != '' }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_PM_WEBHOOK_URL: ${{ secrets.DISCORD_PM_WEBHOOK_URL }}
+          PROJECT_URL: ${{ secrets.PROJECT_URL }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
+          DASHBOARD_URL: ${{ steps.deployment.outputs.page_url }}
+        run: |
+          set -e
+          CONTENT="**Dashboard Published**\n[Dashboard](${DASHBOARD_URL}) • [GitHub Project](${PROJECT_URL:-}) • [Repo](https://github.com/${OWNER}/${REPO})"
+          ESCAPED=${CONTENT//$'\n'/\\n}
+          if [ -n "${DISCORD_WEBHOOK_URL:-}" ]; then
+            curl -sS -X POST -H 'Content-Type: application/json' \
+              -d "{\"content\":\"$ESCAPED\"}" "$DISCORD_WEBHOOK_URL" || true
+          fi
+          if [ -n "${DISCORD_PM_WEBHOOK_URL:-}" ]; then
+            curl -sS -X POST -H 'Content-Type: application/json' \
+              -d "{\"content\":\"$ESCAPED\"}" "$DISCORD_PM_WEBHOOK_URL" || true
+          fi

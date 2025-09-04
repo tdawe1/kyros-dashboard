@@ -1,0 +1,30 @@
+---
+description: Task T-210 — Apply CodeRabbit PR (auto-applied)
+globs:
+  - "collaboration/tasks/T-210/**"
+  - "backend/**"
+  - "backend/middleware/rate_limiter.py"
+  - "backend/tests/test_rate_limiter.py"
+---
+
+Context Reset: New subtask
+Task: T-210 — Apply CodeRabbit PR
+Lane: backend
+Branch: feat/T-210-apply-coderabbit-pr
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- Reads Redis hash keys/values as str or bytes for tokens/last_refill
+- Maintains correct token counts across consecutive requests
+- Safe non-atomic path if pipeline() unavailable
+- Adds unit tests covering str/bytes hash responses
+
+Changescope:
+- backend/middleware/rate_limiter.py
+- backend/tests/test_rate_limiter.py
+
+Output: code changes only; summarize what changed and suggest next subtask.

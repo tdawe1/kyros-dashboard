@@ -1,0 +1,30 @@
+---
+description: Task T-201 — Harden Redis rate limiter for bytes keys and add tests (auto-applied)
+globs:
+  - "collaboration/tasks/T-201/**"
+  - "backend/**"
+  - "backend/middleware/rate_limiter.py"
+  - "backend/tests/test_rate_limiter.py"
+---
+
+Context Reset: New subtask
+Task: T-201 — Harden Redis rate limiter for bytes keys and add tests
+Lane: backend
+Branch: feat/T-201-harden-redis-rate-limiter-for-bytes-keys
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- Handles Redis byte keys/values for "tokens" and "last_refill"
+- Maintains correct token counts across consecutive requests
+- Safe fallback if pipeline() unavailable (non-atomic path)
+- Unit tests cover str/bytes Redis responses
+
+Changescope:
+- backend/middleware/rate_limiter.py
+- backend/tests/test_rate_limiter.py
+
+Output: code changes only; summarize what changed and suggest next subtask.

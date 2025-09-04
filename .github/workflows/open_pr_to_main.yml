@@ -1,0 +1,36 @@
+name: Open PR develop -> main
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  create-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Ensure branches
+        run: |
+          git fetch origin main:main || true
+          git fetch origin develop:develop || true
+      - name: Create PR if not exists
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            // Check for existing open PR from develop to main
+            const { data: prs } = await github.rest.pulls.list({ owner, repo, state: 'open', head: `${owner}:develop`, base: 'main' });
+            if (prs.length > 0) {
+              core.info(`PR already exists: #${prs[0].number}`);
+              return;
+            }
+            const body = `This PR promotes the project management workflows, dashboard, and roadmap tooling to main.\n\n- Adds Issues/Project sync and status/priority mapping\n- Publishes Pages dashboard with Project link\n- Discord notifications (general + PM)\n- Roadmap/tasks linking and CLI updates`;
+            const { data: pr } = await github.rest.pulls.create({ owner, repo, head: 'develop', base: 'main', title: 'Merge workflows and project infra to main', body });
+            core.info(`Created PR #${pr.number}: ${pr.html_url}`);

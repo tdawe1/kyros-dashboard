@@ -1,0 +1,29 @@
+---
+description: Task T-213 — Apply CodeRabbit PR (auto-applied)
+globs:
+  - "collaboration/tasks/T-213/**"
+  - "backend/**"
+  - "backend/core/auth_router.py"
+  - "backend/tests/test_api_endpoints.py"
+---
+
+Context Reset: New subtask
+Task: T-213 — Apply CodeRabbit PR
+Lane: backend
+Branch: feat/T-213-apply-coderabbit-pr
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- router.get("/users", response_model=List[User]) applied
+- Response matches schema; pagination respected
+- Test asserts 200 and response shape (admin-only)
+
+Changescope:
+- backend/core/auth_router.py
+- backend/tests/test_api_endpoints.py
+
+Output: code changes only; summarize what changed and suggest next subtask.

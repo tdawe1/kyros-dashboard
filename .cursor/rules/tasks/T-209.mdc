@@ -1,0 +1,29 @@
+---
+description: Task T-209 — Expose /ready alias and test (auto-applied)
+globs:
+  - "collaboration/tasks/T-209/**"
+  - "backend/**"
+  - "backend/main.py"
+  - "backend/tests/test_healthz.py"
+---
+
+Context Reset: New subtask
+Task: T-209 — Expose /ready alias and test
+Lane: backend
+Branch: feat/T-209-expose-ready-alias-and-test
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- /ready endpoint returns HTTP 200 and body "UP"
+- Unit test asserts status, body, and content-type
+- No regression to /api/healthz tests
+
+Changescope:
+- backend/main.py
+- backend/tests/test_healthz.py
+
+Output: code changes only; summarize what changed and suggest next subtask.

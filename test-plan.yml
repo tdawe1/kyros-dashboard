@@ -1,0 +1,21 @@
+plan_id: "TEST-001"
+baseline_branch: "develop"
+title: "Test Plan for Workflow Demo"
+description: "This is a test plan to demonstrate the plan import and PR creation workflow"
+
+tasks:
+  - id: "TASK-001"
+    title: "Test Task 1"
+    lane: "frontend"
+    acceptance:
+      - "Create a simple React component"
+      - "Add basic styling"
+      - "Write unit tests"
+  
+  - id: "TASK-002"
+    title: "Test Task 2"
+    lane: "backend"
+    acceptance:
+      - "Create API endpoint"
+      - "Add input validation"
+      - "Write integration tests"

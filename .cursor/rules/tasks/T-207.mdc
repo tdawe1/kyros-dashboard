@@ -1,0 +1,30 @@
+---
+description: Task T-207 — Validate MCP server functionality (auto-applied)
+globs:
+  - "collaboration/tasks/T-207/**"
+  - "backend/**"
+  - "mcp/*.py"
+  - "scripts/test-mcp-servers.sh"
+---
+
+Context Reset: New subtask
+Task: T-207 — Validate MCP server functionality
+Lane: backend
+Branch: feat/T-207-validate-mcp-server-functionality
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- kyros-collab-mcp starts and responds to JSON-RPC calls
+- All stub servers (coderabbit, linear, railway, vercel) start without errors
+- Help/version flags work where applicable
+- Can perform basic collaboration RPC test calls
+
+Changescope:
+- mcp/*.py
+- scripts/test-mcp-servers.sh
+
+Output: code changes only; summarize what changed and suggest next subtask.
