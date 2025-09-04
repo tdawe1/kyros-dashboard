@@ -21,3 +21,10 @@
 
 ### Notes
 - Risks/rollbacks:
+
+---
+## Critic handling
+- [ ] Added label `needs-CR` when ready (after Smoke is green)
+- [ ] Commented `@coderabbitai review` once
+- [ ] Cleared items in "CodeRabbit Critic Checklist" comment
+---
