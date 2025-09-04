@@ -155,7 +155,7 @@
       "title": "Docs: finalize project management + dashboard",
       "description": "Update docs/PROJECT_MANAGEMENT.md; add DASHBOARD.md; quick start; secrets; workflows.",
       "status": "queued",
-      "assignee": null,
+      "assignee": "cursor-ide-2",
       "priority": "P2",
       "labels": [
         "docs",
@@ -165,16 +165,17 @@
       "blockers": [],
       "branch": null,
       "created_at": "2025-09-04T08:42:25Z",
-      "updated_at": "2025-09-04T08:42:25Z",
+      "updated_at": "2025-09-04T08:57:20Z",
       "dod": [],
-      "needs": null
+      "needs": null,
+      "preferred_model": "gemini-2.5-pro"
     },
     {
       "id": "task-009",
       "title": "Backend: add /healthz endpoint with DB/Redis checks",
       "description": "Expose /healthz; verify DB + Redis connectivity; return JSON status.",
       "status": "queued",
-      "assignee": null,
+      "assignee": "codex-cli-1",
       "priority": "P1",
       "labels": [
         "backend",
@@ -184,16 +185,17 @@
       "blockers": [],
       "branch": null,
       "created_at": "2025-09-04T08:42:25Z",
-      "updated_at": "2025-09-04T08:42:25Z",
+      "updated_at": "2025-09-04T08:57:20Z",
       "dod": [],
-      "needs": null
+      "needs": null,
+      "preferred_model": "gpt-5-high"
     },
     {
       "id": "task-010",
       "title": "Backend: configuration hardening",
       "description": "Audit env loading, defaults, and secrets; tighten validation; document.",
       "status": "queued",
-      "assignee": null,
+      "assignee": "codex-cli-2",
       "priority": "P2",
       "labels": [
         "backend",
@@ -203,16 +205,17 @@
       "blockers": [],
       "branch": null,
       "created_at": "2025-09-04T08:42:25Z",
-      "updated_at": "2025-09-04T08:42:25Z",
+      "updated_at": "2025-09-04T08:57:20Z",
       "dod": [],
-      "needs": null
+      "needs": null,
+      "preferred_model": "gpt-5"
     },
     {
       "id": "task-011",
       "title": "Frontend: verify lint/test/E2E configs",
       "description": "Confirm ESLint/Prettier/Vitest/Playwright are configured; fix inconsistencies.",
       "status": "queued",
-      "assignee": null,
+      "assignee": "cursor-ide",
       "priority": "P2",
       "labels": [
         "frontend",
@@ -222,16 +225,17 @@
       "blockers": [],
       "branch": null,
       "created_at": "2025-09-04T08:42:26Z",
-      "updated_at": "2025-09-04T08:42:26Z",
+      "updated_at": "2025-09-04T08:57:20Z",
       "dod": [],
-      "needs": null
+      "needs": null,
+      "preferred_model": "claude-4.1-sonnet"
     },
     {
       "id": "task-012",
       "title": "E2E audit follow-ups",
       "description": "Address high-value items from E2E audit; stabilize flaky tests.",
       "status": "queued",
-      "assignee": null,
+      "assignee": "cursor-ide-2",
       "priority": "P2",
       "labels": [
         "frontend",
@@ -241,16 +245,17 @@
       "blockers": [],
       "branch": null,
       "created_at": "2025-09-04T08:42:26Z",
-      "updated_at": "2025-09-04T08:42:26Z",
+      "updated_at": "2025-09-04T08:57:20Z",
       "dod": [],
-      "needs": null
+      "needs": null,
+      "preferred_model": "gemini-2.5-flash"
     },
     {
       "id": "task-013",
       "title": "Docs: consolidation pass",
       "description": "Consolidate overlapping docs; ensure README links; add DASHBOARD.md.",
       "status": "queued",
-      "assignee": null,
+      "assignee": "cursor-ide-2",
       "priority": "P3",
       "labels": [
         "docs"
@@ -259,16 +264,17 @@
       "blockers": [],
       "branch": null,
       "created_at": "2025-09-04T08:42:26Z",
-      "updated_at": "2025-09-04T08:42:26Z",
+      "updated_at": "2025-09-04T08:57:20Z",
       "dod": [],
-      "needs": null
+      "needs": null,
+      "preferred_model": "gemini-2.5-pro"
     },
     {
       "id": "task-014",
       "title": "Collab: lifecycle/schema/linking review",
       "description": "Validate task lifecycle, JSON schemas, and roadmap<->task linking; fix edge cases.",
       "status": "queued",
-      "assignee": null,
+      "assignee": "codex-cli-2",
       "priority": "P2",
       "labels": [
         "collab",
@@ -278,9 +284,10 @@
       "blockers": [],
       "branch": null,
       "created_at": "2025-09-04T08:42:26Z",
-      "updated_at": "2025-09-04T08:42:26Z",
+      "updated_at": "2025-09-04T08:57:20Z",
       "dod": [],
-      "needs": null
+      "needs": null,
+      "preferred_model": "gpt-5"
     }
   ]
 }
