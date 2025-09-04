@@ -22,7 +22,7 @@ jobs:
       - name: Install Google client + YAML
         run: pip install google-api-python-client google-auth google-auth-httplib2 pyyaml
 
-    - name: Download newest PlanSpec from Drive (folder → fallback root)
+      - name: Download newest PlanSpec from Drive (folder → fallback root)
         env:
           GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
           PLANS_INBOX_FOLDER_ID: ${{ secrets.PLANS_INBOX_FOLDER_ID }}
