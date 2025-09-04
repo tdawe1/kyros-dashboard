@@ -26,6 +26,11 @@ lanes:
   docs:
     implementers: ["@impl-docs"]
     critic: "@critic"
+task_dependencies:
+  T-502:
+    blocks: [T-503]
+  T-505:
+    requires: [T-501, T-502, T-503]
 tasks:
   - id: T-501
     title: Gate staging deploy and finalize CI installs
