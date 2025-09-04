@@ -45,13 +45,16 @@ PY
           )
           TASK_LABELS=$(echo "$LABELS" | sed -n '1p')
           TASK_PRIORITY=$(echo "$LABELS" | sed -n '2p')
+          # Detect optional roadmap id from issue body e.g., a line like: Roadmap: R2.1.1
+          ROADMAP_ID=$(printf "%s" "$ISSUE_BODY" | sed -n 's/^Roadmap:[[:space:]]*\(R[0-9.][0-9.]*\).*/\1/p' | head -n1)
           TITLE="$ISSUE_TITLE"
           DESC=$(printf "Issue #%s\n\n%s\n" "$ISSUE_NUMBER" "${ISSUE_BODY:-}")
           python scripts/collab_cli.py create-task \
             --title "$TITLE" \
             --description "$DESC" \
             --labels "$TASK_LABELS" \
-            ${TASK_PRIORITY:+--priority "$TASK_PRIORITY"}
+            ${TASK_PRIORITY:+--priority "$TASK_PRIORITY"} \
+            ${ROADMAP_ID:+--roadmap-id "$ROADMAP_ID"}
           # Capture last created task id from events by scanning tasks.json length
           TID=$(python - <<'PY'
 import json
@@ -75,4 +78,3 @@ PY
           file_pattern: |
             collaboration/state/tasks.json
             collaboration/events/events.jsonl
-

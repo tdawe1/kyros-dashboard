@@ -11,7 +11,7 @@ Usage examples:
 
   # Tasks management
   python scripts/collab_cli.py list-tasks --status in_progress
-  python scripts/collab_cli.py create-task --title "Add healthcheck" --labels backend,ci --priority P2 --assignee thomas
+  python scripts/collab_cli.py create-task --title "Add healthcheck" --labels backend,ci --priority P2 --assignee thomas [--roadmap-id R2.1.1]
   python scripts/collab_cli.py update-task task-010 --assignee codex-cli
   python scripts/collab_cli.py transition-task task-010 review
 """
@@ -26,6 +26,7 @@ import uuid
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import List
+import yaml
 
 BASE = Path("collaboration")
 STATE = BASE / "state"
@@ -154,6 +155,34 @@ def create_task_cli(title: str, description: str, labels: List[str], priority: s
     _save_tasks(version, tasks, etag)
     emit_event({"event": "task_created", "task": new_id})
     print(new_id)
+
+
+def _link_task_to_roadmap(roadmap_id: str, task_id: str):
+    rp = Path("project/roadmap.yml")
+    if not rp.exists():
+        raise RuntimeError("project/roadmap.yml not found; cannot link task to roadmap")
+    doc = yaml.safe_load(rp.read_text(encoding="utf-8")) or {}
+
+    def find(n: dict, rid: str):
+        if n.get("id") == rid:
+            return n
+        for c in n.get("children", []) or []:
+            got = find(c, rid)
+            if got:
+                return got
+        return None
+
+    target = None
+    for root in (doc.get("nodes") or []):
+        target = find(root, roadmap_id)
+        if target:
+            break
+    if not target:
+        raise RuntimeError(f"Roadmap id not found: {roadmap_id}")
+    links = target.get("links") or {}
+    links["task_id"] = task_id
+    target["links"] = links
+    rp.write_text(yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
 
 
 def update_task_cli(task_id: str, fields: dict):
@@ -411,6 +440,7 @@ def main():
     ct.add_argument("--priority")
     ct.add_argument("--assignee")
     ct.add_argument("--id")
+    ct.add_argument("--roadmap-id")
 
     ut = sub.add_parser("update-task")
     ut.add_argument("id")
@@ -443,6 +473,16 @@ def main():
         elif args.cmd == "create-task":
             labels = [s.strip() for s in (args.labels or "").split(",") if s.strip()]
             create_task_cli(args.title, args.description, labels, args.priority, args.assignee, args.id)
+            # If roadmap id provided, link it to the last created task id by reading tasks.json
+            if args.roadmap_id:
+                try:
+                    _, tasks, _ = _load_tasks()
+                    tid = tasks[-1]["id"] if tasks else None
+                    if tid:
+                        _link_task_to_roadmap(args.roadmap_id, tid)
+                        print(f"Linked roadmap {args.roadmap_id} -> {tid}")
+                except Exception as le:
+                    print(f"Warning: failed to link roadmap: {le}", file=sys.stderr)
         elif args.cmd == "update-task":
             fields = {
                 "title": args.title,

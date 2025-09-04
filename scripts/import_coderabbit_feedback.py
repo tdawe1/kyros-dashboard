@@ -3,7 +3,7 @@
 Import GitHub PR feedback into collaboration tasks via MCP servers.
 
 Usage:
-  python scripts/import_coderabbit_feedback.py --owner ORG --repo REPO --pr 123 [--assign]
+  python scripts/import_coderabbit_feedback.py --owner ORG --repo REPO --pr 123 [--assign] [--roadmap-id RID]
 
 Requirements:
   - mcp package installed (-e mcp)
@@ -12,6 +12,8 @@ Requirements:
 """
 
 import argparse
+import yaml
+from pathlib import Path
 from textwrap import shorten
 
 
@@ -21,6 +23,7 @@ def main():
     ap.add_argument("--repo", required=True)
     ap.add_argument("--pr", type=int, required=True)
     ap.add_argument("--assign", action="store_true", help="Auto-assign based on labels")
+    ap.add_argument("--roadmap-id", help="Link created tasks to this roadmap id", default=None)
     args = ap.parse_args()
 
     # Import server modules directly to avoid process orchestration
@@ -67,6 +70,31 @@ def main():
             )
             if args.assign:
                 collab.auto_assign({"id": tid, "labels": labels})
+            # Optionally link to roadmap
+            if args.roadmap_id:
+                try:
+                    rp = Path("project/roadmap.yml")
+                    doc = yaml.safe_load(rp.read_text(encoding="utf-8")) or {}
+                    def find(n, rid):
+                        if n.get("id") == rid:
+                            return n
+                        for c in n.get("children", []) or []:
+                            got = find(c, rid)
+                            if got:
+                                return got
+                        return None
+                    target = None
+                    for root in (doc.get("nodes") or []):
+                        target = find(root, args.roadmap_id)
+                        if target:
+                            break
+                    if target:
+                        links = target.get("links") or {}
+                        links["task_id"] = tid
+                        target["links"] = links
+                        rp.write_text(yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
+                except Exception:
+                    pass
             created.append(tid)
     print(f"Created tasks: {', '.join(created) if created else '(none)'}")
 
