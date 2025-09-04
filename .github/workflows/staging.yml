@@ -2,8 +2,6 @@ name: Deploy to Staging
 
 on:
   push:
-    branches: [develop, feature/*]
-  pull_request:
     branches: [develop]
 
 env:
@@ -13,6 +11,8 @@ env:
 jobs:
   # Deploy to staging environment
   deploy-staging:
+    # Run only on push to develop. Prevents PR runs without secrets.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
