@@ -63,8 +63,82 @@ def write_json_atomic(path: Path, data: dict, expected_etag: str | None = None) 
     return read_json_with_etag(path)[1]
 
 
+def normalize_event_format(event: dict) -> dict:
+    """
+    Shim to convert old kind/action format to new event format.
+    Maps legacy events to the standardized event schema.
+    """
+    # If it already has an 'event' field, it's already in the new format
+    if "event" in event:
+        return event
+    
+    # Convert old format to new format
+    kind = event.get("kind")
+    action = event.get("action")
+    task = event.get("task")
+    
+    if kind == "task" and action == "in_progress":
+        return {
+            "event": "status_changed",
+            "task": task,
+            "old_status": "queued",
+            "new_status": "in_progress",
+            "actor": event.get("actor", "unknown"),
+            "notes": event.get("message", ""),
+            "ts": event.get("ts", utcnow_iso())
+        }
+    elif kind == "pr" and action == "opened":
+        return {
+            "event": "pr_opened",
+            "task": task,
+            "pr": event.get("pr_number"),
+            "url": event.get("url", ""),
+            "actor": event.get("actor", "unknown"),
+            "notes": event.get("message", ""),
+            "ts": event.get("ts", utcnow_iso())
+        }
+    elif kind == "test" and action == "completed":
+        return {
+            "event": "tests_run",
+            "task": task,
+            "status": event.get("result", "unknown"),
+            "actor": event.get("actor", "ci"),
+            "notes": event.get("message", ""),
+            "ts": event.get("ts", utcnow_iso())
+        }
+    elif kind == "review" and action == "requested":
+        return {
+            "event": "review_requested",
+            "task": task,
+            "actor": event.get("actor", "ci"),
+            "notes": event.get("message", ""),
+            "ts": event.get("ts", utcnow_iso())
+        }
+    elif kind == "review" and action == "approved":
+        return {
+            "event": "approved",
+            "task": task,
+            "actor": event.get("actor", "critic"),
+            "notes": event.get("message", ""),
+            "ts": event.get("ts", utcnow_iso())
+        }
+    elif kind == "merge" and action == "completed":
+        return {
+            "event": "merged",
+            "task": task,
+            "actor": event.get("actor", "integrator"),
+            "notes": event.get("message", ""),
+            "ts": event.get("ts", utcnow_iso())
+        }
+    
+    # If we can't map it, return as-is but add a warning
+    print(f"Warning: Unknown event format: {event}", file=sys.stderr)
+    return event
+
+
 def emit_event(event: dict):
     EVENTS_DIR.mkdir(parents=True, exist_ok=True)
+    event = normalize_event_format(event)
     event = {**event}
     event.setdefault("ts", utcnow_iso())
     with EVENTS.open("a", encoding="utf-8") as f:
