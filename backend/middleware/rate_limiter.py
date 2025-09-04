@@ -97,8 +97,28 @@ class TokenBucketRateLimiter:
             tokens = RATE_LIMIT_BURST
             last_refill = current_time
         else:
-            tokens = float(bucket_data.get("tokens", RATE_LIMIT_BURST))
-            last_refill = float(bucket_data.get("last_refill", current_time))
+            # Handle bytes-safe key access - Redis can return bytes keys
+            tokens_key = "tokens"
+            last_refill_key = "last_refill"
+            
+            # Check for bytes keys first, then fall back to string keys
+            if b"tokens" in bucket_data:
+                tokens_key = b"tokens"
+            if b"last_refill" in bucket_data:
+                last_refill_key = b"last_refill"
+            
+            # Get values and decode if they are bytes
+            tokens_value = bucket_data.get(tokens_key, RATE_LIMIT_BURST)
+            last_refill_value = bucket_data.get(last_refill_key, current_time)
+            
+            # Decode bytes to string if necessary
+            if isinstance(tokens_value, bytes):
+                tokens_value = tokens_value.decode('utf-8')
+            if isinstance(last_refill_value, bytes):
+                last_refill_value = last_refill_value.decode('utf-8')
+            
+            tokens = float(tokens_value)
+            last_refill = float(last_refill_value)
 
         # Calculate tokens to add based on time elapsed
         time_elapsed = current_time - last_refill
@@ -115,11 +135,31 @@ class TokenBucketRateLimiter:
         else:
             is_allowed = False
 
-        # Use pipeline for atomic operations
-        pipe = self.redis_client.pipeline()
-        pipe.hset(bucket_key, mapping={"tokens": tokens, "last_refill": current_time})
-        pipe.expire(bucket_key, RATE_LIMIT_WINDOW * 2)
-        pipe.execute()
+        # Use pipeline for atomic operations with bytes-safe string conversion
+        try:
+            pipe = self.redis_client.pipeline()
+            if pipe is None:
+                # Fallback if pipeline is not available
+                self.redis_client.hset(bucket_key, mapping={
+                    "tokens": str(tokens), 
+                    "last_refill": str(current_time)
+                })
+                self.redis_client.expire(bucket_key, RATE_LIMIT_WINDOW * 2)
+            else:
+                pipe.hset(bucket_key, mapping={
+                    "tokens": str(tokens), 
+                    "last_refill": str(current_time)
+                })
+                pipe.expire(bucket_key, RATE_LIMIT_WINDOW * 2)
+                pipe.execute()
+        except (AttributeError, TypeError) as e:
+            # Fallback if pipeline method is missing or not callable
+            logger.warning(f"Pipeline not available, using fallback: {e}")
+            self.redis_client.hset(bucket_key, mapping={
+                "tokens": str(tokens), 
+                "last_refill": str(current_time)
+            })
+            self.redis_client.expire(bucket_key, RATE_LIMIT_WINDOW * 2)
 
         # Calculate reset time
         reset_time = current_time + (
