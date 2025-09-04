@@ -1,54 +1,72 @@
 version: 1
 title: Kyros Dashboard Roadmap
 goals:
-  - id: G0
-    title: Ship a reliable, minimal dashboard that demonstrates core value within 4 weeks
-    notes: |
-      - Keep scope tight; optimize for learnings and demos.
-      - Defer non-critical polish and automation.
-  - id: G1
-    title: Maintain fast feedback loops (tests, preview deploys, reviews)
-    notes: |
-      - Keep CI green; small PRs; frequent deploys.
+- id: G0
+  title: Ship a reliable, minimal dashboard that demonstrates core value within 4
+    weeks
+  notes: '- Keep scope tight; optimize for learnings and demos.
+
+    - Defer non-critical polish and automation.
+
+    '
+- id: G1
+  title: Maintain fast feedback loops (tests, preview deploys, reviews)
+  notes: '- Keep CI green; small PRs; frequent deploys.
+
+    '
 nodes:
-  - id: R1
-    title: Foundations
-    owner: thomas
+- id: R1
+  title: Foundations
+  owner: thomas
+  status: done
+  children:
+  - id: R1.1
+    title: CI + Branch Protection
     status: done
-    children:
-      - id: R1.1
-        title: CI + Branch Protection
-        status: done
-      - id: R1.2
-        title: Collab tasks + board
-        status: done
-      - id: R1.3
-        title: Docs baseline
-        status: in_progress
-  - id: R2
-    title: Product Core
+  - id: R1.2
+    title: Collab tasks + board
+    status: done
+  - id: R1.3
+    title: Docs baseline
+    status: in_progress
+    links:
+      task_id: task-008
+- id: R2
+  title: Product Core
+  status: in_progress
+  children:
+  - id: R2.1
+    title: Backend essentials
     status: in_progress
     children:
-      - id: R2.1
-        title: Backend essentials
-        status: in_progress
-        children:
-          - id: R2.1.1
-            title: Healthcheck endpoint
-            status: queued
-          - id: R2.1.2
-            title: Configuration hardening
-            status: queued
-      - id: R2.2
-        title: Frontend scaffolding
-        status: queued
-  - id: R3
-    title: Quality and DX
+    - id: R2.1.1
+      title: Healthcheck endpoint
+      status: queued
+      links:
+        task_id: task-009
+    - id: R2.1.2
+      title: Configuration hardening
+      status: queued
+      links:
+        task_id: task-010
+  - id: R2.2
+    title: Frontend scaffolding
     status: queued
-    children:
-      - id: R3.1
-        title: E2E audit follow-ups
-        status: queued
-      - id: R3.2
-        title: Docs consolidation
-        status: queued
+    links:
+      task_id: task-011
+  links:
+    task_id: task-014
+- id: R3
+  title: Quality and DX
+  status: queued
+  children:
+  - id: R3.1
+    title: E2E audit follow-ups
+    status: queued
+    links:
+      task_id: task-012
+  - id: R3.2
+    title: Docs consolidation
+    status: queued
+    links:
+      task_id: task-013
