@@ -1,0 +1,34 @@
+---
+description: Task T-405 — Wire CodeRabbit critic gate into quality checks (auto-applied)
+globs:
+  - "collaboration/tasks/T-405/**"
+  - ".github/**"
+  - "scripts/**"
+  - ".github/workflows/import_coderabbit_on_pr.yml"
+  - ".github/workflows/quality-checks.yml"
+  - "scripts/import_coderabbit_feedback.py"
+  - "scripts/critic_gate.py"
+---
+
+Context Reset: New subtask
+Task: T-405 — Wire CodeRabbit critic gate into quality checks
+Lane: ci
+Branch: feat/T-405-wire-coderabbit-critic-gate-into-quality
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- CodeRabbit feedback imported on PR open/sync
+- CI fails if unresolved 'action-required' findings exist
+- Gate bypassable with `critics:ignored` label (documented)
+
+Changescope:
+- .github/workflows/import_coderabbit_on_pr.yml
+- .github/workflows/quality-checks.yml
+- scripts/import_coderabbit_feedback.py
+- scripts/critic_gate.py
+
+Output: code changes only; summarize what changed and suggest next subtask.

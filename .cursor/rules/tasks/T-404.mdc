@@ -1,0 +1,33 @@
+---
+description: Task T-404 — Frontend unit/e2e test stability and mocks (auto-applied)
+globs:
+  - "collaboration/tasks/T-404/**"
+  - "frontend/**"
+  - "frontend/vitest.config.js"
+  - "frontend/playwright.config.js"
+  - "frontend/src/test/setup.js"
+  - "frontend/e2e/*.spec.js"
+---
+
+Context Reset: New subtask
+Task: T-404 — Frontend unit/e2e test stability and mocks
+Lane: frontend
+Branch: feat/T-404-frontend-unit-e2e-test-stability-and-moc
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- Vitest runs pass consistently locally and in CI
+- Playwright specs use mock server/baseURL from env
+- Network calls in tests are stubbed or recorded; no external calls
+
+Changescope:
+- frontend/vitest.config.js
+- frontend/playwright.config.js
+- frontend/src/test/setup.js
+- frontend/e2e/*.spec.js
+
+Output: code changes only; summarize what changed and suggest next subtask.

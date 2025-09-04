@@ -1,0 +1,35 @@
+---
+description: Task T-401 — Stabilize CI test env and secrets fallbacks (auto-applied)
+globs:
+  - "collaboration/tasks/T-401/**"
+  - ".github/**"
+  - "scripts/**"
+  - ".github/workflows/test.yml"
+  - "scripts/run-tests.sh"
+  - "backend/env.test"
+  - "frontend/env.test"
+---
+
+Context Reset: New subtask
+Task: T-401 — Stabilize CI test env and secrets fallbacks
+Lane: ci
+Branch: feat/T-401-stabilize-ci-test-env-and-secrets-fallba
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- GitHub Actions `test.yml` passes green on `develop` without external secrets
+- Backend tests run with `backend/env.test` loaded and OpenAI calls mocked
+- Frontend unit tests run with `frontend/env.test` and no network flakiness
+- `scripts/run-tests.sh` exits non-zero on any suite failures
+
+Changescope:
+- .github/workflows/test.yml
+- scripts/run-tests.sh
+- backend/env.test
+- frontend/env.test
+
+Output: code changes only; summarize what changed and suggest next subtask.

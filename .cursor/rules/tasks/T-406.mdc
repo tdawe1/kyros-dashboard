@@ -1,0 +1,32 @@
+---
+description: Task T-406 — Update collaboration docs for 3-agent workflow (auto-applied)
+globs:
+  - "collaboration/tasks/T-406/**"
+  - "docs/**"
+  - ".codex/context/*.md"
+  - "collaboration/architecture.md"
+  - "CHANGELOG.md"
+---
+
+Context Reset: New subtask
+Task: T-406 — Update collaboration docs for 3-agent workflow
+Lane: docs
+Branch: feat/T-406-update-collaboration-docs-for-3-agent-wo
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- .codex/context/*.md and collaboration/architecture.md describe planner/implementer/critic roles with user-managed concurrency
+- Plan pipeline quickstart present and accurate
+- Each task prompt includes: 'First, check the task context and the docs to understand how to complete this task.'
+- CHANGELOG entry added under 'Unreleased'
+
+Changescope:
+- .codex/context/*.md
+- collaboration/architecture.md
+- CHANGELOG.md
+
+Output: code changes only; summarize what changed and suggest next subtask.

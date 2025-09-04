@@ -3,6 +3,7 @@
     "strict": true,
     "contexts": [
       "Collab Guard",
+      "CodeRabbit Critic Gate",
       "backend-tests",
       "frontend-tests",
       "e2e-tests",

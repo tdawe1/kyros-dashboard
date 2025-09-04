@@ -1,0 +1,29 @@
+---
+description: Task T-403 — Deflake backend rate limiter tests (auto-applied)
+globs:
+  - "collaboration/tasks/T-403/**"
+  - "backend/**"
+  - "backend/middleware/rate_limiter.py"
+  - "backend/tests/test_rate_limiter.py"
+---
+
+Context Reset: New subtask
+Task: T-403 — Deflake backend rate limiter tests
+Lane: backend
+Branch: feat/T-403-deflake-backend-rate-limiter-tests
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- backend/tests/test_rate_limiter.py passes reliably across 3 runs
+- Rate limiter time source injectable/mocked in tests
+- No change to external behavior of middleware
+
+Changescope:
+- backend/middleware/rate_limiter.py
+- backend/tests/test_rate_limiter.py
+
+Output: code changes only; summarize what changed and suggest next subtask.

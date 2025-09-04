@@ -1,0 +1,31 @@
+---
+description: Task T-402 — Enforce develop as PR base and size guard (auto-applied)
+globs:
+  - "collaboration/tasks/T-402/**"
+  - ".github/**"
+  - "scripts/**"
+  - ".github/workflows/collab-guard.yml"
+  - ".github/pull_request_template.md"
+---
+
+Context Reset: New subtask
+Task: T-402 — Enforce develop as PR base and size guard
+Lane: ci
+Branch: feat/T-402-enforce-develop-as-pr-base-and-size-guar
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- PRs targeting `main` are flagged with failure and guidance
+- PRs with >1000 LOC diff add a 'needs-split' label and fail guard
+- PR template shows base-branch and scope checklist
+- `collab-guard.yml` documents rules in-file
+
+Changescope:
+- .github/workflows/collab-guard.yml
+- .github/pull_request_template.md
+
+Output: code changes only; summarize what changed and suggest next subtask.

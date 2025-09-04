@@ -1,0 +1,202 @@
+name: CodeRabbit Critic Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, develop]
+  pull_request_target:
+    types: [opened, synchronize, reopened]
+    branches: [main, develop]
+
+jobs:
+  coderabbit-critic-gate:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.draft == false
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for diff calculation
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pyyaml
+
+      - name: Check for critics:ignored label
+        id: check_bypass
+        run: |
+          # Check if PR has critics:ignored label
+          if echo "${{ toJson(github.event.pull_request.labels) }}" | grep -q '"name":"critics:ignored"'; then
+            echo "bypass=true" >> $GITHUB_OUTPUT
+            echo "✅ PR has critics:ignored label - bypassing CodeRabbit critic gate"
+          else
+            echo "bypass=false" >> $GITHUB_OUTPUT
+            echo "🔍 No critics:ignored label found - running CodeRabbit critic gate"
+          fi
+
+      - name: Fetch CodeRabbit feedback
+        if: steps.check_bypass.outputs.bypass == 'false'
+        id: fetch_feedback
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python - << 'EOF'
+          import os
+          import requests
+          import json
+          import sys
+          
+          # Get PR details
+          owner = "${{ github.repository_owner }}"
+          repo = "${{ github.event.pull_request.head.repo.name }}"
+          pr_number = ${{ github.event.pull_request.number }}
+          
+          # GitHub API headers
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}",
+              "X-GitHub-Api-Version": "2022-11-28"
+          }
+          
+          # Fetch PR reviews
+          reviews_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/reviews"
+          reviews_response = requests.get(reviews_url, headers=headers, timeout=30)
+          reviews_response.raise_for_status()
+          reviews = reviews_response.json()
+          
+          # Fetch PR review comments
+          comments_url = f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/comments"
+          comments_response = requests.get(comments_url, headers=headers, timeout=30)
+          comments_response.raise_for_status()
+          comments = comments_response.json()
+          
+          # Fetch issue comments
+          issue_comments_url = f"https://api.github.com/repos/{owner}/{repo}/issues/{pr_number}/comments"
+          issue_comments_response = requests.get(issue_comments_url, headers=headers, timeout=30)
+          issue_comments_response.raise_for_status()
+          issue_comments = issue_comments_response.json()
+          
+          # Check for CodeRabbit feedback
+          action_required_findings = []
+          
+          # Check reviews for CodeRabbit action-required findings
+          for review in reviews:
+              if review.get("user", {}).get("login") == "coderabbit[bot]":
+                  if review.get("state") == "CHANGES_REQUESTED":
+                      body = review.get("body", "")
+                      if "action-required" in body.lower() or "action required" in body.lower():
+                          action_required_findings.append({
+                              "type": "review",
+                              "id": review.get("id"),
+                              "body": body,
+                              "url": review.get("html_url")
+                          })
+          
+          # Check review comments for CodeRabbit action-required findings
+          for comment in comments:
+              if comment.get("user", {}).get("login") == "coderabbit[bot]":
+                  body = comment.get("body", "")
+                  if "action-required" in body.lower() or "action required" in body.lower():
+                      action_required_findings.append({
+                          "type": "comment",
+                          "id": comment.get("id"),
+                          "file": comment.get("path"),
+                          "line": comment.get("line"),
+                          "body": body,
+                          "url": comment.get("html_url")
+                      })
+          
+          # Check issue comments for CodeRabbit action-required findings
+          for comment in issue_comments:
+              if comment.get("user", {}).get("login") == "coderabbit[bot]":
+                  body = comment.get("body", "")
+                  if "action-required" in body.lower() or "action required" in body.lower():
+                      action_required_findings.append({
+                          "type": "issue_comment",
+                          "id": comment.get("id"),
+                          "body": body,
+                          "url": comment.get("html_url")
+                      })
+          
+          # Output results
+          print(f"Found {len(action_required_findings)} action-required findings from CodeRabbit")
+          
+          # Set GitHub outputs
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as f:
+              f.write(f"action_required_count={len(action_required_findings)}\n")
+              f.write(f"action_required_findings={json.dumps(action_required_findings)}\n")
+          
+          # Print findings for debugging
+          for i, finding in enumerate(action_required_findings, 1):
+              print(f"\n--- Finding {i} ---")
+              print(f"Type: {finding['type']}")
+              print(f"URL: {finding['url']}")
+              if 'file' in finding:
+                  print(f"File: {finding['file']}:{finding.get('line', 'N/A')}")
+              print(f"Body: {finding['body'][:200]}...")
+          EOF
+
+      - name: Check for unresolved action-required findings
+        if: steps.check_bypass.outputs.bypass == 'false'
+        run: |
+          action_required_count="${{ steps.fetch_feedback.outputs.action_required_count }}"
+          
+          if [ "$action_required_count" -gt 0 ]; then
+            echo "❌ CodeRabbit Critic Gate Failed"
+            echo "Found $action_required_count unresolved action-required findings from CodeRabbit"
+            echo ""
+            echo "Please address the following CodeRabbit feedback before merging:"
+            echo "${{ steps.fetch_feedback.outputs.action_required_findings }}" | jq -r '.[] | "- \(.type): \(.url)"'
+            echo ""
+            echo "To bypass this gate (not recommended), add the 'critics:ignored' label to this PR."
+            echo "This should only be used for false positives or when the findings are not applicable."
+            exit 1
+          else
+            echo "✅ CodeRabbit Critic Gate Passed"
+            echo "No unresolved action-required findings from CodeRabbit found"
+          fi
+
+      - name: Comment on PR with results
+        if: always() && steps.check_bypass.outputs.bypass == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const actionRequiredCount = parseInt('${{ steps.fetch_feedback.outputs.action_required_count }}');
+            const findings = JSON.parse('${{ steps.fetch_feedback.outputs.action_required_findings }}' || '[]');
+            
+            let comment = '## 🔍 CodeRabbit Critic Gate Results\n\n';
+            
+            if (actionRequiredCount === 0) {
+              comment += '✅ **Gate Passed** - No unresolved action-required findings from CodeRabbit\n\n';
+              comment += 'This PR is ready for review and merge.';
+            } else {
+              comment += '❌ **Gate Failed** - Found ' + actionRequiredCount + ' unresolved action-required findings from CodeRabbit\n\n';
+              comment += '**Please address the following feedback before merging:**\n\n';
+              
+              findings.forEach((finding, index) => {
+                comment += `${index + 1}. [${finding.type}](${finding.url})`;
+                if (finding.file) {
+                  comment += ` - ${finding.file}:${finding.line || 'N/A'}`;
+                }
+                comment += '\n';
+              });
+              
+              comment += '\n---\n\n';
+              comment += '**To bypass this gate** (not recommended), add the `critics:ignored` label to this PR.\n';
+              comment += 'This should only be used for false positives or when the findings are not applicable.';
+            }
+            
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: comment
+            });
