@@ -12,6 +12,8 @@ const createTestQueryClient = () =>
       queries: {
         retry: false,
         refetchOnWindowFocus: false,
+        // Disable retries in tests to avoid timing issues
+        retryDelay: 0,
       },
     },
   });
@@ -60,8 +62,14 @@ describe("ReadyBadge", () => {
 
     renderWithQueryClient(<ReadyBadge />);
 
+    // Wait for the component to render initially
+    expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
+
+    // Advance timers to trigger polling
+    vi.advanceTimersByTime(1000);
+
+    // Wait for the error state to appear
     await waitFor(() => {
-      expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
       expect(screen.getByText("/ready:DOWN")).toBeInTheDocument();
     });
   });
@@ -74,8 +82,14 @@ describe("ReadyBadge", () => {
 
     renderWithQueryClient(<ReadyBadge />);
 
+    // Wait for the component to render initially
+    expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
+
+    // Advance timers to trigger polling
+    vi.advanceTimersByTime(1000);
+
+    // Wait for the error state to appear
     await waitFor(() => {
-      expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
       expect(screen.getByText("/ready:DOWN")).toBeInTheDocument();
     });
   });
@@ -102,9 +116,13 @@ describe("ReadyBadge", () => {
 
     renderWithQueryClient(<ReadyBadge />);
 
+    // Wait for the component to render initially
+    expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
+
     // Advance timers to trigger polling
     vi.advanceTimersByTime(1000);
 
+    // Wait for the error state to appear
     await waitFor(() => {
       const badge = screen.getByTestId("ready-badge");
       expect(badge).toHaveClass("bg-red-100", "text-red-800");
