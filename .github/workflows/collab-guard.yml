@@ -5,6 +5,33 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # need full history for branch comparisons
+
+      # Enforce develop as PR base branch
+      - name: Check PR base branch
+        run: |
+          if [ "${{ github.base_ref }}" != "develop" ]; then
+            echo "❌ PRs must target 'develop' branch, not '${{ github.base_ref }}'"
+            echo "Please update your PR to target the 'develop' branch."
+            exit 1
+          else
+            echo "✅ PR correctly targets 'develop' branch"
+          fi
+
+      # Ensure PR branch is up-to-date with base (develop)
+      - name: Check branch is up-to-date with base
+        run: |
+          git fetch origin "${{ github.base_ref }}:${{ github.base_ref }}"
+          BEHIND=$(git rev-list --left-right --count "${{ github.base_ref }}...${{ github.sha }}" | awk '{print $1}')
+          echo "Commits behind base '${{ github.base_ref }}': ${BEHIND:-0}"
+          if [ "${BEHIND:-0}" -gt 0 ]; then
+            echo "❌ Branch is behind '${{ github.base_ref }}' by ${BEHIND} commits."
+            echo "Please click 'Update branch' (preferred) or rebase onto '${{ github.base_ref }}'."
+            exit 1
+          else
+            echo "✅ Branch is up-to-date with base"
+          fi
       - name: No conflict markers
         run: |
           ! grep -R --line-number -E '^(<<<<<<<|=======|>>>>>>>)' . --exclude-dir=venv --exclude-dir=.venv --exclude-dir=node_modules || \
