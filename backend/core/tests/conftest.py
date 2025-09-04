@@ -1,4 +1,5 @@
-import os
+import sys
+from pathlib import Path
 import types
 import pytest
 
@@ -13,7 +14,12 @@ def stub_openai(monkeypatch):
     paths that validate its presence.
     """
 
-    os.environ.setdefault("OPENAI_API_KEY", "test-sk")
+    # Ensure imports resolve when running pytest from repo root
+    backend_root = str(Path(__file__).resolve().parents[2])
+    if backend_root not in sys.path:
+        sys.path.insert(0, backend_root)
+    # Provide a safe dummy API key to satisfy code paths requiring it
+    monkeypatch.setenv("OPENAI_API_KEY", "dummy-openai-api-key")
 
     class _StubCompletions:
         @staticmethod
@@ -39,4 +45,3 @@ def stub_openai(monkeypatch):
     import core.openai_client as _mod
 
     monkeypatch.setattr(_mod, "OpenAI", lambda api_key=None: _StubClient())
-
