@@ -53,19 +53,39 @@ jobs:
           # 1. Try folder first (if set)
           files = []
           if folder_id:
+              print(f"Searching in folder: {folder_id}")
               files = find_latest(
                   f"'{folder_id}' in parents and trashed=false "
                   f"and (name contains '.yml' or name contains '.yaml')"
               )
+              print(f"Found {len(files)} files in folder")
 
           # 2. Fallback to root
           if not files:
+              print("No files found in folder, searching root directory...")
               files = find_latest(
                   "trashed=false and (name contains '.yml' or name contains '.yaml')"
               )
+              print(f"Found {len(files)} files in root")
+
+          # 3. Try broader search if still no files
+          if not files:
+              print("Trying broader search for any YAML files...")
+              files = find_latest(
+                  "trashed=false and (name contains 'yml' or name contains 'yaml')"
+              )
+              print(f"Found {len(files)} files with broader search")
 
           if not files:
               print("No .yml/.yaml plans found in Drive.")
+              print("Available file types in folder:")
+              if folder_id:
+                  all_files = svc.files().list(
+                      q=f"'{folder_id}' in parents and trashed=false",
+                      fields="files(name,mimeType)"
+                  ).execute().get("files", [])
+                  for f in all_files[:10]:  # Show first 10 files
+                      print(f"  - {f['name']} ({f.get('mimeType', 'unknown')})")
               sys.exit(1)
 
           fid, name = files[0]['id'], files[0]['name']
