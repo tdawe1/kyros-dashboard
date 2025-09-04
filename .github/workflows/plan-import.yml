@@ -32,33 +32,55 @@ jobs:
           from google.oauth2 import service_account
           from googleapiclient.discovery import build
           from googleapiclient.http import MediaIoBaseDownload
+          from scripts.retry_utils import retry_with_backoff
           
-          creds = service_account.Credentials.from_service_account_info(
-              json.loads(os.environ["GDRIVE_SA_JSON"]),
-              scopes=["https://www.googleapis.com/auth/drive.readonly"]
-          )
-          svc = build('drive', 'v3', credentials=creds)
-          folder = os.environ["PLANS_INBOX_FOLDER_ID"]
+          def download_plan():
+              creds = service_account.Credentials.from_service_account_info(
+                  json.loads(os.environ["GDRIVE_SA_JSON"]),
+                  scopes=["https://www.googleapis.com/auth/drive.readonly"]
+              )
+              svc = build('drive', 'v3', credentials=creds)
+              folder = os.environ["PLANS_INBOX_FOLDER_ID"]
+              
+              # List files with retry
+              resp = retry_with_backoff(
+                  svc.files().list,
+                  max_retries=3,
+                  q=f"'{folder}' in parents and trashed=false and name contains '.yml'",
+                  orderBy="modifiedTime desc",
+                  pageSize=1,
+                  fields="files(id,name)"
+              ).execute()
+              
+              files = resp.get('files', [])
+              if not files:
+                  raise Exception("No .yml plans found in Plans Inbox.")
+              
+              fid, name = files[0]['id'], files[0]['name']
+              
+              # Download file with retry
+              request = svc.files().get_media(fileId=fid)
+              fh = io.BytesIO()
+              downloader = MediaIoBaseDownload(fh, request)
+              
+              def download_chunks():
+                  done = False
+                  while not done:
+                      status, done = downloader.next_chunk()
+                  return fh.getvalue()
+              
+              file_data = retry_with_backoff(download_chunks, max_retries=3)
+              
+              with open('planspec.yml', 'wb') as f:
+                  f.write(file_data)
+              
+              print(f"SUCCESS: Downloaded {name} ({len(file_data)} bytes)")
           
-          resp = svc.files().list(
-              q=f"'{folder}' in parents and trashed=false and name contains '.yml'",
-              orderBy="modifiedTime desc",
-              pageSize=1,
-              fields="files(id,name)"
-          ).execute()
-          files = resp.get('files', [])
-          if not files:
-              print("No .yml plans found in Plans Inbox."); sys.exit(1)
-          fid, name = files[0]['id'], files[0]['name']
-          
-          request = svc.files().get_media(fileId=fid)
-          fh = io.BytesIO()
-          downloader = MediaIoBaseDownload(fh, request)
-          done=False
-          while not done:
-              status, done = downloader.next_chunk()
-          open('planspec.yml', 'wb').write(fh.getvalue())
-          print(f"DOWNLOADED {name} {fid}")
+          try:
+              download_plan()
+          except Exception as e:
+              print(f"ERROR: Failed to download plan from Google Drive: {e}")
+              sys.exit(1)
           PY
 
       - name: Stage PlanSpec into repo
