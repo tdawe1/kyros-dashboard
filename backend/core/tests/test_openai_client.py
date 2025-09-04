@@ -12,7 +12,7 @@ class TestOpenAIClient:
         """Set up test environment to prevent network calls and API key dependency."""
         # Set a test API key
         os.environ.setdefault("OPENAI_API_KEY", "test-sk")
-        
+
         # Create a stub client class
         class StubClient:
             class Chat:
@@ -21,21 +21,24 @@ class TestOpenAIClient:
                     def create(**kwargs):
                         class Choice:
                             def __init__(self):
-                                self.message = types.SimpleNamespace(content="Test response")
-                        
+                                self.message = types.SimpleNamespace(
+                                    content="Test response"
+                                )
+
                         class Usage:
                             prompt_tokens = 1
                             completion_tokens = 1
                             total_tokens = 2
-                        
+
                         return types.SimpleNamespace(choices=[Choice()], usage=Usage())
-                
+
                 completions = Completions()
-            
+
             chat = Chat()
-        
+
         # Patch the OpenAI class used by core.openai_client
         import core.openai_client as mod
+
         self.original_openai = mod.OpenAI
         mod.OpenAI = lambda api_key=None: StubClient()
 
@@ -43,14 +46,15 @@ class TestOpenAIClient:
         """Clean up after tests."""
         # Restore original OpenAI class
         import core.openai_client as mod
+
         mod.OpenAI = self.original_openai
 
     def test_init_with_api_key(self):
         """Test client initialization with API key."""
-        client = OpenAIClient(api_key="test-key-12345")
+        client = OpenAIClient(api_key="test-key-12345")  # pragma: allowlist secret
         assert client.api_key == "test-key-12345"
 
-    @patch.dict("os.environ", {"OPENAI_API_KEY": "env-key"})
+    @patch.dict("os.environ", {"OPENAI_API_KEY": "env-key"})  # pragma: allowlist secret
     def test_init_with_env_key(self):
         """Test client initialization with environment variable."""
         client = OpenAIClient()
@@ -78,7 +82,7 @@ class TestOpenAIClient:
     def test_chat_completion_success(self):
         """Test successful chat completion."""
         client = OpenAIClient(api_key="test-key-12345")
-        
+
         # Mock the client's chat.completions.create method
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
@@ -88,7 +92,7 @@ class TestOpenAIClient:
         mock_response.usage.completion_tokens = 50
         mock_response.usage.total_tokens = 150
         client.client.chat.completions.create = MagicMock(return_value=mock_response)
-        
+
         result = client.chat_completion(
             messages=[{"role": "user", "content": "Test prompt"}],
             model="gpt-4o-mini",
@@ -113,7 +117,7 @@ class TestOpenAIClient:
     def test_chat_completion_retry_logic(self):
         """Test retry logic on API failures."""
         client = OpenAIClient(api_key="test-key-12345")
-        
+
         # Mock the client to fail twice then succeed
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
@@ -122,14 +126,16 @@ class TestOpenAIClient:
         mock_response.usage.prompt_tokens = 100
         mock_response.usage.completion_tokens = 50
         mock_response.usage.total_tokens = 150
-        
+
         # First two calls fail, third succeeds
-        client.client.chat.completions.create = MagicMock(side_effect=[
-            Exception("API Error 1"),
-            Exception("API Error 2"),
-            mock_response,
-        ])
-        
+        client.client.chat.completions.create = MagicMock(
+            side_effect=[
+                Exception("API Error 1"),
+                Exception("API Error 2"),
+                mock_response,
+            ]
+        )
+
         result = client.chat_completion(
             messages=[{"role": "user", "content": "Test prompt"}],
             model="gpt-4o-mini",
@@ -142,10 +148,12 @@ class TestOpenAIClient:
     def test_chat_completion_max_retries_exceeded(self):
         """Test behavior when max retries are exceeded."""
         client = OpenAIClient(api_key="test-key-12345")
-        
+
         # Mock the client to always fail
-        client.client.chat.completions.create = MagicMock(side_effect=Exception("Persistent API Error"))
-        
+        client.client.chat.completions.create = MagicMock(
+            side_effect=Exception("Persistent API Error")
+        )
+
         with pytest.raises(OpenAIError, match="OpenAI request failed after"):
             client.chat_completion(
                 messages=[{"role": "user", "content": "Test prompt"}],
