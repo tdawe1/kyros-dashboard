@@ -29,9 +29,28 @@ jobs:
           commit_message: 'chore(collab): update project board'
           file_pattern: collaboration/board.md
       - name: Post board to Discord (optional)
-        if: ${{ secrets.DISCORD_WEBHOOK_URL != '' }}
+        if: ${{ secrets.DISCORD_WEBHOOK_URL != '' || secrets.DISCORD_PM_WEBHOOK_URL != '' }}
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_PM_WEBHOOK_URL: ${{ secrets.DISCORD_PM_WEBHOOK_URL }}
+          PROJECT_URL: ${{ secrets.PROJECT_URL }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
         run: |
+          set -e
           pip install requests
-          python scripts/discord_post.py collaboration/board.md || true
+          DASHBOARD_URL="https://$OWNER.github.io/$REPO/"
+          if [ -n "${DISCORD_WEBHOOK_URL:-}" ]; then
+            python scripts/discord_post.py collaboration/board.md \
+              --title "Now / Next Board Updated" \
+              --project-url "${PROJECT_URL:-}" \
+              --dashboard-url "$DASHBOARD_URL" \
+              --repo-url "https://github.com/$OWNER/$REPO" || true
+          fi
+          if [ -n "${DISCORD_PM_WEBHOOK_URL:-}" ]; then
+            DISCORD_WEBHOOK_URL="$DISCORD_PM_WEBHOOK_URL" python scripts/discord_post.py collaboration/board.md \
+              --title "Now / Next Board Updated" \
+              --project-url "${PROJECT_URL:-}" \
+              --dashboard-url "$DASHBOARD_URL" \
+              --repo-url "https://github.com/$OWNER/$REPO" || true
+          fi

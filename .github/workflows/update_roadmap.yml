@@ -27,9 +27,30 @@ jobs:
           commit_message: 'chore(roadmap): update ROADMAP.md'
           file_pattern: ROADMAP.md
       - name: Post to Discord (optional)
-        if: ${{ secrets.DISCORD_WEBHOOK_URL != '' }}
+        if: ${{ secrets.DISCORD_WEBHOOK_URL != '' || secrets.DISCORD_PM_WEBHOOK_URL != '' }}
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          DISCORD_PM_WEBHOOK_URL: ${{ secrets.DISCORD_PM_WEBHOOK_URL }}
+          PROJECT_URL: ${{ secrets.PROJECT_URL }}
+          OWNER: ${{ github.repository_owner }}
+          REPO: ${{ github.event.repository.name }}
         run: |
+          set -e
           pip install requests
-          python scripts/discord_post.py ROADMAP.md || true
+          DASHBOARD_URL="https://$OWNER.github.io/$REPO/"
+          # Post to general channel if configured
+          if [ -n "${DISCORD_WEBHOOK_URL:-}" ]; then
+            python scripts/discord_post.py ROADMAP.md \
+              --title "Roadmap Updated" \
+              --project-url "${PROJECT_URL:-}" \
+              --dashboard-url "$DASHBOARD_URL" \
+              --repo-url "https://github.com/$OWNER/$REPO" || true
+          fi
+          # Post to project management channel if configured
+          if [ -n "${DISCORD_PM_WEBHOOK_URL:-}" ]; then
+            DISCORD_WEBHOOK_URL="$DISCORD_PM_WEBHOOK_URL" python scripts/discord_post.py ROADMAP.md \
+              --title "Roadmap Updated" \
+              --project-url "${PROJECT_URL:-}" \
+              --dashboard-url "$DASHBOARD_URL" \
+              --repo-url "https://github.com/$OWNER/$REPO" || true
+          fi
