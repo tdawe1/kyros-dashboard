@@ -1,16 +1,18 @@
 name: Sync Issues to Tasks
 
 on:
-  issues:
-    types: [opened, edited, labeled]
+  pull_request:
+    types: [closed]
+  schedule:
+    - cron: "30 3 * * *"
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  issues_to_tasks:
-    if: |
-      contains(github.event.issue.labels.*.name, 'task')
+  sync:
+    if: ${{ github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'develop' || github.event_name != 'pull_request' }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

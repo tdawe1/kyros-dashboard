@@ -6,7 +6,11 @@ on:
 
 jobs:
   validate-agent-pr:
+    if: ${{ github.event_name == 'pull_request' && github.event.pull_request.base.ref == 'develop' }}
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - uses: actions/checkout@v4
         with:
