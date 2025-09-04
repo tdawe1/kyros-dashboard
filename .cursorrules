@@ -1,0 +1,19 @@
+---
+goals:
+  - Follow Implementer Handoff: Acceptance, ChangeScope(files), Plan(≤5), Risks, Leases.
+  - Keep PRs small: <200 LOC and ≤3 files; else STOP and request an Opus plan.
+  - Base branch is `develop`. Never target `main`.
+  - Never modify collaboration/state/** or collaboration/events/** on feature PRs.
+  - Prefer config over code; avoid new deps without justification.
+ci_commands:
+  - "frontend: npm ci && npm run build && npm run test:ci -- --reporter=dot -t 'renders'"
+  - "backend: poetry install --no-root && pytest -q tests/test_healthz.py"
+  - "e2e: npm run preview -- --strictPort --host --port 3001 && npx playwright test"
+conventions:
+  - E2E baseURL http://localhost:3001; data-testid selectors; zero retries while stabilizing.
+  - E2E triggers: FE ∨ BE ∨ push-to-develop; runs after unit lanes.
+  - Commit: feat/fix/chore(scope): message (#T-###).
+forbidden_patterns:
+  - "^tasks/(T-.*)"
+  - "^collaboration/(state|events)/"
+---
