@@ -86,6 +86,22 @@ The `.github/ISSUE_TEMPLATE` folder includes forms for Task, Bug, and Feature. N
 - GitHub Pages workflow (`publish_dashboard.yml`) publishes `site/` fetching `ROADMAP.md` and `collaboration/board.md`.
 - Enable Pages: Settings → Pages → Source “GitHub Actions”.
 - The Roadmap includes a "Goals" section for overarching direction; agents and automations do not act on it.
+- See `docs/DASHBOARD.md` for autolinking and config details.
+
+## Quick Start
+
+- Create a task linked to roadmap:
+  - `python scripts/collab_cli.py create-task --title "Backend: /healthz" --labels backend,ci --priority P1 --roadmap-id R2.1.1`
+- Move status while working:
+  - `python scripts/collab_cli.py transition-task task-009 in_progress`
+- Generate the Now/Next board:
+  - `python scripts/generate_tasks_board.py && cat collaboration/board.md`
+- Render the roadmap:
+  - `python scripts/roadmap_tree.py project/roadmap.yml ROADMAP.md`
+- Sync to Issues/Project (Actions):
+  - Run “Sync Roadmap/Tasks to GitHub Issues + Project” (requires `PROJECT_URL` secret)
+- Publish dashboard (Actions):
+  - Run “Publish Project Dashboard (Pages)” (posts to Discord if webhooks configured)
 
 ## CodeRabbit Import
 
