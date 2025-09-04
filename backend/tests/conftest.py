@@ -1,4 +1,3 @@
-import os
 import types
 import pytest
 
@@ -6,7 +5,8 @@ import pytest
 @pytest.fixture(autouse=True)
 def stub_openai_global(monkeypatch):
     """Global autouse stub to avoid real OpenAI calls across backend tests."""
-    os.environ.setdefault("OPENAI_API_KEY", "test-sk")
+    # Ensure code paths that require an API key find a safe, non-secret value
+    monkeypatch.setenv("OPENAI_API_KEY", "dummy-openai-api-key")
 
     class _StubCompletions:
         @staticmethod
@@ -30,4 +30,3 @@ def stub_openai_global(monkeypatch):
 
     import core.openai_client as _mod
     monkeypatch.setattr(_mod, "OpenAI", lambda api_key=None: _StubClient())
-
