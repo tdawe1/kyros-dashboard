@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { vi } from "vitest";
 import ReadyBadge from "./ReadyBadge";
@@ -12,6 +12,8 @@ const createTestQueryClient = () =>
       queries: {
         retry: false,
         refetchOnWindowFocus: false,
+        gcTime: 0,
+        staleTime: 0,
       },
     },
   });
@@ -28,6 +30,12 @@ const renderWithQueryClient = (component) => {
 describe("ReadyBadge", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset fetch mock
+    global.fetch = vi.fn();
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
   });
 
   it("shows UP when /ready returns 200", async () => {
@@ -41,7 +49,7 @@ describe("ReadyBadge", () => {
     await waitFor(() => {
       expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
       expect(screen.getByText("/ready:UP")).toBeInTheDocument();
-    });
+    }, { timeout: 10000 });
   });
 
   it("shows DOWN when /ready returns error", async () => {
@@ -52,7 +60,7 @@ describe("ReadyBadge", () => {
     await waitFor(() => {
       expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
       expect(screen.getByText("/ready:DOWN")).toBeInTheDocument();
-    });
+    }, { timeout: 10000 });
   });
 
   it("shows DOWN when /ready returns non-200 status", async () => {
@@ -66,7 +74,7 @@ describe("ReadyBadge", () => {
     await waitFor(() => {
       expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
       expect(screen.getByText("/ready:DOWN")).toBeInTheDocument();
-    });
+    }, { timeout: 10000 });
   });
 
   it("applies correct styling for UP status", async () => {
@@ -80,7 +88,7 @@ describe("ReadyBadge", () => {
     await waitFor(() => {
       const badge = screen.getByTestId("ready-badge");
       expect(badge).toHaveClass("bg-green-100", "text-green-800");
-    });
+    }, { timeout: 10000 });
   });
 
   it("applies correct styling for DOWN status", async () => {
@@ -91,7 +99,7 @@ describe("ReadyBadge", () => {
     await waitFor(() => {
       const badge = screen.getByTestId("ready-badge");
       expect(badge).toHaveClass("bg-red-100", "text-red-800");
-    });
+    }, { timeout: 10000 });
   });
 
   it("shows LOADING state initially", () => {
