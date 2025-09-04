@@ -16,12 +16,10 @@ const createTestQueryClient = () =>
     },
   });
 
-const renderWithQueryClient = (component) => {
+const renderWithQueryClient = component => {
   const queryClient = createTestQueryClient();
   return render(
-    <QueryClientProvider client={queryClient}>
-      {component}
-    </QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>
   );
 };
 
