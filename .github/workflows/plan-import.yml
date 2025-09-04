@@ -150,13 +150,31 @@ jobs:
               f.write(fh.getvalue())
 
           print(f"DOWNLOADED {name} ({fid})")
+          print(f"File size: {len(fh.getvalue())} bytes")
+          
+          # Verify file was created
+          import os
+          if os.path.exists('planspec.yml'):
+              print("✅ planspec.yml file created successfully")
+          else:
+              print("❌ ERROR: planspec.yml file was not created")
+              sys.exit(1)
           PY
 
       - name: Stage PlanSpec into repo
         id: stage
         run: |
+          echo "Starting staging step..."
+          ls -la planspec.yml || echo "planspec.yml not found in root"
+          
           mkdir -p collaboration/plans/inbox
+          echo "Created inbox directory"
+          
           cp planspec.yml collaboration/plans/inbox/
+          echo "Copied planspec.yml to inbox"
+          
+          ls -la collaboration/plans/inbox/
+          echo "Contents of inbox directory:"
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
