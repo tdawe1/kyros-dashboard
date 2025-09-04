@@ -296,6 +296,14 @@ python scripts/collab_cli.py list-tasks --assignee thomas
 python scripts/roadmap_cli.py set-status R2.1 in_progress
 ```
 
+## Security Configuration
+
+### JWT Secret Key
+- **Development**: JWT_SECRET_KEY is automatically generated with 32 characters if not provided
+- **Production**: Must set JWT_SECRET_KEY environment variable (minimum 32 characters)
+- **Validation**: The system enforces ≥32 character requirement and generates secure fallback if needed
+- **Recommendation**: Always set JWT_SECRET_KEY in non-development environments for security
+
 ## CodeRabbit Import
 
 - Workflow `import_coderabbit_on_pr.yml` imports PR review feedback into small tasks automatically when reviews/comments are submitted.

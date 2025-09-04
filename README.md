@@ -79,6 +79,8 @@ poetry run uvicorn main:app --reload --port 8000
 **Frontend:** `VITE_API_BASE_URL=http://localhost:8000`
 **Backend:** See `backend/env.example` for required variables (database, Redis, OpenAI, JWT, etc.)
 
+**Security Note:** JWT_SECRET_KEY is automatically generated for development but must be set manually in production environments (minimum 32 characters).
+
 ## 📱 Key Features
 
 - **Dashboard** - KPIs, recent jobs, quick content generation

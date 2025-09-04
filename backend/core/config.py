@@ -44,7 +44,10 @@ class Settings(BaseSettings):
     api_prefix: str = Field(default="/api", env="API_PREFIX")
 
     # Security settings
-    jwt_secret_key: str = Field(..., env="JWT_SECRET_KEY")
+    jwt_secret_key: str = Field(
+        default_factory=lambda: __import__("secrets").token_urlsafe(32),
+        env="JWT_SECRET_KEY"
+    )
     jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
     jwt_access_token_expire_minutes: int = Field(
         default=30, env="JWT_ACCESS_TOKEN_EXPIRE_MINUTES"
@@ -140,7 +143,6 @@ class Settings(BaseSettings):
         if not v or len(v) < 32:
             logger.warning("JWT secret key is too short, generating a secure one")
             import secrets
-
             return secrets.token_urlsafe(32)
         return v
 
