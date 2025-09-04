@@ -54,11 +54,21 @@ jobs:
           files = []
           if folder_id:
               print(f"Searching in folder: {folder_id}")
-              files = find_latest(
-                  f"'{folder_id}' in parents and trashed=false "
-                  f"and (name contains '.yml' or name contains '.yaml')"
-              )
+              query = f"'{folder_id}' in parents and trashed=false and (name contains '.yml' or name contains '.yaml')"
+              print(f"Query: {query}")
+              files = find_latest(query)
               print(f"Found {len(files)} files in folder")
+              
+              # Also try a simpler query to see if folder access works
+              print("Testing folder access with simpler query...")
+              test_files = svc.files().list(
+                  q=f"'{folder_id}' in parents and trashed=false",
+                  pageSize=5,
+                  fields="files(id,name,mimeType)"
+              ).execute().get("files", [])
+              print(f"Total files in folder: {len(test_files)}")
+              for f in test_files:
+                  print(f"  - {f['name']} (type: {f.get('mimeType', 'unknown')})")
 
           # 2. Fallback to root
           if not files:
@@ -75,6 +85,14 @@ jobs:
                   "trashed=false and (name contains 'yml' or name contains 'yaml')"
               )
               print(f"Found {len(files)} files with broader search")
+              
+          # 4. Try specific .yml search in folder
+          if not files and folder_id:
+              print("Trying specific .yml search in folder...")
+              files = find_latest(
+                  f"'{folder_id}' in parents and trashed=false and name contains '.yml'"
+              )
+              print(f"Found {len(files)} .yml files in folder")
 
           if not files:
               print("No .yml/.yaml plans found in Drive.")
