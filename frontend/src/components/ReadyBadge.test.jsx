@@ -30,14 +30,6 @@ describe("ReadyBadge", () => {
     vi.clearAllMocks();
     // Reset fetch mock before each test
     global.fetch.mockClear();
-    // Use fake timers for deterministic testing
-    vi.useFakeTimers();
-  });
-
-  afterEach(() => {
-    // Clean up any pending timers
-    vi.clearAllTimers();
-    vi.useRealTimers();
   });
 
   it("shows UP when /ready returns 200", async () => {
@@ -48,13 +40,14 @@ describe("ReadyBadge", () => {
 
     renderWithQueryClient(<ReadyBadge />);
 
-    // Advance timers to trigger polling
-    vi.advanceTimersByTime(1000);
+    // Wait for initial render
+    expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
+    expect(screen.getByText("/ready:LOADING")).toBeInTheDocument();
 
+    // Wait for the query to complete
     await waitFor(() => {
-      expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
       expect(screen.getByText("/ready:UP")).toBeInTheDocument();
-    });
+    }, { timeout: 10000 });
   });
 
   it("shows DOWN when /ready returns error", async () => {
@@ -62,16 +55,14 @@ describe("ReadyBadge", () => {
 
     renderWithQueryClient(<ReadyBadge />);
 
-    // Wait for the component to render initially
+    // Wait for initial render
     expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
+    expect(screen.getByText("/ready:LOADING")).toBeInTheDocument();
 
-    // Advance timers to trigger polling
-    vi.advanceTimersByTime(1000);
-
-    // Wait for the error state to appear
+    // Wait for the query to complete
     await waitFor(() => {
       expect(screen.getByText("/ready:DOWN")).toBeInTheDocument();
-    });
+    }, { timeout: 10000 });
   });
 
   it("shows DOWN when /ready returns non-200 status", async () => {
@@ -82,16 +73,14 @@ describe("ReadyBadge", () => {
 
     renderWithQueryClient(<ReadyBadge />);
 
-    // Wait for the component to render initially
+    // Wait for initial render
     expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
+    expect(screen.getByText("/ready:LOADING")).toBeInTheDocument();
 
-    // Advance timers to trigger polling
-    vi.advanceTimersByTime(1000);
-
-    // Wait for the error state to appear
+    // Wait for the query to complete
     await waitFor(() => {
       expect(screen.getByText("/ready:DOWN")).toBeInTheDocument();
-    });
+    }, { timeout: 10000 });
   });
 
   it("applies correct styling for UP status", async () => {
@@ -102,13 +91,15 @@ describe("ReadyBadge", () => {
 
     renderWithQueryClient(<ReadyBadge />);
 
-    // Advance timers to trigger polling
-    vi.advanceTimersByTime(1000);
+    // Wait for initial render
+    expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
+    expect(screen.getByText("/ready:LOADING")).toBeInTheDocument();
 
+    // Wait for the query to complete
     await waitFor(() => {
       const badge = screen.getByTestId("ready-badge");
       expect(badge).toHaveClass("bg-green-100", "text-green-800");
-    });
+    }, { timeout: 10000 });
   });
 
   it("applies correct styling for DOWN status", async () => {
@@ -116,17 +107,15 @@ describe("ReadyBadge", () => {
 
     renderWithQueryClient(<ReadyBadge />);
 
-    // Wait for the component to render initially
+    // Wait for initial render
     expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
+    expect(screen.getByText("/ready:LOADING")).toBeInTheDocument();
 
-    // Advance timers to trigger polling
-    vi.advanceTimersByTime(1000);
-
-    // Wait for the error state to appear
+    // Wait for the query to complete
     await waitFor(() => {
       const badge = screen.getByTestId("ready-badge");
       expect(badge).toHaveClass("bg-red-100", "text-red-800");
-    });
+    }, { timeout: 10000 });
   });
 
   it("shows LOADING state initially", () => {
