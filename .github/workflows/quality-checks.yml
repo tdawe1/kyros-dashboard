@@ -45,7 +45,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry detect-secrets
           cd backend
-          poetry install --no-interaction --no-ansi
+          poetry install --no-interaction --no-ansi --no-root
 
       - name: Install Node.js dependencies
         run: |
@@ -99,7 +99,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install poetry
           cd backend
-          poetry install --no-interaction --no-ansi
+          poetry install --no-interaction --no-ansi --no-root
 
       - name: Install Node.js dependencies
         run: |

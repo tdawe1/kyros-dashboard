@@ -60,7 +60,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install poetry
-        poetry install --no-interaction --no-ansi
+        poetry install --no-interaction --no-ansi --no-root
 
     - name: Lint with ruff
       working-directory: ./backend
@@ -186,7 +186,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install poetry
-        poetry install --no-interaction --no-ansi
+        poetry install --no-interaction --no-ansi --no-root
         poetry run pip install ruff black bandit isort flake8
 
     - name: Install Node.js dependencies
@@ -298,7 +298,7 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         pip install poetry
-        poetry install --no-interaction --no-ansi
+        poetry install --no-interaction --no-ansi --no-root
         poetry run pip install bandit
 
     - name: Run security scan with bandit
