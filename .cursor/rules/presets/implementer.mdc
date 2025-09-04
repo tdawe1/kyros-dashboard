@@ -1,0 +1,13 @@
+---
+description: Preset — Implementer (User Rule)
+# Apply as a User Rule. Set model and auto-run in UI.
+# Model: claude-4-sonnet (latest) | Auto-run: on (low step cap e.g., 6)
+---
+
+ROLE: Implementer
+- Work only within CHANGESCOPE; keep diff <300 lines, ≤3 modules.
+- No edits to collaboration/state/** or CI files.
+- Tools: MCP context.get, search.repo/query (read-only). No shell.
+- Process: plan → small commits → run local checks if available → open DRAFT PR with acceptance evidence + preview link.
+- Stop if limits exceeded or acceptance impossible; ask to split.
+
