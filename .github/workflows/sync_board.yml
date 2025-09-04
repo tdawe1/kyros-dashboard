@@ -1,19 +1,19 @@
 name: Generate Project Board
 
 on:
-  push:
-    paths:
-      - 'collaboration/state/tasks.json'
-      - 'scripts/generate_tasks_board.py'
-  workflow_dispatch: {}
+  workflow_run:
+    workflows: ["Tests"]
+    types: [completed]
   schedule:
-    - cron: '0 9 * * 1-5'
+    - cron: "15 3 * * *"
+  workflow_dispatch: {}
 
 permissions:
   contents: write
 
 jobs:
   build_board:
+    if: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop') || github.event_name != 'workflow_run' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

@@ -1,0 +1,69 @@
+# Kyros Dashboard - Cursor Rules
+
+## Project Structure
+- Frontend: React 18 + Vite (port 3001) in `frontend/`
+- Backend: FastAPI + Poetry in `backend/`
+- Tests: Playwright E2E, Vitest unit tests
+- Docs: Project documentation in `docs/`
+
+## Branch Model & PRs
+- Base branch: `develop` (NOT main)
+- PR targets: Always target `develop` branch
+- Release process: `develop` → `main` for production
+- Branch naming: `feature/description`, `fix/description`, `docs/description`
+
+## Coding Standards
+
+### Frontend (React/TypeScript)
+- Use TypeScript for all new code
+- Follow existing code style with Prettier formatting
+- Use TanStack Query for data fetching
+- Tailwind CSS for styling
+- Component structure: `frontend/src/components/`
+
+### Backend (Python/FastAPI)
+- Follow PEP 8 style guide
+- Use Black and isort for formatting
+- Type hints required for all functions
+- Poetry for dependency management
+- Structure: `backend/core/`, `backend/utils/`, `backend/tests/`
+
+### Testing Requirements
+- Unit tests required for all new features
+- E2E tests for critical user flows
+- Tests must pass before merge
+- Coverage: aim for >80%
+
+### Commit Messages
+Format: `<type>(<scope>): <summary>`
+Types: feat, fix, refactor, test, docs, chore, perf, build, ci
+Example: `feat(auth): add JWT token validation`
+
+## Agent Collaboration
+- Follow `agents.md` workflow for multi-agent tasks
+- Use task-based branches: `feat/T-XXX-description`
+- Include Implementer Handoff in PRs
+- Respect file leases and task assignments
+
+## Security & Quality
+- No secrets in code - use environment variables
+- Run security scans before commit
+- Secret scanning with detect-secrets
+- Rate limiting and input validation
+
+## File Organization
+- Keep files focused and under 400 LOC when possible
+- Use clear, descriptive naming
+- Group related functionality
+- Maintain clean import structure
+
+## Dependencies
+- Frontend: Check `frontend/package.json` for approved packages
+- Backend: Use Poetry and `pyproject.toml`
+- Don't add dependencies without discussion
+
+## Documentation
+- Update README for user-facing changes
+- Code comments for complex logic only
+- API documentation via FastAPI automatic docs
+- Keep docs up-to-date with code changes
