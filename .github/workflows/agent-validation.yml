@@ -38,10 +38,47 @@ jobs:
           CHANGED=$(git diff --name-only "$BASE_REF...HEAD" || true)
           echo "Changed files:\n$CHANGED"
 
-          # Ensure no edits to collaboration/state/**
-          if echo "$CHANGED" | grep -E '^collaboration/state/' >/dev/null; then
-            echo "❌ Out-of-scope change: collaboration/state/** is not allowed in PRs" >&2
-            exit 1
+          # Check if PR has state-sync label
+          HAS_STATE_SYNC_LABEL=$(echo '${{ github.event.pull_request.labels.*.name }}' | grep -q 'state-sync' && echo 'true' || echo 'false')
+          echo "HAS_STATE_SYNC_LABEL: $HAS_STATE_SYNC_LABEL"
+
+          # Check if author is a bot (ends with [bot])
+          AUTHOR_IS_BOT=$(echo '${{ github.event.pull_request.user.login }}' | grep -q '\[bot\]$' && echo 'true' || echo 'false')
+          echo "AUTHOR_IS_BOT: $AUTHOR_IS_BOT"
+
+          # Check if base is develop
+          BASE_IS_DEVELOP=$(echo "$BASE_REF" | grep -q '^develop$' && echo 'true' || echo 'false')
+          echo "BASE_IS_DEVELOP: $BASE_IS_DEVELOP"
+
+          # Check if any state/events files are changed
+          STATE_CHANGES=$(echo "$CHANGED" | grep -E '^collaboration/(state|events)/' || true)
+          echo "STATE_CHANGES:\n$STATE_CHANGES"
+
+          # Enforce state editing rules
+          if [ -n "$STATE_CHANGES" ]; then
+            # If state/events files are changed, check if this is a valid state-sync PR
+            if [ "$HAS_STATE_SYNC_LABEL" = "true" ] && [ "$AUTHOR_IS_BOT" = "true" ] && [ "$BASE_IS_DEVELOP" = "true" ]; then
+              # This is a state-sync PR - check that ALL changed files are in state/events
+              NON_STATE_CHANGES=$(echo "$CHANGED" | grep -v -E '^collaboration/(state|events)/' || true)
+              if [ -n "$NON_STATE_CHANGES" ]; then
+                echo "❌ State-sync PR contains non-state changes:" >&2
+                echo "$NON_STATE_CHANGES" | while read -r file; do
+                  echo " - $file" >&2
+                done
+                exit 1
+              else
+                echo "✅ Valid state-sync PR: only state/events files changed"
+              fi
+            else
+              # Not a valid state-sync PR - fail
+              echo "❌ State/events changes not allowed in this PR" >&2
+              echo "   State/events changes are only allowed in PRs with:" >&2
+              echo "   - label: state-sync" >&2
+              echo "   - author: bot (ends with [bot])" >&2
+              echo "   - base: develop" >&2
+              echo "   Current: label=$HAS_STATE_SYNC_LABEL, author_bot=$AUTHOR_IS_BOT, base_develop=$BASE_IS_DEVELOP" >&2
+              exit 1
+            fi
           fi
 
           # Extract task id from PR title or branch name
