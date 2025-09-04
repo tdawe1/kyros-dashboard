@@ -154,3 +154,4 @@ This project is part of the kyros Repurposer suite. All rights reserved.
 - [Testing](docs/TESTING.md) - Testing strategies
 - [User Guide](docs/TEST_USER_GUIDE.md) - End-user documentation
 - [Architect Prompt](.codex/context/architect.md) - AI agent planning prompt
+- [Governance](CONTRIBUTING.md) - Development process and guidelines
