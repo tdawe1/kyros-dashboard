@@ -8,6 +8,7 @@ from typing import List, Optional
 from pydantic_settings import BaseSettings
 from pydantic import Field, field_validator
 from enum import Enum
+from secrets import token_urlsafe
 
 logger = logging.getLogger(__name__)
 
@@ -46,8 +47,7 @@ class Settings(BaseSettings):
     # Security settings
     # Use a secure default in non-production contexts to avoid import-time failures in CI/tests.
     # Production should still set JWT_SECRET_KEY via environment.
-    from secrets import token_urlsafe as _token_urlsafe  # local import for default_factory
-    jwt_secret_key: str = Field(default_factory=lambda: _token_urlsafe(32), env="JWT_SECRET_KEY")
+    jwt_secret_key: str = Field(default_factory=lambda: token_urlsafe(32), env="JWT_SECRET_KEY")
     jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
     jwt_access_token_expire_minutes: int = Field(
         default=30, env="JWT_ACCESS_TOKEN_EXPIRE_MINUTES"
