@@ -33,21 +33,21 @@ jobs:
           echo "PR_TITLE: $PR_TITLE"
           echo "BASE_REF:  $BASE_REF"
           echo "HEAD_REF:  $HEAD_REF"
-          
+
           # Compute changed files against base
           CHANGED=$(git diff --name-only "$BASE_REF...HEAD" || true)
           echo "Changed files:\n$CHANGED"
-          
+
           # Ensure no edits to collaboration/state/**
           if echo "$CHANGED" | grep -E '^collaboration/state/' >/dev/null; then
             echo "❌ Out-of-scope change: collaboration/state/** is not allowed in PRs" >&2
             exit 1
           fi
-          
+
           # Extract task id from PR title or branch name
           TASK_ID=$(printf "%s\n%s" "$PR_TITLE" "$HEAD_REF" | sed -n 's/.*\(T-[0-9][0-9][0-9]\).*/\1/p' | head -n1 || true)
           echo "Detected TASK_ID: ${TASK_ID:-none}"
-          
+
           # If task rule exists, enforce globs for changed files
           if [ -n "${TASK_ID:-}" ] && [ -f ".cursor/rules/tasks/${TASK_ID}.mdc" ]; then
             echo "Using rule: .cursor/rules/tasks/${TASK_ID}.mdc"
@@ -63,21 +63,21 @@ allow_all = False
 with open(rule, 'r', encoding='utf-8') as f:
     for line in f:
         line = line.strip()
-        
+
         # Skip empty lines and comments
         if not line or line.startswith('#'):
             continue
-            
+
         # Check for allow-all flag
         if line == 'allow-all: true':
             allow_all = True
             continue
-            
+
         # Look for globs section
         if line == 'globs:':
             collect = True
             continue
-            
+
         # If collecting globs
         if collect:
             # Stop at --- or blank line
@@ -112,4 +112,3 @@ PY
           else
             echo "No task rule found; skipping glob validation"
           fi
-

@@ -58,4 +58,3 @@ jobs:
 
             await github.rest.pulls.update({ owner, repo, pull_number: 39, state: 'closed' });
             core.info('Closed PR #39.');
-

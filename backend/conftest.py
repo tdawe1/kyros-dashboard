@@ -11,7 +11,8 @@ if _backend_root not in sys.path:
 # Provide a lightweight stub for the optional 'redis' dependency so importing
 # core.security does not fail in environments without redis installed.
 import types as _types
-if 'redis' not in sys.modules:
+
+if "redis" not in sys.modules:
     _redis_mod = _types.SimpleNamespace()
 
     class _FakeRedis:
@@ -56,8 +57,8 @@ if 'redis' not in sys.modules:
     _redis_mod.from_url = _from_url
     _redis_mod.Redis = _FakeRedis
     _redis_mod.exceptions = _RedisExceptions
-    sys.modules['redis'] = _redis_mod
-    sys.modules['redis.exceptions'] = _RedisExceptions
+    sys.modules["redis"] = _redis_mod
+    sys.modules["redis.exceptions"] = _RedisExceptions
 
 
 @pytest.fixture(autouse=True)
@@ -95,4 +96,5 @@ def configure_test_env(monkeypatch):
         chat = _StubChat()
 
     import core.openai_client as _mod
+
     monkeypatch.setattr(_mod, "OpenAI", lambda api_key=None: _StubClient())

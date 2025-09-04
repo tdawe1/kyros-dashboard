@@ -204,10 +204,10 @@ class SecureRedisClient:
             if self.security_mode == SecurityMode.FAIL_CLOSED:
                 raise Exception("Redis not available - failing closed for security")
             return None
-        
+
         def _get_pipeline():
             return self._client.pipeline()
-        
+
         return self._circuit_breaker.call(_get_pipeline)
 
 

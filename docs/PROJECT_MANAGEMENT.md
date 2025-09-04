@@ -78,7 +78,7 @@ python scripts/collab_cli.py create-task \
 The system automatically syncs tasks and roadmap items to GitHub Projects via `.github/workflows/sync_github_project.yml`:
 
 - **Status Mapping**: Maps task statuses to GitHub Project status fields
-- **Priority Mapping**: Maps task priorities to GitHub Project priority fields  
+- **Priority Mapping**: Maps task priorities to GitHub Project priority fields
 - **Field Configuration**: Customize field names via `project/project_mapping.json`
 - **Auto-linking**: Generates `project/links.json` for dashboard autolinking
 

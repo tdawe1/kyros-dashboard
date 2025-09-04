@@ -36,6 +36,7 @@ def stub_openai_global(monkeypatch):
         chat = _StubChat()
 
     import core.openai_client as _mod
+
     monkeypatch.setattr(_mod, "OpenAI", lambda api_key=None: _StubClient())
 
 
@@ -77,11 +78,10 @@ def mock_redis(monkeypatch):
     pipe.execute.return_value = True
 
     # When code constructs a limiter without passing a client, return our mock
-    monkeypatch.setattr(
-        "middleware.rate_limiter.get_secure_redis_client", lambda: mock
-    )
+    monkeypatch.setattr("middleware.rate_limiter.get_secure_redis_client", lambda: mock)
 
     # Ensure module-level limiter uses our mock without reloading the module
     import middleware.rate_limiter as rl
+
     rl.rate_limiter.redis_client = mock
     return mock

@@ -20,10 +20,10 @@ const createTestQueryClient = () =>
     },
   });
 
-const renderWithQueryClient = component => {
+const renderWithQueryClient = (component) => {
   const queryClient = createTestQueryClient();
   return render(
-    <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>
+    <QueryClientProvider client={queryClient}>{component}</QueryClientProvider>,
   );
 };
 
@@ -47,9 +47,12 @@ describe("ReadyBadge", () => {
     expect(screen.getByText("/ready:LOADING")).toBeInTheDocument();
 
     // Wait for the query to complete
-    await waitFor(() => {
-      expect(screen.getByText("/ready:UP")).toBeInTheDocument();
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText("/ready:UP")).toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
   });
 
   it("shows DOWN when /ready returns error", async () => {
@@ -62,9 +65,12 @@ describe("ReadyBadge", () => {
     expect(screen.getByText("/ready:LOADING")).toBeInTheDocument();
 
     // Wait for the query to complete
-    await waitFor(() => {
-      expect(screen.getByText("/ready:DOWN")).toBeInTheDocument();
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText("/ready:DOWN")).toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
   });
 
   it("shows DOWN when /ready returns non-200 status", async () => {
@@ -80,9 +86,12 @@ describe("ReadyBadge", () => {
     expect(screen.getByText("/ready:LOADING")).toBeInTheDocument();
 
     // Wait for the query to complete
-    await waitFor(() => {
-      expect(screen.getByText("/ready:DOWN")).toBeInTheDocument();
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        expect(screen.getByText("/ready:DOWN")).toBeInTheDocument();
+      },
+      { timeout: 10000 },
+    );
   });
 
   it("applies correct styling for UP status", async () => {
@@ -98,10 +107,13 @@ describe("ReadyBadge", () => {
     expect(screen.getByText("/ready:LOADING")).toBeInTheDocument();
 
     // Wait for the query to complete
-    await waitFor(() => {
-      const badge = screen.getByTestId("ready-badge");
-      expect(badge).toHaveClass("bg-green-100", "text-green-800");
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        const badge = screen.getByTestId("ready-badge");
+        expect(badge).toHaveClass("bg-green-100", "text-green-800");
+      },
+      { timeout: 10000 },
+    );
   });
 
   it("applies correct styling for DOWN status", async () => {
@@ -114,10 +126,13 @@ describe("ReadyBadge", () => {
     expect(screen.getByText("/ready:LOADING")).toBeInTheDocument();
 
     // Wait for the query to complete
-    await waitFor(() => {
-      const badge = screen.getByTestId("ready-badge");
-      expect(badge).toHaveClass("bg-red-100", "text-red-800");
-    }, { timeout: 10000 });
+    await waitFor(
+      () => {
+        const badge = screen.getByTestId("ready-badge");
+        expect(badge).toHaveClass("bg-red-100", "text-red-800");
+      },
+      { timeout: 10000 },
+    );
   });
 
   it("shows LOADING state initially", () => {

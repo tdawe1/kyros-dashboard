@@ -51,44 +51,44 @@ jobs:
               base: 'develop',
               body: |
                 ## Summary
-                
+
                 - **Decision**: Import latest plan from Google Drive into develop branch
                 - **Source**: Google Drive Plans Inbox folder
                 - **Target**: `develop` branch
                 - **Branch**: `${{ steps.get-branch.outputs.BRANCH_NAME }}`
-                
+
                 ## Analysis
-                
+
                 - Downloaded latest PlanSpec YAML file from Google Drive
                 - Staged plan into `collaboration/plans/inbox/` directory
                 - Created timestamped branch for review
-                
+
                 ## Plan (per agents.md)
-                
+
                 - **Planner**: Review imported plan and confirm scope matches current project needs
                 - **Implementer**: Process plan tasks and create individual feature branches as needed
                 - **Critic**: Review plan structure, validate YAML syntax, ensure no conflicts with existing plans
                 - **Integrator**: After approval, merge plan import and trigger task generation workflow
                 - **Watchdog**: Monitor for any issues with plan processing or task creation
-                
+
                 ## Definition of Done
-                
+
                 - [ ] Plan YAML syntax is valid
                 - [ ] No conflicts with existing plans
                 - [ ] Plan structure follows expected format
                 - [ ] Tasks are properly defined with acceptance criteria
                 - [ ] PR reviewed by a critic agent and approved
-                
+
                 ## Notes
-                
+
                 - This PR contains the raw imported plan from Google Drive
                 - Follow-up task generation will be triggered after merge
                 - Plan will be processed by `split_plan.py` script to create individual task folders
               draft: false
             });
-            
+
             console.log(`Created PR #${pr.number}: ${pr.html_url}`);
-            
+
             // Add labels
             await github.rest.issues.addLabels({
               owner: context.repo.owner,
@@ -109,30 +109,30 @@ jobs:
               base: 'develop',
               state: 'open'
             });
-            
+
             if (prs.length > 0) {
               const pr = prs[0];
-              
+
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: pr.number,
                 body: |
                   ## Next Steps
-                  
+
                   This PR contains the imported plan from Google Drive. Once merged:
-                  
+
                   1. **Task Generation**: The `split_plan.py` script will process this plan to create individual task folders
                   2. **Feature Branches**: Each task will get its own feature branch (e.g., `feat/TASK-001-description`)
                   3. **Implementation**: Tasks can be picked up by implementer agents
                   4. **Review**: Each task will go through the standard PR review process
-                  
+
                   ### To process this plan manually:
                   ```bash
                   cd scripts
                   python split_plan.py ../collaboration/plans/inbox/planspec.yml
                   ```
-                  
+
                   The plan is ready for critic review! 🚀
               });
             }
