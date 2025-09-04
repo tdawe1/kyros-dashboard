@@ -225,8 +225,14 @@ jobs:
 
   e2e-tests:
     needs: [changes, backend-tests, frontend-tests]
-    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true'
+    # FE ∨ BE ∨ push-to-develop
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop')
+           || needs.changes.outputs.frontend == 'true'
+           || needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}-e2e
+      cancel-in-progress: true
 
     services:
       redis:
@@ -360,7 +366,10 @@ jobs:
 
   build-verification:
     needs: [changes, frontend-tests]
-    if: needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true'
+    # FE ∨ BE ∨ push-to-develop
+    if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop')
+           || needs.changes.outputs.frontend == 'true'
+           || needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
 
     steps:
