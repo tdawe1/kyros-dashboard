@@ -1,0 +1,240 @@
+name: Sync Roadmap/Tasks to GitHub Issues + Project
+
+on:
+  push:
+    branches: [develop, main]
+    paths:
+      - 'project/roadmap.yml'
+      - 'collaboration/state/tasks.json'
+      - 'scripts/sync_to_github.py'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+  issues: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Install deps
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests pyyaml
+      - name: Sync roadmap and tasks to GitHub
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python scripts/sync_to_github.py
+      - name: Commit tasks.json changes (if any)
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore(sync): update tasks.json with GitHub links'
+          file_pattern: collaboration/state/tasks.json
+      - name: Add issues to Project (if configured)
+        if: ${{ secrets.PROJECT_URL != '' }}
+        uses: actions/github-script@v7
+        env:
+          PROJECT_URL: ${{ secrets.PROJECT_URL }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'tmp/created_issues.txt';
+            if (!fs.existsSync(path)) {
+              core.info('No created issues file; skipping project add');
+              return;
+            }
+            const content = fs.readFileSync(path, 'utf8').trim();
+            if (!content) { core.info('No issues listed'); return; }
+            const numbers = content.split(/\n+/).map(s => parseInt(s.trim(), 10)).filter(Boolean);
+
+            // Parse PROJECT_URL like: https://github.com/orgs/<org>/projects/<number> or https://github.com/users/<user>/projects/<number>
+            const url = process.env.PROJECT_URL;
+            const m = url.match(/projects\/(\d+)/);
+            if (!m) { core.setFailed('PROJECT_URL missing project number'); return; }
+            const projectNumber = parseInt(m[1], 10);
+
+            // Get project node id via GraphQL
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            // Prefer org project; fall back to user
+            let projectNodeId = null;
+            try {
+              const org = owner;
+              const q = `query($org:String!,$num:Int!){ organization(login:$org){ projectV2(number:$num){ id } } }`;
+              const res = await github.graphql(q, { org, num: projectNumber });
+              projectNodeId = res.organization && res.organization.projectV2 && res.organization.projectV2.id;
+            } catch (e) { core.info('Org project lookup failed, will try user'); }
+            if (!projectNodeId) {
+              try {
+                const user = owner;
+                const q = `query($user:String!,$num:Int!){ user(login:$user){ projectV2(number:$num){ id } } }`;
+                const res = await github.graphql(q, { user, num: projectNumber });
+                projectNodeId = res.user && res.user.projectV2 && res.user.projectV2.id;
+              } catch (e) { core.info('User project lookup also failed'); }
+            }
+            if (!projectNodeId) { core.setFailed('Could not resolve project node id'); return; }
+
+            for (const num of numbers) {
+              const issue = await github.rest.issues.get({ owner, repo, issue_number: num });
+              const nodeId = issue.data.node_id;
+              await github.graphql(
+                `mutation($projectId:ID!,$contentId:ID!){ addProjectV2ItemById(input:{ projectId:$projectId, contentId:$contentId }){ item { id } } }`,
+                { projectId: projectNodeId, contentId: nodeId }
+              );
+              core.info(`Added #${num} to project`);
+            }
+
+      - name: Update Project Status (optional)
+        if: ${{ secrets.PROJECT_URL != '' }}
+        uses: actions/github-script@v7
+        env:
+          PROJECT_URL: ${{ secrets.PROJECT_URL }}
+        with:
+          script: |
+            const fs = require('fs');
+            const path = 'tmp/created_issues.txt';
+            if (!fs.existsSync(path)) { core.info('No created issues file'); return; }
+            const numbers = fs.readFileSync(path, 'utf8').trim().split(/\n+/).filter(Boolean).map(n => parseInt(n,10));
+            if (!numbers.length) { core.info('No issues to update'); return; }
+
+            const url = process.env.PROJECT_URL;
+            const m = url.match(/projects\/(\d+)/);
+            if (!m) { core.setFailed('PROJECT_URL missing project number'); return; }
+            const projectNumber = parseInt(m[1], 10);
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            // Load mapping config if present
+            let mapping = null;
+            try {
+              const raw = fs.readFileSync('project/project_mapping.json','utf8');
+              mapping = JSON.parse(raw);
+            } catch (e) {
+              core.info('No project_mapping.json; using defaults');
+            }
+
+            // Resolve project node id and Status field/options
+            let projectNodeId = null; let fields = [];
+            try {
+              const q = `query($org:String!,$num:Int!){ organization(login:$org){ projectV2(number:$num){ id fields(first:50){ nodes { id name dataType ... on ProjectV2SingleSelectField { options { id name } } } } } } }`;
+              const res = await github.graphql(q, { org: owner, num: projectNumber });
+              if (res.organization && res.organization.projectV2) { projectNodeId = res.organization.projectV2.id; fields = res.organization.projectV2.fields.nodes; }
+            } catch (e) { core.info('Org project lookup failed, trying user'); }
+            if (!projectNodeId) {
+              const q = `query($user:String!,$num:Int!){ user(login:$user){ projectV2(number:$num){ id fields(first:50){ nodes { id name dataType ... on ProjectV2SingleSelectField { options { id name } } } } } } }`;
+              const res = await github.graphql(q, { user: owner, num: projectNumber });
+              if (res.user && res.user.projectV2) { projectNodeId = res.user.projectV2.id; fields = res.user.projectV2.fields.nodes; }
+            }
+            if (!projectNodeId) { core.setFailed('Could not resolve project'); return; }
+
+            const statusFieldName = (mapping && mapping.fields && mapping.fields.status) || 'Status';
+            const priorityFieldName = (mapping && mapping.fields && mapping.fields.priority) || null;
+
+            const statusField = fields.find(f => f.name === statusFieldName && f.dataType === 'SINGLE_SELECT');
+            if (!statusField) { core.info('No Status field found; skipping'); return; }
+            const opts = (statusField.options || []).map(o => ({ id: o.id, name: o.name.toLowerCase() }));
+
+            const findOption = (want) => {
+              const wanted = (mapping && mapping.status && mapping.status[want]) || [];
+              const lowered = wanted.map(s => s.toLowerCase());
+              for (const name of lowered) { const hit = opts.find(o => o.name === name); if (hit) return hit.id; }
+              // fallback heuristics
+              const fallback = {
+                queued: ['queued','to do','todo','backlog'],
+                in_progress: ['in progress','doing'],
+                review: ['review','in review'],
+                done: ['done','completed','shipped'],
+                blocked: ['blocked']
+              }[want] || [];
+              for (const name of fallback) { const hit = opts.find(o => o.name === name); if (hit) return hit.id; }
+              return null;
+            };
+
+            let priorityField = null; let priorityOpts = [];
+            if (priorityFieldName) {
+              priorityField = fields.find(f => f.name === priorityFieldName && f.dataType === 'SINGLE_SELECT');
+              if (priorityField) {
+                priorityOpts = (priorityField.options || []).map(o => ({ id: o.id, name: o.name.toLowerCase() }));
+              }
+            }
+            const findPriority = (p) => {
+              const wanted = (mapping && mapping.priority && mapping.priority[p]) || [];
+              const lowered = wanted.map(s => s.toLowerCase());
+              for (const name of lowered) { const hit = priorityOpts.find(o => o.name === name); if (hit) return hit.id; }
+              const fallback = { P1:['p1','high'], P2:['p2','medium'], P3:['p3','low'] }[p] || [];
+              for (const name of fallback) { const hit = priorityOpts.find(o => o.name === name); if (hit) return hit.id; }
+              return null;
+            };
+
+            // Load tasks.json to map task statuses by issue marker
+            const tasksPath = 'collaboration/state/tasks.json';
+            let tasks = [];
+            if (fs.existsSync(tasksPath)) {
+              try { tasks = JSON.parse(fs.readFileSync(tasksPath,'utf8')).tasks || []; } catch {}
+            }
+            const taskById = Object.fromEntries(tasks.map(t => [t.id, t]));
+
+            for (const num of numbers) {
+              const { data: issue } = await github.rest.issues.get({ owner, repo, issue_number: num });
+              const nodeId = issue.node_id;
+              // Resolve project item id for this issue
+              const q = `query($id:ID!,$pid:ID!){ node(id:$id){ ... on Issue { projectItems(first:20, includeArchived:true){ nodes { id project { id } } } } } }`;
+              const res = await github.graphql(q, { id: nodeId, pid: projectNodeId });
+              const items = res.node && res.node.projectItems && res.node.projectItems.nodes || [];
+              const item = items.find(i => i.project && i.project.id === projectNodeId);
+              if (!item) { core.info(`#${num} not in project yet`); continue; }
+
+              // Determine desired status
+              let desired = null;
+              if (issue.title.startsWith('[Task]')) {
+                const m = (issue.body || '').match(/<!--TASK_ID:([^>]+)-->/);
+                if (m) {
+                  const tid = m[1].trim();
+                  const t = taskById[tid];
+                  if (t) {
+                    const st = (t.status || 'queued');
+                    if (['review','changes_requested','approved','merging'].includes(st)) desired = 'review';
+                    else if (st === 'done') desired = 'done';
+                    else if (st === 'blocked') desired = 'blocked';
+                    else if (st === 'in_progress' || st === 'claimed') desired = 'in_progress';
+                    else desired = 'queued';
+                  }
+                }
+              } else if (issue.title.startsWith('[Roadmap]')) {
+                const m = (issue.body || '').match(/Status:\s*([a-zA-Z_]+)/);
+                if (m) desired = m[1].trim().toLowerCase();
+              }
+              if (!desired) { core.info(`No desired status for #${num}`); continue; }
+              const optionId = findOption(desired);
+              if (optionId) {
+                await github.graphql(
+                  `mutation($projectId:ID!,$itemId:ID!,$fieldId:ID!,$opt:ID!){ setProjectV2ItemFieldValue(input:{ projectId:$projectId, itemId:$itemId, fieldId:$fieldId, value:{ singleSelectOptionId:$opt }}){ clientMutationId } }`,
+                  { projectId: projectNodeId, itemId: item.id, fieldId: statusField.id, opt: optionId }
+                );
+                core.info(`Updated Status for #${num} -> ${desired}`);
+              } else {
+                core.info(`No matching Status option for '${desired}'`);
+              }
+
+              // Priority for tasks if field exists
+              if (priorityField && issue.title.startsWith('[Task]')) {
+                const prioMatch = issue.labels.find(l => ['p1','p2','p3'].includes(l.name.toLowerCase()));
+                if (prioMatch) {
+                  const prioId = findPriority(prioMatch.name.toUpperCase());
+                  if (prioId) {
+                    await github.graphql(
+                      `mutation($projectId:ID!,$itemId:ID!,$fieldId:ID!,$opt:ID!){ setProjectV2ItemFieldValue(input:{ projectId:$projectId, itemId:$itemId, fieldId:$fieldId, value:{ singleSelectOptionId:$opt }}){ clientMutationId } }`,
+                      { projectId: projectNodeId, itemId: item.id, fieldId: priorityField.id, opt: prioId }
+                    );
+                    core.info(`Updated Priority for #${num} -> ${prioMatch.name}`);
+                  }
+                }
+              }
+            }

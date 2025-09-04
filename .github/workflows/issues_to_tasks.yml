@@ -1,0 +1,78 @@
+name: Sync Issues to Tasks
+
+on:
+  issues:
+    types: [opened, edited, labeled]
+
+permissions:
+  contents: write
+
+jobs:
+  issues_to_tasks:
+    if: |
+      contains(github.event.issue.labels.*.name, 'task')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Create/Update task from issue
+        env:
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
+        run: |
+          set -euo pipefail
+          # Basic mapping from GitHub labels to our task labels/priority
+          LABELS=$(python - <<'PY'
+import os
+labels = [l.strip() for l in os.environ.get('ISSUE_LABELS','').split(',') if l.strip()]
+mapped = []
+prio = None
+for l in labels:
+    lo = l.lower()
+    if lo in ('backend','frontend','docs','ci','review','coderabbit','bug','enhancement','task'):
+        mapped.append(lo)
+    if lo in ('p1','p2','p3'):
+        prio = lo.upper()
+print(','.join(mapped))
+print(prio or '')
+PY
+          )
+          TASK_LABELS=$(echo "$LABELS" | sed -n '1p')
+          TASK_PRIORITY=$(echo "$LABELS" | sed -n '2p')
+          TITLE="$ISSUE_TITLE"
+          DESC=$(printf "Issue #%s\n\n%s\n" "$ISSUE_NUMBER" "${ISSUE_BODY:-}")
+          python scripts/collab_cli.py create-task \
+            --title "$TITLE" \
+            --description "$DESC" \
+            --labels "$TASK_LABELS" \
+            ${TASK_PRIORITY:+--priority "$TASK_PRIORITY"}
+          # Capture last created task id from events by scanning tasks.json length
+          TID=$(python - <<'PY'
+import json
+with open('collaboration/state/tasks.json','r',encoding='utf-8') as f:
+    data=json.load(f)
+ts=data.get('tasks',[])
+print(ts[-1]['id'] if ts else '')
+PY
+          )
+          # Link the GitHub issue id
+          python - <<PY
+from mcp import kyros_collab_server as collab
+tid = "$TID".strip()
+if tid:
+    collab.link_external({'id': tid, 'provider':'github', 'key':'issue', 'value': '${{ github.event.issue.number }}'})
+PY
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "chore(collab): sync issue #${{ github.event.issue.number }} to tasks"
+          file_pattern: |
+            collaboration/state/tasks.json
+            collaboration/events/events.jsonl
+

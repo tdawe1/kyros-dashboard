@@ -1,0 +1,37 @@
+name: Generate Project Board
+
+on:
+  push:
+    paths:
+      - 'collaboration/state/tasks.json'
+      - 'scripts/generate_tasks_board.py'
+  workflow_dispatch: {}
+  schedule:
+    - cron: '0 9 * * 1-5'
+
+permissions:
+  contents: write
+
+jobs:
+  build_board:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Generate board
+        run: |
+          python scripts/generate_tasks_board.py
+      - name: Commit board
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore(collab): update project board'
+          file_pattern: collaboration/board.md
+      - name: Post board to Discord (optional)
+        if: ${{ secrets.DISCORD_WEBHOOK_URL != '' }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          pip install requests
+          python scripts/discord_post.py collaboration/board.md || true

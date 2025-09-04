@@ -1,0 +1,35 @@
+name: Update Roadmap
+
+on:
+  push:
+    paths:
+      - 'project/roadmap.yml'
+      - 'scripts/roadmap_tree.py'
+  workflow_dispatch: {}
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+      - name: Render roadmap
+        run: |
+          python scripts/roadmap_tree.py project/roadmap.yml ROADMAP.md
+      - name: Commit roadmap
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: 'chore(roadmap): update ROADMAP.md'
+          file_pattern: ROADMAP.md
+      - name: Post to Discord (optional)
+        if: ${{ secrets.DISCORD_WEBHOOK_URL != '' }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          pip install requests
+          python scripts/discord_post.py ROADMAP.md || true

@@ -1,0 +1,48 @@
+name: Task
+description: Plan a small, verifiable unit of work
+title: "[Task] "
+labels: ["task"]
+body:
+  - type: input
+    id: summary
+    attributes:
+      label: Summary
+      description: Short one-line description of the task.
+      placeholder: e.g. Add /healthz endpoint
+    validations:
+      required: true
+  - type: textarea
+    id: details
+    attributes:
+      label: Details
+      description: What needs to be done and why.
+  - type: checkboxes
+    id: acceptance
+    attributes:
+      label: Acceptance Criteria
+      options:
+        - label: Tests updated/passing
+        - label: Static checks clean (lint/ruff/eslint)
+        - label: Docs updated (if applicable)
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - P1
+        - P2
+        - P3
+    validations:
+      required: false
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - backend
+        - frontend
+        - docs
+        - ci
+    validations:
+      required: false
+

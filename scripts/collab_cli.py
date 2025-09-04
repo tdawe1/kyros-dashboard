@@ -8,6 +8,12 @@ Usage examples:
   python scripts/collab_cli.py renew-lease <lock_id> codex-cli
   python scripts/collab_cli.py release-lease <lock_id> codex-cli
   python scripts/collab_cli.py generate-log
+
+  # Tasks management
+  python scripts/collab_cli.py list-tasks --status in_progress
+  python scripts/collab_cli.py create-task --title "Add healthcheck" --labels backend,ci --priority P2 --assignee thomas
+  python scripts/collab_cli.py update-task task-010 --assignee codex-cli
+  python scripts/collab_cli.py transition-task task-010 review
 """
 
 import argparse
@@ -19,6 +25,7 @@ import time
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
+from typing import List
 
 BASE = Path("collaboration")
 STATE = BASE / "state"
@@ -29,6 +36,35 @@ TASKS = STATE / "tasks.json"
 
 TTL_SECONDS = 900
 HEARTBEAT_SECONDS = 300
+
+# Task lifecycle
+ALLOWED_STATUSES = [
+    "queued",
+    "claimed",
+    "in_progress",
+    "review",
+    "changes_requested",
+    "approved",
+    "merging",
+    "done",
+    "blocked",
+    "failed",
+    "abandoned",
+]
+
+ALLOWED_TRANSITIONS = {
+    "queued": ["claimed", "in_progress", "abandoned"],
+    "claimed": ["in_progress", "blocked", "abandoned"],
+    "in_progress": ["review", "blocked", "failed"],
+    "review": ["approved", "changes_requested", "failed"],
+    "changes_requested": ["in_progress", "failed"],
+    "approved": ["merging"],
+    "merging": ["done", "failed"],
+    "blocked": ["in_progress", "abandoned"],
+    "failed": ["in_progress", "abandoned"],
+    "abandoned": [],
+    "done": [],
+}
 
 
 def utcnow_iso():
@@ -61,6 +97,95 @@ def write_json_atomic(path: Path, data: dict, expected_etag: str | None = None) 
     os.replace(temp, path)
     # return new etag
     return read_json_with_etag(path)[1]
+
+
+# ---------------------------
+# Tasks management helpers
+# ---------------------------
+
+def _load_tasks():
+    data, etag = read_json_with_etag(TASKS)
+    return data.get("version", 1), data.get("tasks", []), etag
+
+
+def _save_tasks(version: int, tasks: List[dict], etag: str) -> str:
+    new = {"version": version, "tasks": tasks}
+    return write_json_atomic(TASKS, new, expected_etag=etag)
+
+
+def list_tasks_cli(status: str | None, assignee: str | None, output: str):
+    version, tasks, _ = _load_tasks()
+    if status:
+        tasks = [t for t in tasks if t.get("status") == status]
+    if assignee:
+        tasks = [t for t in tasks if t.get("assignee") == assignee]
+    if output == "json":
+        print(json.dumps({"version": version, "tasks": tasks}, indent=2))
+        return
+    # default: table-ish
+    print(f"# tasks (v{version}) — {len(tasks)} items")
+    for t in tasks:
+        lid = t.get("id")
+        print(
+            f"- {lid:>8} | {t.get('status','')} | {t.get('priority','')} | {t.get('assignee') or '-'} | {t.get('title','')}"
+        )
+
+
+def create_task_cli(title: str, description: str, labels: List[str], priority: str | None, assignee: str | None, id_override: str | None):
+    version, tasks, etag = _load_tasks()
+    new_id = id_override or f"task-{len(tasks) + 1:03d}"
+    task = {
+        "id": new_id,
+        "title": title,
+        "description": description or "",
+        "status": "queued",
+        "assignee": assignee,
+        "priority": priority,
+        "labels": [l for l in (labels or []) if l],
+        "dependencies": [],
+        "blockers": [],
+        "branch": None,
+        "created_at": utcnow_iso(),
+        "updated_at": utcnow_iso(),
+        "dod": [],
+        "needs": None,
+    }
+    tasks.append(task)
+    _save_tasks(version, tasks, etag)
+    emit_event({"event": "task_created", "task": new_id})
+    print(new_id)
+
+
+def update_task_cli(task_id: str, fields: dict):
+    version, tasks, etag = _load_tasks()
+    for t in tasks:
+        if t.get("id") == task_id:
+            if "status" in fields and fields["status"] not in ALLOWED_STATUSES:
+                raise RuntimeError("Invalid status")
+            t.update({k: v for k, v in fields.items() if v is not None})
+            t["updated_at"] = utcnow_iso()
+            _save_tasks(version, tasks, etag)
+            emit_event({"event": "task_updated", "task": task_id})
+            return
+    raise RuntimeError("Task not found")
+
+
+def transition_task_cli(task_id: str, new_status: str):
+    if new_status not in ALLOWED_STATUSES:
+        raise RuntimeError("Invalid status")
+    version, tasks, etag = _load_tasks()
+    for t in tasks:
+        if t.get("id") == task_id:
+            old = t.get("status")
+            allowed = ALLOWED_TRANSITIONS.get(old, [])
+            if new_status not in allowed:
+                raise RuntimeError(f"Invalid transition {old} -> {new_status}")
+            t["status"] = new_status
+            t["updated_at"] = utcnow_iso()
+            _save_tasks(version, tasks, etag)
+            emit_event({"event": "status_changed", "task": task_id, "old_status": old, "new_status": new_status})
+            return
+    raise RuntimeError("Task not found")
 
 
 def normalize_event_format(event: dict) -> dict:
@@ -273,6 +398,33 @@ def main():
 
     sub.add_parser("generate-log")
 
+    # Tasks: list/create/update/transition
+    lt = sub.add_parser("list-tasks")
+    lt.add_argument("--status", choices=ALLOWED_STATUSES)
+    lt.add_argument("--assignee")
+    lt.add_argument("--output", choices=["table", "json"], default="table")
+
+    ct = sub.add_parser("create-task")
+    ct.add_argument("--title", required=True)
+    ct.add_argument("--description", default="")
+    ct.add_argument("--labels", default="")
+    ct.add_argument("--priority")
+    ct.add_argument("--assignee")
+    ct.add_argument("--id")
+
+    ut = sub.add_parser("update-task")
+    ut.add_argument("id")
+    ut.add_argument("--title")
+    ut.add_argument("--description")
+    ut.add_argument("--labels")
+    ut.add_argument("--priority")
+    ut.add_argument("--assignee")
+    ut.add_argument("--status", choices=ALLOWED_STATUSES)
+
+    tt = sub.add_parser("transition-task")
+    tt.add_argument("id")
+    tt.add_argument("new_status", choices=ALLOWED_STATUSES)
+
     args = ap.parse_args()
     try:
         if args.cmd == "emit-event":
@@ -286,6 +438,26 @@ def main():
             release_lease(args.lock_id, args.owner)
         elif args.cmd == "generate-log":
             generate_log()
+        elif args.cmd == "list-tasks":
+            list_tasks_cli(args.status, args.assignee, args.output)
+        elif args.cmd == "create-task":
+            labels = [s.strip() for s in (args.labels or "").split(",") if s.strip()]
+            create_task_cli(args.title, args.description, labels, args.priority, args.assignee, args.id)
+        elif args.cmd == "update-task":
+            fields = {
+                "title": args.title,
+                "description": args.description,
+                "priority": args.priority,
+                "assignee": args.assignee,
+            }
+            # labels if present
+            if args.labels is not None:
+                fields["labels"] = [s.strip() for s in args.labels.split(",") if s.strip()]
+            if args.status is not None:
+                fields["status"] = args.status
+            update_task_cli(args.id, fields)
+        elif args.cmd == "transition-task":
+            transition_task_cli(args.id, args.new_status)
     except Exception as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
