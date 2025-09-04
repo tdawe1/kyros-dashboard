@@ -178,29 +178,30 @@ jobs:
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
 
-          # Create timestamped branch name
+          # Create timestamped commit message
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          BRANCH_NAME="merge/plan-import-${TIMESTAMP}"
+          COMMIT_MSG="Import latest plan from Drive (${TIMESTAMP})"
 
-          # Create and switch to new branch
-          git checkout -b "$BRANCH_NAME"
-
-          # Add and commit the plan
+          # Add and commit the plan directly to develop
           git add collaboration/plans/inbox/planspec.yml
-          git commit -m "Import latest plan from Drive (${TIMESTAMP})"
+          git commit -m "$COMMIT_MSG"
 
-          # Push the branch
-          git push origin "$BRANCH_NAME"
+          # Push directly to develop
+          git push origin develop
 
-          # Output branch name for next workflow
-          echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_OUTPUT
+          # Output success message
+          echo "PLAN_IMPORTED=true" >> $GITHUB_OUTPUT
+          echo "COMMIT_MSG=$COMMIT_MSG" >> $GITHUB_OUTPUT
 
-          # Also save to a file for the next workflow to read
-          echo "$BRANCH_NAME" > branch_name.txt
+          # Save commit info for any follow-up workflows
+          echo "PLAN_IMPORTED=true" > import_status.txt
+          echo "$COMMIT_MSG" > commit_message.txt
 
-      - name: Upload branch name artifact
+      - name: Upload import status artifact
         uses: actions/upload-artifact@v4
         with:
-          name: branch-name
-          path: branch_name.txt
+          name: import-status
+          path: |
+            import_status.txt
+            commit_message.txt
           retention-days: 1
