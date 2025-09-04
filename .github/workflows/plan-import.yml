@@ -41,6 +41,19 @@ jobs:
           svc = build('drive', 'v3', credentials=creds)
 
           folder_id = os.environ.get("PLANS_INBOX_FOLDER_ID", "").strip()
+          print(f"Raw folder ID from env: '{folder_id}'")
+          print(f"Folder ID length: {len(folder_id)}")
+          print(f"Folder ID type: {type(folder_id)}")
+
+          # Test if we can access the folder at all
+          if folder_id:
+              try:
+                  folder_info = svc.files().get(fileId=folder_id, fields="id,name,mimeType").execute()
+                  print(f"Folder exists: {folder_info.get('name')} (ID: {folder_info.get('id')})")
+                  print(f"Folder MIME type: {folder_info.get('mimeType')}")
+              except Exception as e:
+                  print(f"ERROR: Cannot access folder {folder_id}: {e}")
+                  print("This suggests the folder ID is invalid or we don't have permission")
 
           def find_latest(query):
               return svc.files().list(
@@ -98,12 +111,30 @@ jobs:
               print("No .yml/.yaml plans found in Drive.")
               print("Available file types in folder:")
               if folder_id:
-                  all_files = svc.files().list(
-                      q=f"'{folder_id}' in parents and trashed=false",
-                      fields="files(name,mimeType)"
+                  try:
+                      all_files = svc.files().list(
+                          q=f"'{folder_id}' in parents and trashed=false",
+                          fields="files(name,mimeType)"
+                      ).execute().get("files", [])
+                      for f in all_files[:10]:  # Show first 10 files
+                          print(f"  - {f['name']} ({f.get('mimeType', 'unknown')})")
+                  except Exception as e:
+                      print(f"  ERROR listing folder contents: {e}")
+              
+              # Try to find folders that might contain plans
+              print("\nSearching for folders that might contain plans...")
+              try:
+                  folders = svc.files().list(
+                      q="trashed=false and mimeType='application/vnd.google-apps.folder' and (name contains 'plan' or name contains 'inbox')",
+                      fields="files(id,name)",
+                      pageSize=10
                   ).execute().get("files", [])
-                  for f in all_files[:10]:  # Show first 10 files
-                      print(f"  - {f['name']} ({f.get('mimeType', 'unknown')})")
+                  print(f"Found {len(folders)} potential folders:")
+                  for f in folders:
+                      print(f"  - {f['name']} (ID: {f['id']})")
+              except Exception as e:
+                  print(f"  ERROR searching for folders: {e}")
+              
               sys.exit(1)
 
           fid, name = files[0]['id'], files[0]['name']
