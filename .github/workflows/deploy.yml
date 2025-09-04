@@ -15,6 +15,9 @@ jobs:
   deploy-frontend:
     runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/main' }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -51,6 +54,9 @@ jobs:
   deploy-backend:
     runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/main' && secrets.DEPLOY_TARGET == 'railway' }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -66,6 +72,9 @@ jobs:
   deploy-backend-render:
     runs-on: ubuntu-latest
     if: ${{ github.ref == 'refs/heads/main' && secrets.DEPLOY_TARGET != 'railway' }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -81,6 +90,9 @@ jobs:
     needs: [deploy-frontend, deploy-backend, deploy-backend-render]
     runs-on: ubuntu-latest
     if: always() && github.ref == 'refs/heads/main'
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Notify deployment status
         uses: 8398a7/action-slack@v3
