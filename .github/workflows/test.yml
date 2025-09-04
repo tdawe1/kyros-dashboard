@@ -70,6 +70,19 @@ jobs:
         set -Eeuo pipefail
         poetry run ruff check . --output-format=github
 
+    - name: Show environment info (debug)
+      working-directory: ./backend
+      run: |
+        set -Eeuo pipefail
+        echo "Python (system):"; python -V || true
+        which python || true
+        echo "Pip:"; pip -V || true
+        poetry --version || true
+        poetry env info || true
+        echo "Python (poetry):"; poetry run python -V || true
+        poetry run which python || true
+        poetry show --tree || true
+
     # - name: Format check with ruff
     #   working-directory: ./backend
     #   run: |
@@ -91,6 +104,7 @@ jobs:
         MAX_INPUT_CHARACTERS: 100000
         MAX_TOKENS_PER_JOB: 50000
         DAILY_JOB_LIMIT: 10
+        OPENAI_API_KEY: test-sk
       run: |
         set -Eeuo pipefail
         PYTHONPATH=. poetry run pytest --cov=. --cov-report=xml --cov-report=html --junitxml=pytest-report.xml -v
