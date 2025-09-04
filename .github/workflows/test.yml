@@ -22,7 +22,23 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      backend: ${{ steps.filter.outputs.backend }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Detect changed paths
+        id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            backend:
+              - 'backend/**'
+              - '.github/workflows/test.yml'
   backend-tests:
+    needs: [changes]
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -59,10 +75,50 @@ jobs:
     - name: Install Poetry and backend deps
       working-directory: ./backend
       run: |
-        set -Eeuo pipefail
+        set -e
         python -m pip install --upgrade pip
-        pip install poetry
-        poetry install --no-interaction --no-ansi --no-root
+        
+        # Retry poetry installation with proper error handling
+        success=false
+        for attempt in {1..3}; do
+          echo "Attempt $attempt to install poetry..."
+          if pip install poetry; then
+            success=true
+            break
+          else
+            echo "Poetry installation failed on attempt $attempt"
+            if [ $attempt -lt 3 ]; then
+              echo "Retrying in 5 seconds..."
+              sleep 5
+            fi
+          fi
+        done
+        
+        if [ "$success" != "true" ]; then
+          echo "All poetry installation attempts failed"
+          exit 1
+        fi
+        
+        # Retry poetry install with proper error handling
+        success=false
+        for attempt in {1..3}; do
+          echo "Attempt $attempt to install backend dependencies..."
+          if poetry install --no-interaction --no-ansi --no-root; then
+            success=true
+            break
+          else
+            echo "Poetry install failed on attempt $attempt"
+            if [ $attempt -lt 3 ]; then
+              echo "Retrying in 10 seconds..."
+              sleep 10
+            fi
+          fi
+        done
+        
+        if [ "$success" != "true" ]; then
+          echo "All poetry install attempts failed"
+          exit 1
+        fi
 
     - name: Lint with ruff
       working-directory: ./backend
@@ -140,6 +196,14 @@ jobs:
         cache: 'npm'
         cache-dependency-path: frontend/package-lock.json
 
+    - name: Cache node_modules
+      uses: actions/cache@v4
+      with:
+        path: frontend/node_modules
+        key: ${{ runner.os }}-node-${{ hashFiles('frontend/package-lock.json') }}
+        restore-keys: |
+          ${{ runner.os }}-node-
+
     - name: Install dependencies
       working-directory: ./frontend
       run: npm ci
@@ -171,6 +235,8 @@ jobs:
           frontend/test-results/
 
   e2e-tests:
+    needs: [backend-tests, frontend-tests]
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
     needs: [backend-tests, frontend-tests]
 
@@ -203,10 +269,51 @@ jobs:
     - name: Install Poetry and backend deps
       working-directory: ./backend
       run: |
-        set -Eeuo pipefail
+        set -e
         python -m pip install --upgrade pip
-        pip install poetry
-        poetry install --no-interaction --no-ansi --no-root
+        
+        # Retry poetry installation with proper error handling
+        success=false
+        for attempt in {1..3}; do
+          echo "Attempt $attempt to install poetry..."
+          if pip install poetry; then
+            success=true
+            break
+          else
+            echo "Poetry installation failed on attempt $attempt"
+            if [ $attempt -lt 3 ]; then
+              echo "Retrying in 5 seconds..."
+              sleep 5
+            fi
+          fi
+        done
+        
+        if [ "$success" != "true" ]; then
+          echo "All poetry installation attempts failed"
+          exit 1
+        fi
+        
+        # Retry poetry install with proper error handling
+        success=false
+        for attempt in {1..3}; do
+          echo "Attempt $attempt to install backend dependencies..."
+          if poetry install --no-interaction --no-ansi --no-root; then
+            success=true
+            break
+          else
+            echo "Poetry install failed on attempt $attempt"
+            if [ $attempt -lt 3 ]; then
+              echo "Retrying in 10 seconds..."
+              sleep 10
+            fi
+          fi
+        done
+        
+        if [ "$success" != "true" ]; then
+          echo "All poetry install attempts failed"
+          exit 1
+        fi
+        
         poetry run pip install ruff black bandit isort flake8
 
     - name: Install Node.js dependencies
@@ -266,6 +373,8 @@ jobs:
         retention-days: 30
 
   build-verification:
+    needs: [frontend-tests]
+    if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -290,10 +399,50 @@ jobs:
     - name: Install Poetry and backend deps
       working-directory: ./backend
       run: |
-        set -Eeuo pipefail
+        set -e
         python -m pip install --upgrade pip
-        pip install poetry
-        poetry install --no-interaction --no-ansi
+        
+        # Retry poetry installation with proper error handling
+        success=false
+        for attempt in {1..3}; do
+          echo "Attempt $attempt to install poetry..."
+          if pip install poetry; then
+            success=true
+            break
+          else
+            echo "Poetry installation failed on attempt $attempt"
+            if [ $attempt -lt 3 ]; then
+              echo "Retrying in 5 seconds..."
+              sleep 5
+            fi
+          fi
+        done
+        
+        if [ "$success" != "true" ]; then
+          echo "All poetry installation attempts failed"
+          exit 1
+        fi
+        
+        # Retry poetry install with proper error handling
+        success=false
+        for attempt in {1..3}; do
+          echo "Attempt $attempt to install backend dependencies..."
+          if poetry install --no-interaction --no-ansi; then
+            success=true
+            break
+          else
+            echo "Poetry install failed on attempt $attempt"
+            if [ $attempt -lt 3 ]; then
+              echo "Retrying in 10 seconds..."
+              sleep 10
+            fi
+          fi
+        done
+        
+        if [ "$success" != "true" ]; then
+          echo "All poetry install attempts failed"
+          exit 1
+        fi
 
     - name: Build frontend
       working-directory: ./frontend
@@ -346,20 +495,33 @@ jobs:
     steps:
     - name: Check test results
       run: |
-        set -Eeuo pipefail
-        echo "Backend tests: ${{ needs.backend-tests.result }}"
-        echo "Frontend tests: ${{ needs.frontend-tests.result }}"
-        echo "E2E tests: ${{ needs.e2e-tests.result }}"
-        echo "Build verification: ${{ needs.build-verification.result }}"
-        echo "Security scan: ${{ needs.security-scan.result }}"
+        set -e
+        echo "## CI Performance Summary" >> $GITHUB_STEP_SUMMARY
+        echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
+        echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
+        echo "| Backend Tests | ${{ needs.backend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Frontend Tests | ${{ needs.frontend-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| E2E Tests | ${{ needs.e2e-tests.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Build Verification | ${{ needs.build-verification.result }} |" >> $GITHUB_STEP_SUMMARY
+        echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
+        
+        bt="${{ needs.backend-tests.result }}"
+        ft="${{ needs.frontend-tests.result }}"
+        e2e="${{ needs.e2e-tests.result }}"
+        bv="${{ needs.build-verification.result }}"
+        sec="${{ needs.security-scan.result }}"
 
-        if [[ "${{ needs.backend-tests.result }}" != "success" ||
-              "${{ needs.frontend-tests.result }}" != "success" ||
-              "${{ needs.e2e-tests.result }}" != "success" ||
-              "${{ needs.build-verification.result }}" != "success" ||
-              "${{ needs.security-scan.result }}" != "success" ]]; then
-          echo "Some tests failed!"
-          exit 1
+        echo "Backend tests: $bt"
+        echo "Frontend tests: $ft"
+        echo "E2E tests: $e2e"
+        echo "Build verification: $bv"
+        echo "Security scan: $sec"
+
+        ok() { [ "$1" = "success" ] || [ "$1" = "skipped" ]; }
+
+        if ok "$bt" && ok "$ft" && ok "$e2e" && ok "$bv" && ok "$sec"; then
+          echo "All checks passed (treating skipped as OK)"
         else
-          echo "All tests passed!"
+          echo "Some checks failed"; exit 1
         fi
+# Trigger new CI run

@@ -12,6 +12,8 @@ const createTestQueryClient = () =>
       queries: {
         retry: false,
         refetchOnWindowFocus: false,
+        // Disable retries in tests to avoid timing issues
+        retryDelay: 0,
         refetchInterval: false, // Disable polling in tests
         refetchIntervalInBackground: false,
       },
@@ -28,6 +30,8 @@ const renderWithQueryClient = component => {
 describe("ReadyBadge", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset fetch mock before each test
+    global.fetch.mockClear();
   });
 
   it("shows UP when /ready returns 200", async () => {
