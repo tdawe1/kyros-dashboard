@@ -36,7 +36,7 @@ class TestOpenAIClient:
         for model in invalid_models:
             assert client.validate_model(model) is False
 
-    @patch("core.openai_client.OpenAI")
+    @patch("openai.OpenAI")
     def test_chat_completion_success(self, mock_openai_class):
         """Test successful chat completion."""
         # Mock the OpenAI client and response
@@ -73,7 +73,7 @@ class TestOpenAIClient:
                 model="invalid-model",
             )
 
-    @patch("core.openai_client.OpenAI")
+    @patch("openai.OpenAI")
     def test_chat_completion_retry_logic(self, mock_openai_class):
         """Test retry logic on API failures."""
         # Mock the OpenAI client to fail twice then succeed
