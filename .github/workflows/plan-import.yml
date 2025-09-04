@@ -22,7 +22,7 @@ jobs:
       - name: Install Google client + YAML
         run: pip install google-api-python-client google-auth google-auth-httplib2 pyyaml
 
-      - name: Download newest PlanSpec from Drive folder
+    - name: Download newest PlanSpec from Drive (folder → fallback root)
         env:
           GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
           PLANS_INBOX_FOLDER_ID: ${{ secrets.PLANS_INBOX_FOLDER_ID }}
@@ -32,33 +32,55 @@ jobs:
           from google.oauth2 import service_account
           from googleapiclient.discovery import build
           from googleapiclient.http import MediaIoBaseDownload
-          
+
+          # --- Auth ---
           creds = service_account.Credentials.from_service_account_info(
               json.loads(os.environ["GDRIVE_SA_JSON"]),
               scopes=["https://www.googleapis.com/auth/drive.readonly"]
           )
           svc = build('drive', 'v3', credentials=creds)
-          folder = os.environ["PLANS_INBOX_FOLDER_ID"]
-          
-          resp = svc.files().list(
-              q=f"'{folder}' in parents and trashed=false and name contains '.yml'",
-              orderBy="modifiedTime desc",
-              pageSize=1,
-              fields="files(id,name)"
-          ).execute()
-          files = resp.get('files', [])
+
+          folder_id = os.environ.get("PLANS_INBOX_FOLDER_ID", "").strip()
+
+          def find_latest(query):
+              return svc.files().list(
+                  q=query,
+                  orderBy="modifiedTime desc",
+                  pageSize=1,
+                  fields="files(id,name)"
+              ).execute().get("files", [])
+
+          # 1. Try folder first (if set)
+          files = []
+          if folder_id:
+              files = find_latest(
+                  f"'{folder_id}' in parents and trashed=false "
+                  f"and (name contains '.yml' or name contains '.yaml')"
+              )
+
+          # 2. Fallback to root
           if not files:
-              print("No .yml plans found in Plans Inbox."); sys.exit(1)
+              files = find_latest(
+                  "trashed=false and (name contains '.yml' or name contains '.yaml')"
+              )
+
+          if not files:
+              print("No .yml/.yaml plans found in Drive.")
+              sys.exit(1)
+
           fid, name = files[0]['id'], files[0]['name']
-          
+
           request = svc.files().get_media(fileId=fid)
           fh = io.BytesIO()
           downloader = MediaIoBaseDownload(fh, request)
-          done=False
+          done = False
           while not done:
               status, done = downloader.next_chunk()
-          open('planspec.yml', 'wb').write(fh.getvalue())
-          print(f"DOWNLOADED {name} {fid}")
+
+          with open('planspec.yml', 'wb') as f:
+              f.write(fh.getvalue())
+
+          print(f"DOWNLOADED {name} ({fid})")
           PY
 
       - name: Stage PlanSpec into repo
@@ -68,24 +90,24 @@ jobs:
           cp planspec.yml collaboration/plans/inbox/
           git config user.name "GitHub Actions"
           git config user.email "actions@github.com"
-          
+
           # Create timestamped branch name
           TIMESTAMP=$(date +%Y%m%d-%H%M%S)
           BRANCH_NAME="merge/plan-import-${TIMESTAMP}"
-          
+
           # Create and switch to new branch
           git checkout -b "$BRANCH_NAME"
-          
+
           # Add and commit the plan
           git add collaboration/plans/inbox/planspec.yml
           git commit -m "Import latest plan from Drive (${TIMESTAMP})"
-          
+
           # Push the branch
           git push origin "$BRANCH_NAME"
-          
+
           # Output branch name for next workflow
           echo "BRANCH_NAME=$BRANCH_NAME" >> $GITHUB_OUTPUT
-          
+
           # Also save to a file for the next workflow to read
           echo "$BRANCH_NAME" > branch_name.txt
 
