@@ -1,3 +1,11 @@
+"""
+Tests for the OpenAI client wrapper.
+
+Note: These tests use mocking to avoid making real API calls to OpenAI.
+The tests replace the OpenAI client instance with a mock to prevent
+external API calls and ensure tests run without requiring a valid API key.
+"""
+
 import pytest
 from unittest.mock import patch, MagicMock
 from ..openai_client import OpenAIClient, OpenAIError, VALID_MODELS
@@ -36,8 +44,7 @@ class TestOpenAIClient:
         for model in invalid_models:
             assert client.validate_model(model) is False
 
-    @patch("core.openai_client.OpenAI")
-    def test_chat_completion_success(self, mock_openai_class):
+    def test_chat_completion_success(self):
         """Test successful chat completion."""
         # Mock the OpenAI client and response
         mock_client = MagicMock()
@@ -49,9 +56,10 @@ class TestOpenAIClient:
         mock_response.usage.completion_tokens = 50
         mock_response.usage.total_tokens = 150
         mock_client.chat.completions.create.return_value = mock_response
-        mock_openai_class.return_value = mock_client
 
         client = OpenAIClient(api_key="test-key-12345")
+        client.client = mock_client  # Replace the real client with our mock
+        
         result = client.chat_completion(
             messages=[{"role": "user", "content": "Test prompt"}],
             model="gpt-4o-mini",
@@ -73,8 +81,7 @@ class TestOpenAIClient:
                 model="invalid-model",
             )
 
-    @patch("core.openai_client.OpenAI")
-    def test_chat_completion_retry_logic(self, mock_openai_class):
+    def test_chat_completion_retry_logic(self):
         """Test retry logic on API failures."""
         # Mock the OpenAI client to fail twice then succeed
         mock_client = MagicMock()
@@ -92,9 +99,10 @@ class TestOpenAIClient:
             Exception("API Error 2"),
             mock_response,
         ]
-        mock_openai_class.return_value = mock_client
 
         client = OpenAIClient(api_key="test-key-12345")
+        client.client = mock_client  # Replace the real client with our mock
+        
         result = client.chat_completion(
             messages=[{"role": "user", "content": "Test prompt"}],
             model="gpt-4o-mini",
@@ -103,16 +111,16 @@ class TestOpenAIClient:
         assert result["content"] == "Success after retry"
         assert mock_client.chat.completions.create.call_count == 3
 
-    @patch("core.openai_client.OpenAI")
-    def test_chat_completion_max_retries_exceeded(self, mock_openai_class):
+    def test_chat_completion_max_retries_exceeded(self):
         """Test behavior when max retries are exceeded."""
         mock_client = MagicMock()
         mock_client.chat.completions.create.side_effect = Exception(
             "Persistent API Error"
         )
-        mock_openai_class.return_value = mock_client
 
         client = OpenAIClient(api_key="test-key-12345")
+        client.client = mock_client  # Replace the real client with our mock
+        
         with pytest.raises(OpenAIError, match="OpenAI request failed after"):
             client.chat_completion(
                 messages=[{"role": "user", "content": "Test prompt"}],
