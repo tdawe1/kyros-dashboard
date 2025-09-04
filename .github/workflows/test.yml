@@ -25,6 +25,7 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
       backend: ${{ steps.filter.outputs.backend }}
     steps:
       - uses: actions/checkout@v4
@@ -33,6 +34,9 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: |
+            frontend:
+              - 'frontend/**'
+              - '.github/workflows/test.yml'
             backend:
               - 'backend/**'
               - '.github/workflows/test.yml'
@@ -77,7 +81,7 @@ jobs:
       run: |
         set -e
         python -m pip install --upgrade pip
-        
+
         # Retry poetry installation with proper error handling
         success=false
         for attempt in {1..3}; do
@@ -93,12 +97,12 @@ jobs:
             fi
           fi
         done
-        
+
         if [ "$success" != "true" ]; then
           echo "All poetry installation attempts failed"
           exit 1
         fi
-        
+
         # Retry poetry install with proper error handling
         success=false
         for attempt in {1..3}; do
@@ -114,7 +118,7 @@ jobs:
             fi
           fi
         done
-        
+
         if [ "$success" != "true" ]; then
           echo "All poetry install attempts failed"
           exit 1
@@ -184,6 +188,8 @@ jobs:
           backend/bandit-report.json
 
   frontend-tests:
+    needs: [changes]
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -235,10 +241,9 @@ jobs:
           frontend/test-results/
 
   e2e-tests:
-    needs: [backend-tests, frontend-tests]
-    if: needs.changes.outputs.backend == 'true'
+    needs: [changes, frontend-tests, backend-tests]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
-    needs: [backend-tests, frontend-tests]
 
     services:
       redis:
@@ -271,7 +276,7 @@ jobs:
       run: |
         set -e
         python -m pip install --upgrade pip
-        
+
         # Retry poetry installation with proper error handling
         success=false
         for attempt in {1..3}; do
@@ -287,12 +292,12 @@ jobs:
             fi
           fi
         done
-        
+
         if [ "$success" != "true" ]; then
           echo "All poetry installation attempts failed"
           exit 1
         fi
-        
+
         # Retry poetry install with proper error handling
         success=false
         for attempt in {1..3}; do
@@ -308,12 +313,12 @@ jobs:
             fi
           fi
         done
-        
+
         if [ "$success" != "true" ]; then
           echo "All poetry install attempts failed"
           exit 1
         fi
-        
+
         poetry run pip install ruff black bandit isort flake8
 
     - name: Install Node.js dependencies
@@ -373,7 +378,7 @@ jobs:
         retention-days: 30
 
   build-verification:
-    needs: [frontend-tests]
+    needs: [changes, frontend-tests]
     if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
 
@@ -401,7 +406,7 @@ jobs:
       run: |
         set -e
         python -m pip install --upgrade pip
-        
+
         # Retry poetry installation with proper error handling
         success=false
         for attempt in {1..3}; do
@@ -417,12 +422,12 @@ jobs:
             fi
           fi
         done
-        
+
         if [ "$success" != "true" ]; then
           echo "All poetry installation attempts failed"
           exit 1
         fi
-        
+
         # Retry poetry install with proper error handling
         success=false
         for attempt in {1..3}; do
@@ -438,7 +443,7 @@ jobs:
             fi
           fi
         done
-        
+
         if [ "$success" != "true" ]; then
           echo "All poetry install attempts failed"
           exit 1
@@ -504,7 +509,7 @@ jobs:
         echo "| E2E Tests | ${{ needs.e2e-tests.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Build Verification | ${{ needs.build-verification.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
-        
+
         bt="${{ needs.backend-tests.result }}"
         ft="${{ needs.frontend-tests.result }}"
         e2e="${{ needs.e2e-tests.result }}"
