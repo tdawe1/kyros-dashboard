@@ -1,12 +1,11 @@
 name: Sync Roadmap/Tasks to GitHub Issues + Project
 
 on:
-  push:
-    branches: [develop, main]
-    paths:
-      - 'project/roadmap.yml'
-      - 'collaboration/state/tasks.json'
-      - 'scripts/sync_to_github.py'
+  workflow_run:
+    workflows: ["Tests"]
+    types: [completed]
+  schedule:
+    - cron: "15 3 * * *"
   workflow_dispatch: {}
 
 permissions:
@@ -15,6 +14,7 @@ permissions:
 
 jobs:
   sync:
+    if: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop') || github.event_name != 'workflow_run' }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

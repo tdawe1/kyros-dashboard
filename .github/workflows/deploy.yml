@@ -1,9 +1,9 @@
 name: Deploy to Production
 
 on:
-  workflow_run:
-    workflows: ["Tests"]
-    types: [completed]
+  push:
+    branches: [main]
+  workflow_dispatch:
 
 env:
   NODE_VERSION: '20'
@@ -14,7 +14,10 @@ jobs:
   # Deploy frontend to Vercel
   deploy-frontend:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    if: ${{ github.ref == 'refs/heads/main' }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -50,7 +53,10 @@ jobs:
   # Deploy backend to Railway
   deploy-backend:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && secrets.DEPLOY_TARGET == 'railway'
+    if: ${{ github.ref == 'refs/heads/main' && secrets.DEPLOY_TARGET == 'railway' }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -65,7 +71,10 @@ jobs:
   # Alternative: Deploy backend to Render
   deploy-backend-render:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main' && secrets.DEPLOY_TARGET != 'railway'
+    if: ${{ github.ref == 'refs/heads/main' && secrets.DEPLOY_TARGET != 'railway' }}
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -81,6 +90,9 @@ jobs:
     needs: [deploy-frontend, deploy-backend, deploy-backend-render]
     runs-on: ubuntu-latest
     if: always() && github.ref == 'refs/heads/main'
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Notify deployment status
         uses: 8398a7/action-slack@v3
