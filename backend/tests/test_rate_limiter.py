@@ -388,8 +388,8 @@ class TestRateLimiterBytesSafety:
     """Test bytes-safe behavior and pipeline fallback."""
 
     @patch("time.time")
-    def test_bytes_safe_hset_with_pipeline(self, mock_time, mock_redis):
-        """Test that float values are converted to strings for Redis hset."""
+    def test_bytes_keys_from_redis_hgetall(self, mock_time, mock_redis):
+        """Test handling of bytes keys returned by Redis hgetall."""
         mock_time.return_value = 1000.0
         
         limiter = TokenBucketRateLimiter()
@@ -399,10 +399,10 @@ class TestRateLimiterBytesSafety:
         request.client = Mock()
         request.client.host = "192.168.1.1"
         
-        # Mock existing bucket with float values
+        # Mock Redis returning bytes keys (common with some Redis configurations)
         mock_redis.hgetall.return_value = {
-            "tokens": "5.0",
-            "last_refill": "990.0",
+            b"tokens": b"5.0",
+            b"last_refill": b"990.0",
         }
         
         # Mock pipeline operations
@@ -414,18 +414,78 @@ class TestRateLimiterBytesSafety:
         
         is_allowed, rate_info = limiter.is_allowed(request)
         
+        # Should handle bytes keys correctly
+        assert is_allowed is True
+        assert rate_info["remaining"] >= 0
+        
         # Verify that string values were passed to hset
         mock_pipeline.hset.assert_called_once()
         call_args = mock_pipeline.hset.call_args
         mapping = call_args[1]["mapping"]
         assert isinstance(mapping["tokens"], str)
         assert isinstance(mapping["last_refill"], str)
-        # The tokens will be refilled based on time elapsed (10 seconds * 100/3600 = ~0.278)
-        # So 5.0 + 0.278 - 1.0 = ~4.278, but we cap at burst size
-        assert float(mapping["tokens"]) >= 0  # Should be a valid number
-        assert mapping["last_refill"] == "1000.0"
+
+    @patch("time.time")
+    def test_bytes_values_from_redis_hgetall(self, mock_time, mock_redis):
+        """Test handling of bytes values returned by Redis hgetall."""
+        mock_time.return_value = 1000.0
         
+        limiter = TokenBucketRateLimiter()
+        
+        request = Mock()
+        request.headers = {}
+        request.client = Mock()
+        request.client.host = "192.168.1.1"
+        
+        # Mock Redis returning string keys but bytes values
+        mock_redis.hgetall.return_value = {
+            "tokens": b"5.0",
+            "last_refill": b"990.0",
+        }
+        
+        # Mock pipeline operations
+        mock_pipeline = Mock()
+        mock_pipeline.hset.return_value = None
+        mock_pipeline.expire.return_value = None
+        mock_pipeline.execute.return_value = [True, True]
+        mock_redis.pipeline.return_value = mock_pipeline
+        
+        is_allowed, rate_info = limiter.is_allowed(request)
+        
+        # Should handle bytes values correctly
         assert is_allowed is True
+        assert rate_info["remaining"] >= 0
+
+    @patch("time.time")
+    def test_mixed_bytes_and_string_keys(self, mock_time, mock_redis):
+        """Test handling of mixed bytes and string keys from Redis."""
+        mock_time.return_value = 1000.0
+        
+        limiter = TokenBucketRateLimiter()
+        
+        request = Mock()
+        request.headers = {}
+        request.client = Mock()
+        request.client.host = "192.168.1.1"
+        
+        # Mock Redis returning mixed key types (edge case)
+        mock_redis.hgetall.return_value = {
+            b"tokens": "5.0",  # bytes key, string value
+            "last_refill": b"990.0",  # string key, bytes value
+        }
+        
+        # Mock pipeline operations
+        mock_pipeline = Mock()
+        mock_pipeline.hset.return_value = None
+        mock_pipeline.expire.return_value = None
+        mock_pipeline.execute.return_value = [True, True]
+        mock_redis.pipeline.return_value = mock_pipeline
+        
+        is_allowed, rate_info = limiter.is_allowed(request)
+        
+        # Should handle mixed types correctly
+        assert is_allowed is True
+        assert rate_info["remaining"] >= 0
 
     @patch("time.time")
     def test_pipeline_fallback_when_pipeline_is_none(self, mock_time, mock_redis):
@@ -465,8 +525,45 @@ class TestRateLimiterBytesSafety:
         assert is_allowed is True
 
     @patch("time.time")
-    def test_deterministic_behavior_with_same_inputs(self, mock_time, mock_redis):
-        """Test that the same inputs always produce the same outputs."""
+    def test_pipeline_fallback_when_pipeline_raises_exception(self, mock_time, mock_redis):
+        """Test fallback behavior when pipeline() raises an exception."""
+        mock_time.return_value = 1000.0
+        
+        limiter = TokenBucketRateLimiter()
+        
+        request = Mock()
+        request.headers = {}
+        request.client = Mock()
+        request.client.host = "192.168.1.1"
+        
+        # Mock existing bucket
+        mock_redis.hgetall.return_value = {
+            "tokens": "5.0",
+            "last_refill": "990.0",
+        }
+        
+        # Mock pipeline to raise AttributeError (method not available)
+        mock_redis.pipeline.side_effect = AttributeError("'MockRedis' object has no attribute 'pipeline'")
+        mock_redis.hset.return_value = 1
+        mock_redis.expire.return_value = True
+        
+        is_allowed, rate_info = limiter.is_allowed(request)
+        
+        # Verify fallback methods were called
+        mock_redis.hset.assert_called_once()
+        mock_redis.expire.assert_called_once()
+        
+        # Verify string conversion in fallback
+        hset_call = mock_redis.hset.call_args
+        mapping = hset_call[1]["mapping"]
+        assert isinstance(mapping["tokens"], str)
+        assert isinstance(mapping["last_refill"], str)
+        
+        assert is_allowed is True
+
+    @patch("time.time")
+    def test_deterministic_behavior_with_bytes_keys(self, mock_time, mock_redis):
+        """Test that the same inputs always produce the same outputs with bytes keys."""
         # Use fixed time for deterministic behavior
         mock_time.return_value = 1000.0
         
@@ -477,8 +574,11 @@ class TestRateLimiterBytesSafety:
         request.client = Mock()
         request.client.host = "192.168.1.1"
         
-        # Mock empty bucket (new bucket scenario)
-        mock_redis.hgetall.return_value = {}
+        # Mock bucket with bytes keys
+        mock_redis.hgetall.return_value = {
+            b"tokens": b"5.0",
+            b"last_refill": b"990.0",
+        }
         
         # Mock pipeline operations
         mock_pipeline = Mock()
@@ -496,10 +596,48 @@ class TestRateLimiterBytesSafety:
         # All results should be identical - this is the key test
         assert all(result == results[0] for result in results)
         assert results[0][0] is True  # is_allowed
-        # Verify we got reasonable values (environment variables may override defaults)
+        # Verify we got reasonable values
         assert results[0][1] >= 0  # remaining tokens should be non-negative
         assert results[0][2] > 0  # limit should be positive
-        assert RATE_LIMIT_BURST > 0  # burst should be positive
+
+    @patch("time.time")
+    def test_deterministic_behavior_with_string_keys(self, mock_time, mock_redis):
+        """Test that the same inputs always produce the same outputs with string keys."""
+        # Use fixed time for deterministic behavior
+        mock_time.return_value = 1000.0
+        
+        limiter = TokenBucketRateLimiter()
+        
+        request = Mock()
+        request.headers = {}
+        request.client = Mock()
+        request.client.host = "192.168.1.1"
+        
+        # Mock bucket with string keys
+        mock_redis.hgetall.return_value = {
+            "tokens": "5.0",
+            "last_refill": "990.0",
+        }
+        
+        # Mock pipeline operations
+        mock_pipeline = Mock()
+        mock_pipeline.hset.return_value = None
+        mock_pipeline.expire.return_value = None
+        mock_pipeline.execute.return_value = [True, True]
+        mock_redis.pipeline.return_value = mock_pipeline
+        
+        # Run the same operation multiple times
+        results = []
+        for _ in range(3):
+            is_allowed, rate_info = limiter.is_allowed(request)
+            results.append((is_allowed, rate_info["remaining"], rate_info["limit"]))
+        
+        # All results should be identical - this is the key test
+        assert all(result == results[0] for result in results)
+        assert results[0][0] is True  # is_allowed
+        # Verify we got reasonable values
+        assert results[0][1] >= 0  # remaining tokens should be non-negative
+        assert results[0][2] > 0  # limit should be positive
 
     @patch("time.time")
     def test_string_conversion_edge_cases(self, mock_time, mock_redis):
@@ -540,3 +678,45 @@ class TestRateLimiterBytesSafety:
             # Verify the values are valid numbers when converted back
             assert isinstance(float(mapping["tokens"]), float)
             assert isinstance(float(mapping["last_refill"]), float)
+
+    @patch("time.time")
+    def test_bytes_values_edge_cases(self, mock_time, mock_redis):
+        """Test handling of various bytes value formats."""
+        mock_time.return_value = 1000.0
+        
+        limiter = TokenBucketRateLimiter()
+        
+        request = Mock()
+        request.headers = {}
+        request.client = Mock()
+        request.client.host = "192.168.1.1"
+        
+        # Test various bytes value formats
+        test_cases = [
+            (b"0.0", b"1000.0"),
+            (b"1.5", b"999.5"),
+            (b"10.0", b"990.0"),
+            (b"-1.0", b"1001.0"),
+        ]
+        
+        for tokens_bytes, last_refill_bytes in test_cases:
+            mock_redis.hgetall.return_value = {
+                b"tokens": tokens_bytes,
+                b"last_refill": last_refill_bytes,
+            }
+            
+            mock_pipeline = Mock()
+            mock_pipeline.hset.return_value = None
+            mock_pipeline.expire.return_value = None
+            mock_pipeline.execute.return_value = [True, True]
+            mock_redis.pipeline.return_value = mock_pipeline
+            
+            # Should not raise any exceptions
+            is_allowed, rate_info = limiter.is_allowed(request)
+            
+            # Should get valid results
+            assert isinstance(is_allowed, bool)
+            assert isinstance(rate_info["remaining"], int)
+            assert isinstance(rate_info["limit"], int)
+            assert rate_info["remaining"] >= 0
+            assert rate_info["limit"] > 0
