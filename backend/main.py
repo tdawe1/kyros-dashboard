@@ -45,6 +45,12 @@ async def health_check():
         return {"status": "error", "error": str(e)}
 
 
+@app.get("/ready")
+async def ready_check():
+    """Readiness check for frontend status badge."""
+    return {"status": "ok", "timestamp": datetime.now().isoformat()}
+
+
 # Safe imports with error handling
 def safe_import(module_name, import_func):
     """Safely import a module and return None if it fails."""
