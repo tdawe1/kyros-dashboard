@@ -4,6 +4,7 @@ Pytest configuration and fixtures for the Kyros API tests.
 
 import os
 import sys
+import types
 from unittest.mock import Mock, patch, MagicMock, AsyncMock
 
 # Add the parent directory to the path so we can import our modules
@@ -246,3 +247,40 @@ def sample_variants():
             }
         ],
     }
+
+
+@pytest.fixture(autouse=True)
+def stub_openai(monkeypatch):
+    """Stub OpenAI client globally to prevent network calls and API key dependency."""
+    import os
+    import types
+    
+    # Set a test API key
+    os.environ.setdefault("OPENAI_API_KEY", "test-sk")
+    
+    class StubClient:
+        class Chat:
+            class Completions:
+                @staticmethod
+                def create(**kwargs):
+                    class Choice:
+                        def __init__(self):
+                            self.message = types.SimpleNamespace(content="Test response")
+                    
+                    class Usage:
+                        prompt_tokens = 1
+                        completion_tokens = 1
+                        total_tokens = 2
+                    
+                    return types.SimpleNamespace(choices=[Choice()], usage=Usage())
+            
+            completions = Completions()
+        
+        chat = Chat()
+    
+    # Patch the class used by core.openai_client
+    import core.openai_client as mod
+    monkeypatch.setattr(mod, "OpenAI", lambda api_key=None: StubClient())
+    
+    # Also patch the global openai module
+    monkeypatch.setattr("openai.OpenAI", lambda api_key=None: StubClient())

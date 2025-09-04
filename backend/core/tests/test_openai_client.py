@@ -36,11 +36,11 @@ class TestOpenAIClient:
         for model in invalid_models:
             assert client.validate_model(model) is False
 
-    @patch("openai.OpenAI")
-    def test_chat_completion_success(self, mock_openai_class):
+    def test_chat_completion_success(self):
         """Test successful chat completion."""
-        # Mock the OpenAI client and response
-        mock_client = MagicMock()
+        client = OpenAIClient(api_key="test-key-12345")
+        
+        # Mock the client's chat.completions.create method
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = "Test response"
@@ -48,10 +48,8 @@ class TestOpenAIClient:
         mock_response.usage.prompt_tokens = 100
         mock_response.usage.completion_tokens = 50
         mock_response.usage.total_tokens = 150
-        mock_client.chat.completions.create.return_value = mock_response
-        mock_openai_class.return_value = mock_client
-
-        client = OpenAIClient(api_key="test-key-12345")
+        client.client.chat.completions.create = MagicMock(return_value=mock_response)
+        
         result = client.chat_completion(
             messages=[{"role": "user", "content": "Test prompt"}],
             model="gpt-4o-mini",
@@ -73,11 +71,11 @@ class TestOpenAIClient:
                 model="invalid-model",
             )
 
-    @patch("openai.OpenAI")
-    def test_chat_completion_retry_logic(self, mock_openai_class):
+    def test_chat_completion_retry_logic(self):
         """Test retry logic on API failures."""
-        # Mock the OpenAI client to fail twice then succeed
-        mock_client = MagicMock()
+        client = OpenAIClient(api_key="test-key-12345")
+        
+        # Mock the client to fail twice then succeed
         mock_response = MagicMock()
         mock_response.choices = [MagicMock()]
         mock_response.choices[0].message.content = "Success after retry"
@@ -85,34 +83,30 @@ class TestOpenAIClient:
         mock_response.usage.prompt_tokens = 100
         mock_response.usage.completion_tokens = 50
         mock_response.usage.total_tokens = 150
-
+        
         # First two calls fail, third succeeds
-        mock_client.chat.completions.create.side_effect = [
+        client.client.chat.completions.create = MagicMock(side_effect=[
             Exception("API Error 1"),
             Exception("API Error 2"),
             mock_response,
-        ]
-        mock_openai_class.return_value = mock_client
-
-        client = OpenAIClient(api_key="test-key-12345")
+        ])
+        
         result = client.chat_completion(
             messages=[{"role": "user", "content": "Test prompt"}],
             model="gpt-4o-mini",
         )
 
         assert result["content"] == "Success after retry"
-        assert mock_client.chat.completions.create.call_count == 3
+        assert result["usage"]["total_tokens"] == 150
+        assert client.client.chat.completions.create.call_count == 3
 
-    @patch("core.openai_client.OpenAI")
-    def test_chat_completion_max_retries_exceeded(self, mock_openai_class):
+    def test_chat_completion_max_retries_exceeded(self):
         """Test behavior when max retries are exceeded."""
-        mock_client = MagicMock()
-        mock_client.chat.completions.create.side_effect = Exception(
-            "Persistent API Error"
-        )
-        mock_openai_class.return_value = mock_client
-
         client = OpenAIClient(api_key="test-key-12345")
+        
+        # Mock the client to always fail
+        client.client.chat.completions.create = MagicMock(side_effect=Exception("Persistent API Error"))
+        
         with pytest.raises(OpenAIError, match="OpenAI request failed after"):
             client.chat_completion(
                 messages=[{"role": "user", "content": "Test prompt"}],
