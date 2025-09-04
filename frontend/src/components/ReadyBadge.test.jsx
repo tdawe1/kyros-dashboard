@@ -26,6 +26,16 @@ const renderWithQueryClient = component => {
 describe("ReadyBadge", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    // Reset fetch mock before each test
+    global.fetch.mockClear();
+    // Use fake timers for deterministic testing
+    vi.useFakeTimers();
+  });
+
+  afterEach(() => {
+    // Clean up any pending timers
+    vi.clearAllTimers();
+    vi.useRealTimers();
   });
 
   it("shows UP when /ready returns 200", async () => {
@@ -35,6 +45,9 @@ describe("ReadyBadge", () => {
     });
 
     renderWithQueryClient(<ReadyBadge />);
+
+    // Advance timers to trigger polling
+    vi.advanceTimersByTime(1000);
 
     await waitFor(() => {
       expect(screen.getByTestId("ready-badge")).toBeInTheDocument();
@@ -75,6 +88,9 @@ describe("ReadyBadge", () => {
 
     renderWithQueryClient(<ReadyBadge />);
 
+    // Advance timers to trigger polling
+    vi.advanceTimersByTime(1000);
+
     await waitFor(() => {
       const badge = screen.getByTestId("ready-badge");
       expect(badge).toHaveClass("bg-green-100", "text-green-800");
@@ -85,6 +101,9 @@ describe("ReadyBadge", () => {
     fetch.mockRejectedValueOnce(new Error("Network error"));
 
     renderWithQueryClient(<ReadyBadge />);
+
+    // Advance timers to trigger polling
+    vi.advanceTimersByTime(1000);
 
     await waitFor(() => {
       const badge = screen.getByTestId("ready-badge");

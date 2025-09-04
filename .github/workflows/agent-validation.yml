@@ -12,6 +12,10 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Fetch base before diff
+        run: |
+          git fetch origin "${{ github.base_ref }}:${{ github.base_ref }}"
+
       - name: Derive variables
         id: vars
         run: |
@@ -54,19 +58,42 @@ rule = f'.cursor/rules/tasks/{tid}.mdc'
 changed = [l.strip() for l in os.popen("git diff --name-only $BASE_REF...HEAD").read().splitlines() if l.strip()]
 globs = []
 collect = False
+allow_all = False
+
 with open(rule, 'r', encoding='utf-8') as f:
     for line in f:
-        if line.strip() == 'globs:':
+        line = line.strip()
+        
+        # Skip empty lines and comments
+        if not line or line.startswith('#'):
+            continue
+            
+        # Check for allow-all flag
+        if line == 'allow-all: true':
+            allow_all = True
+            continue
+            
+        # Look for globs section
+        if line == 'globs:':
             collect = True
             continue
+            
+        # If collecting globs
         if collect:
-            if line.strip().startswith('---'):
+            # Stop at --- or blank line
+            if line.startswith('---') or not line:
                 break
-            line = line.strip()
+            # Process glob pattern
             if line.startswith('- '):
                 pat = line[2:].strip().strip('"')
                 if pat:
                     globs.append(pat)
+
+# If no globs found and no allow-all flag, fail closed
+if not globs and not allow_all:
+    print('❌ Task rule has no globs section and no allow-all flag set', file=sys.stderr)
+    print('   Add "globs:" section with file patterns or set "allow-all: true"', file=sys.stderr)
+    sys.exit(1)
 
 def allowed(path):
     return any(fnmatch.fnmatch(path, pat) for pat in globs)
@@ -74,11 +101,13 @@ def allowed(path):
 violations = [p for p in changed if not allowed(p)]
 if violations:
     print('❌ Out-of-scope changes (per task rule):', file=sys.stderr)
+    print('   Allowed patterns:', ', '.join(globs) if globs else 'allow-all: true', file=sys.stderr)
     for v in violations:
         print(' -', v, file=sys.stderr)
     sys.exit(1)
 else:
     print('✅ All changes match task rule globs')
+    print('   Allowed patterns:', ', '.join(globs) if globs else 'allow-all: true')
 PY
           else
             echo "No task rule found; skipping glob validation"
