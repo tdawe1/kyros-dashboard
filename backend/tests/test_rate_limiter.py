@@ -382,3 +382,160 @@ class TestRateLimitConfiguration:
                     os.environ.pop(var, None)
                 else:
                     os.environ[var] = value
+
+
+class TestRateLimiterBytesSafety:
+    """Test bytes-safe behavior and pipeline fallback."""
+
+    @patch("time.time")
+    def test_bytes_safe_hset_with_pipeline(self, mock_time, mock_redis):
+        """Test that float values are converted to strings for Redis hset."""
+        mock_time.return_value = 1000.0
+        
+        limiter = TokenBucketRateLimiter()
+        
+        request = Mock()
+        request.headers = {}
+        request.client = Mock()
+        request.client.host = "192.168.1.1"
+        
+        # Mock existing bucket with float values
+        mock_redis.hgetall.return_value = {
+            "tokens": "5.0",
+            "last_refill": "990.0",
+        }
+        
+        # Mock pipeline operations
+        mock_pipeline = Mock()
+        mock_pipeline.hset.return_value = None
+        mock_pipeline.expire.return_value = None
+        mock_pipeline.execute.return_value = [True, True]
+        mock_redis.pipeline.return_value = mock_pipeline
+        
+        is_allowed, rate_info = limiter.is_allowed(request)
+        
+        # Verify that string values were passed to hset
+        mock_pipeline.hset.assert_called_once()
+        call_args = mock_pipeline.hset.call_args
+        mapping = call_args[1]["mapping"]
+        assert isinstance(mapping["tokens"], str)
+        assert isinstance(mapping["last_refill"], str)
+        # The tokens will be refilled based on time elapsed (10 seconds * 100/3600 = ~0.278)
+        # So 5.0 + 0.278 - 1.0 = ~4.278, but we cap at burst size
+        assert float(mapping["tokens"]) >= 0  # Should be a valid number
+        assert mapping["last_refill"] == "1000.0"
+        
+        assert is_allowed is True
+
+    @patch("time.time")
+    def test_pipeline_fallback_when_pipeline_is_none(self, mock_time, mock_redis):
+        """Test fallback behavior when pipeline() returns None."""
+        mock_time.return_value = 1000.0
+        
+        limiter = TokenBucketRateLimiter()
+        
+        request = Mock()
+        request.headers = {}
+        request.client = Mock()
+        request.client.host = "192.168.1.1"
+        
+        # Mock existing bucket
+        mock_redis.hgetall.return_value = {
+            "tokens": "5.0",
+            "last_refill": "990.0",
+        }
+        
+        # Mock pipeline to return None (fallback scenario)
+        mock_redis.pipeline.return_value = None
+        mock_redis.hset.return_value = 1
+        mock_redis.expire.return_value = True
+        
+        is_allowed, rate_info = limiter.is_allowed(request)
+        
+        # Verify fallback methods were called
+        mock_redis.hset.assert_called_once()
+        mock_redis.expire.assert_called_once()
+        
+        # Verify string conversion in fallback
+        hset_call = mock_redis.hset.call_args
+        mapping = hset_call[1]["mapping"]
+        assert isinstance(mapping["tokens"], str)
+        assert isinstance(mapping["last_refill"], str)
+        
+        assert is_allowed is True
+
+    @patch("time.time")
+    def test_deterministic_behavior_with_same_inputs(self, mock_time, mock_redis):
+        """Test that the same inputs always produce the same outputs."""
+        # Use fixed time for deterministic behavior
+        mock_time.return_value = 1000.0
+        
+        limiter = TokenBucketRateLimiter()
+        
+        request = Mock()
+        request.headers = {}
+        request.client = Mock()
+        request.client.host = "192.168.1.1"
+        
+        # Mock empty bucket (new bucket scenario)
+        mock_redis.hgetall.return_value = {}
+        
+        # Mock pipeline operations
+        mock_pipeline = Mock()
+        mock_pipeline.hset.return_value = None
+        mock_pipeline.expire.return_value = None
+        mock_pipeline.execute.return_value = [True, True]
+        mock_redis.pipeline.return_value = mock_pipeline
+        
+        # Run the same operation multiple times
+        results = []
+        for _ in range(3):
+            is_allowed, rate_info = limiter.is_allowed(request)
+            results.append((is_allowed, rate_info["remaining"], rate_info["limit"]))
+        
+        # All results should be identical
+        assert all(result == results[0] for result in results)
+        assert results[0][0] is True  # is_allowed
+        # For new bucket, we start with burst tokens and consume 1
+        assert results[0][1] == RATE_LIMIT_BURST - 1  # remaining tokens
+        assert results[0][2] == RATE_LIMIT_REQUESTS  # limit
+
+    @patch("time.time")
+    def test_string_conversion_edge_cases(self, mock_time, mock_redis):
+        """Test string conversion with edge case float values."""
+        # Use fixed time for deterministic behavior
+        mock_time.return_value = 1000.0
+        
+        limiter = TokenBucketRateLimiter()
+        
+        request = Mock()
+        request.headers = {}
+        request.client = Mock()
+        request.client.host = "192.168.1.1"
+        
+        # Test with various float values to ensure string conversion works
+        test_cases = [0.0, 1.0, 5.5, 999.999, -1.0]
+        
+        for input_float in test_cases:
+            mock_redis.hgetall.return_value = {
+                "tokens": str(input_float),
+                "last_refill": "1000.0",  # Same as current time, so no refill
+            }
+            
+            mock_pipeline = Mock()
+            mock_pipeline.hset.return_value = None
+            mock_pipeline.expire.return_value = None
+            mock_pipeline.execute.return_value = [True, True]
+            mock_redis.pipeline.return_value = mock_pipeline
+            
+            limiter.is_allowed(request)
+            
+            # Verify the string conversion - the key point is that values are strings
+            hset_call = mock_pipeline.hset.call_args
+            mapping = hset_call[1]["mapping"]
+            assert isinstance(mapping["tokens"], str)
+            assert isinstance(mapping["last_refill"], str)
+            
+            # Verify the values are valid numbers when converted back
+            assert isinstance(float(mapping["tokens"]), float)
+            assert isinstance(float(mapping["last_refill"]), float)

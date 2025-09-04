@@ -115,11 +115,22 @@ class TokenBucketRateLimiter:
         else:
             is_allowed = False
 
-        # Use pipeline for atomic operations
+        # Use pipeline for atomic operations with bytes-safe string conversion
         pipe = self.redis_client.pipeline()
-        pipe.hset(bucket_key, mapping={"tokens": tokens, "last_refill": current_time})
-        pipe.expire(bucket_key, RATE_LIMIT_WINDOW * 2)
-        pipe.execute()
+        if pipe is None:
+            # Fallback if pipeline is not available
+            self.redis_client.hset(bucket_key, mapping={
+                "tokens": str(tokens), 
+                "last_refill": str(current_time)
+            })
+            self.redis_client.expire(bucket_key, RATE_LIMIT_WINDOW * 2)
+        else:
+            pipe.hset(bucket_key, mapping={
+                "tokens": str(tokens), 
+                "last_refill": str(current_time)
+            })
+            pipe.expire(bucket_key, RATE_LIMIT_WINDOW * 2)
+            pipe.execute()
 
         # Calculate reset time
         reset_time = current_time + (
