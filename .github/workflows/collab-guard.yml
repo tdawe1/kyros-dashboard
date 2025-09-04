@@ -11,9 +11,14 @@ jobs:
       # Enforce develop as PR base branch
       - name: Check PR base branch
         run: |
+          # Allow release sync PRs: develop -> main
+          if [ "${{ github.base_ref }}" = "main" ] && [ "${{ github.head_ref }}" = "develop" ]; then
+            echo "✅ Release sync PR from 'develop' to 'main' allowed"
+            exit 0
+          fi
           if [ "${{ github.base_ref }}" != "develop" ]; then
             echo "❌ PRs must target 'develop' branch, not '${{ github.base_ref }}'"
-            echo "Please update your PR to target the 'develop' branch."
+            echo "If this is a release, open PR from 'develop' to 'main' only."
             exit 1
           else
             echo "✅ PR correctly targets 'develop' branch"
