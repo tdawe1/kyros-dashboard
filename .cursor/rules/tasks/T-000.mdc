@@ -1,0 +1,27 @@
+---
+description: Task T-000 — Add “/ready:UP” badge to header (auto-applied)
+globs:
+  - "collaboration/tasks/T-000/**"
+  - "frontend/**"
+  - "ui/**"
+---
+
+Context Reset: New subtask
+Task: T-000 — Add “/ready:UP” badge to header
+Lane: frontend
+Branch: feat/T-000-add-ready-up-badge-to-header
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- Badge shows “UP” when GET /ready=200 else “DOWN”
+- Polls every 30s
+- No console errors on preview
+
+Changescope:
+- ui/**
+
+Output: code changes only; summarize what changed and suggest next subtask.

@@ -1,0 +1,29 @@
+---
+description: Task T-205 — Document security and rate limiting behaviors (auto-applied)
+globs:
+  - "collaboration/tasks/T-205/**"
+  - "docs/**"
+  - "docs/PROJECT_MANAGEMENT.md"
+  - "README.md"
+---
+
+Context Reset: New subtask
+Task: T-205 — Document security and rate limiting behaviors
+Lane: docs
+Branch: feat/T-205-document-security-and-rate-limiting-beha
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- Note on JWT secret configuration and persistence
+- Describe rate limit headers and burst/window behavior
+- Reference test targets and how to run them
+
+Changescope:
+- docs/PROJECT_MANAGEMENT.md
+- README.md
+
+Output: code changes only; summarize what changed and suggest next subtask.

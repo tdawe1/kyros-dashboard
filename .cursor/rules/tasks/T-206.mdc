@@ -1,0 +1,30 @@
+---
+description: Task T-206 — Fix MCP package structure for console scripts (auto-applied)
+globs:
+  - "collaboration/tasks/T-206/**"
+  - "backend/**"
+  - "mcp/pyproject.toml"
+  - "mcp/__init__.py"
+---
+
+Context Reset: New subtask
+Task: T-206 — Fix MCP package structure for console scripts
+Lane: backend
+Branch: feat/T-206-fix-mcp-package-structure-for-console-sc
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- Console scripts execute without ModuleNotFoundError
+- All MCP servers start via both console scripts and python -m
+- Package imports work in both development and installed modes
+- Installation instructions updated in CLAUDE.md
+
+Changescope:
+- mcp/pyproject.toml
+- mcp/__init__.py
+
+Output: code changes only; summarize what changed and suggest next subtask.

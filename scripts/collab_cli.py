@@ -449,6 +449,7 @@ def main():
     ut.add_argument("--labels")
     ut.add_argument("--priority")
     ut.add_argument("--assignee")
+    ut.add_argument("--preferred-model")
     ut.add_argument("--status", choices=ALLOWED_STATUSES)
 
     tt = sub.add_parser("transition-task")
@@ -490,6 +491,8 @@ def main():
                 "priority": args.priority,
                 "assignee": args.assignee,
             }
+            if args.preferred_model is not None:
+                fields["preferred_model"] = args.preferred_model
             # labels if present
             if args.labels is not None:
                 fields["labels"] = [s.strip() for s in args.labels.split(",") if s.strip()]

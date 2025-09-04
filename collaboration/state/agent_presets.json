@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "presets": [
+    { "name": "Planner", "model": "gpt-5-high", "autorun": false, "rules": "ROLE: Planner\n- Deliver small task slices..." },
+    { "name": "Implementer", "model": "claude-4-sonnet", "autorun": true, "rules": "ROLE: Implementer\n- Work only within CHANGESCOPE..." },
+    { "name": "Critic", "model": "gpt-5-high", "autorun": false, "rules": "ROLE: Critic\n- Gate PRs..." },
+    { "name": "Auditor (Opus)", "model": "claude-4.1-opus", "autorun": false, "rules": "ROLE: Auditor (Opus)\nUse only for deep reviews..." },
+    { "name": "Summarizer", "model": "gemini-2.5-pro", "autorun": true, "rules": "ROLE: Summarizer\n- Summarize CI logs..." },
+    { "name": "Test Writer", "model": "gemini-2.5-pro", "autorun": true, "rules": "ROLE: Test Writer\n- Produce minimal smoke/unit tests..." },
+    { "name": "Boilerplate (Codex)", "model": "codex-gpt-5-med", "autorun": true, "rules": "ROLE: Boilerplate Implementer\n- Generate small mechanical edits..." }
+  ]
+}
+

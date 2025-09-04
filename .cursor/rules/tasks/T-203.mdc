@@ -1,0 +1,32 @@
+---
+description: Task T-203 — Fix User model indexes and DB defaults; add migration (auto-applied)
+globs:
+  - "collaboration/tasks/T-203/**"
+  - "backend/**"
+  - "backend/core/auth/models.py"
+  - "backend/alembic/versions/**"
+  - "backend/tests/**"
+---
+
+Context Reset: New subtask
+Task: T-203 — Fix User model indexes and DB defaults; add migration
+Lane: backend
+Branch: feat/T-203-fix-user-model-indexes-and-db-defaults-a
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- Remove redundant index=True where unique=True exists
+- Add server_default for is_active (SQL true)
+- Alembic migration updates schema without data loss
+- Tests cover insert without ORM default and uniqueness
+
+Changescope:
+- backend/core/auth/models.py
+- backend/alembic/versions/**
+- backend/tests/**
+
+Output: code changes only; summarize what changed and suggest next subtask.

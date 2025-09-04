@@ -1,0 +1,32 @@
+---
+description: Task T-211 — Apply CodeRabbit PR (auto-applied)
+globs:
+  - "collaboration/tasks/T-211/**"
+  - "backend/**"
+  - "backend/core/config.py"
+  - "README.md"
+  - "docs/PROJECT_MANAGEMENT.md"
+---
+
+Context Reset: New subtask
+Task: T-211 — Apply CodeRabbit PR
+Lane: backend
+Branch: feat/T-211-apply-coderabbit-pr
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- Settings.jwt_secret_key uses default_factory instead of required Field
+- Validator enforces min length (>=32) and logs guidance
+- App boots without env; docs note setting JWT_SECRET_KEY for stability
+- Secret scan remains clean
+
+Changescope:
+- backend/core/config.py
+- README.md
+- docs/PROJECT_MANAGEMENT.md
+
+Output: code changes only; summarize what changed and suggest next subtask.

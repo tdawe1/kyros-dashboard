@@ -4,6 +4,7 @@ Handles login, logout, token refresh, and user management.
 """
 
 from datetime import timedelta
+from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy.orm import Session
@@ -122,7 +123,7 @@ async def logout(current_user: UserModel = Depends(get_current_user)):
     return {"message": "Successfully logged out"}
 
 
-@router.get("/users")
+@router.get("/users", response_model=List[User])
 async def list_users(
     db: Session = Depends(get_db),
     skip: int = 0,

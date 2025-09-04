@@ -1,0 +1,33 @@
+---
+description: Collaboration Layout, State Writes, Leases, and Events (summary)
+globs:
+alwaysApply: true
+---
+
+# Repository Collaboration Layout
+
+- `collaboration/state/`: tasks.json, locks.json, agents.json (small JSON; low‑conflict).
+- `collaboration/events/events.jsonl`: append‑only machine log (JSON Lines).
+- `collaboration/logs/log.md`: human‑readable summary (generated from events).
+- `collaboration/plans/inbox/`: imported PlanSpec YAMLs from Drive/local.
+- `collaboration/tasks/<ID>/`: per‑task scaffolds (acceptance, brief, rules).
+
+# State Write Protocol (ETag + atomic)
+
+1) Read state and compute ETag (sha256 of file bytes). 2) Prepare changes and validate.
+3) Write to temp and `os.replace(temp, target)` atomically. 4) On ETag mismatch, re‑read and retry with jitter.
+
+# Leases (Locking Model)
+
+- Lease fields: `owner, purpose(task id), acquired_at, ttl_seconds, heartbeat_at`.
+- Defaults: TTL ≈ 900s; heartbeat ≈ 300s. Reclaim stale leases; emit `locks_reclaimed`.
+- Only lock files you intend to write. Prefer optimistic merges for code.
+
+# Events
+
+- Emit events for status changes, leases, tests, PRs, merges.
+- Recommended fields: `ts, event, agent, task, old_status, new_status, path, lock_id, branch, prev_etag, new_etag, notes`.
+- Generate logs with: `python scripts/collab_cli.py generate-log`.
+
+Reference: `collaboration/architecture.md` and `agents.md` for deeper guidance.
+
