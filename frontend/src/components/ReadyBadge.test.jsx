@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, act } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { vi } from "vitest";
 import ReadyBadge from "./ReadyBadge";
@@ -12,6 +12,8 @@ const createTestQueryClient = () =>
       queries: {
         retry: false,
         refetchOnWindowFocus: false,
+        refetchInterval: false, // Disable polling in tests
+        refetchIntervalInBackground: false,
       },
     },
   });
@@ -26,8 +28,6 @@ const renderWithQueryClient = component => {
 describe("ReadyBadge", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Reset fetch mock before each test
-    global.fetch.mockClear();
   });
 
   it("shows UP when /ready returns 200", async () => {

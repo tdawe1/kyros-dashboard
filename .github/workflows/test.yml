@@ -47,7 +47,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Cache Poetry dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cache/pypoetry
@@ -58,6 +58,7 @@ jobs:
     - name: Install Poetry and backend deps
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         python -m pip install --upgrade pip
         pip install poetry
         poetry install --no-interaction --no-ansi --no-root
@@ -65,6 +66,7 @@ jobs:
     - name: Lint with ruff
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         poetry run ruff check . --output-format=github
 
     # - name: Format check with ruff
@@ -75,6 +77,7 @@ jobs:
     - name: Security check with bandit
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         poetry run bandit -r . -f json -o bandit-report.json
 
     - name: Run unit tests with pytest
@@ -88,6 +91,7 @@ jobs:
         MAX_TOKENS_PER_JOB: 50000
         DAILY_JOB_LIMIT: 10
       run: |
+        set -Eeuo pipefail
         PYTHONPATH=. poetry run pytest --cov=. --cov-report=xml --cov-report=html --junitxml=pytest-report.xml -v
 
     - name: Upload coverage to Codecov
@@ -184,6 +188,7 @@ jobs:
     - name: Install Poetry and backend deps
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         python -m pip install --upgrade pip
         pip install poetry
         poetry install --no-interaction --no-ansi --no-root
@@ -208,6 +213,7 @@ jobs:
         MAX_TOKENS_PER_JOB: 50000
         DAILY_JOB_LIMIT: 10
       run: |
+        set -Eeuo pipefail
         poetry run uvicorn main:app --host 0.0.0.0 --port 8000 &
         sleep 10
 
@@ -218,6 +224,7 @@ jobs:
     - name: Start frontend server
       working-directory: ./frontend
       run: |
+        set -Eeuo pipefail
         npm run preview -- --port 3001 --host 0.0.0.0 &
         sleep 5
 
@@ -268,6 +275,7 @@ jobs:
     - name: Install Poetry and backend deps
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         python -m pip install --upgrade pip
         pip install poetry
         poetry install --no-interaction --no-ansi
@@ -279,6 +287,7 @@ jobs:
     - name: Verify backend imports
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         poetry run python -c "import main; print('Backend imports successfully')"
 
   security-scan:
@@ -296,6 +305,7 @@ jobs:
     - name: Install Poetry and dependencies
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         python -m pip install --upgrade pip
         pip install poetry
         poetry install --no-interaction --no-ansi --no-root
@@ -304,6 +314,7 @@ jobs:
     - name: Run security scan with bandit
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         poetry run bandit -r . -f json -o bandit-report.json
 
     - name: Upload security report
@@ -320,6 +331,7 @@ jobs:
     steps:
     - name: Check test results
       run: |
+        set -Eeuo pipefail
         echo "Backend tests: ${{ needs.backend-tests.result }}"
         echo "Frontend tests: ${{ needs.frontend-tests.result }}"
         echo "E2E tests: ${{ needs.e2e-tests.result }}"
