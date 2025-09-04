@@ -1,0 +1,32 @@
+---
+name: smoke
+on:
+  pull_request: { branches: [develop] }
+  push:         { branches: [develop] }
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+
+      # Frontend
+      - name: FE install
+        run: cd frontend && npm ci
+      - name: FE build
+        run: cd frontend && npm run build
+      - name: FE unit (sanity)
+        run: cd frontend && npm run test:ci -- --reporter=dot -t "renders"
+
+      # Backend
+      - name: BE setup
+        run: cd backend && (pipx install poetry || python -m pip install --user poetry) && poetry install --no-interaction --no-ansi --no-root
+      - name: BE unit (sanity)
+        run: cd backend && poetry run pytest -q tests/test_healthz.py || poetry run pytest -q -k health
+      - name: Lint/Sec (best-effort)
+        run: cd backend && (poetry run ruff check . || true) && (poetry run bandit -q -r . || true)
+---
