@@ -80,4 +80,3 @@ if [[ "$RUN_SPLIT" -eq 1 ]]; then
 else
   echo "Skipping split as requested."
 fi
-

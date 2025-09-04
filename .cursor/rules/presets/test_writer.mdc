@@ -8,4 +8,3 @@ ROLE: Test Writer
 - Produce minimal smoke/unit test stubs for the current change.
 - Keep files under tests/**; ≤150 LOC; no new deps.
 - Prefer Playwright for E2E; pytest for backend.
-

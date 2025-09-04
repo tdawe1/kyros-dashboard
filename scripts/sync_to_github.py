@@ -20,10 +20,8 @@ Note: This is idempotent; re-running updates existing issues instead of creating
 import json
 import os
 import re
-import sys
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Optional
 
 import requests
 import yaml
@@ -31,7 +29,7 @@ import yaml
 
 REPO = os.getenv("GITHUB_REPOSITORY", "").split("/")
 OWNER = os.getenv("GITHUB_REPOSITORY_OWNER") or (REPO[0] if len(REPO) == 2 else None)
-REPO_NAME = (REPO[1] if len(REPO) == 2 else os.getenv("GITHUB_REPO_NAME"))
+REPO_NAME = REPO[1] if len(REPO) == 2 else os.getenv("GITHUB_REPO_NAME")
 TOKEN = os.getenv("GITHUB_TOKEN") or os.getenv("GH_TOKEN")
 
 API = "https://api.github.com"
@@ -53,7 +51,9 @@ def gh_headers():
 def gh(url: str, method: str = "GET", **kwargs):
     resp = requests.request(method, url, headers=gh_headers(), timeout=30, **kwargs)
     if resp.status_code >= 400:
-        raise RuntimeError(f"GitHub API {method} {url} failed: {resp.status_code} {resp.text[:200]}")
+        raise RuntimeError(
+            f"GitHub API {method} {url} failed: {resp.status_code} {resp.text[:200]}"
+        )
     return resp
 
 
@@ -77,7 +77,11 @@ def list_issues_by_label(label: str) -> List[dict]:
 
 def upsert_label(name: str, color: str = "0e8a16"):
     # Create if missing; ignore if exists
-    r = requests.get(f"{API}/repos/{OWNER}/{REPO_NAME}/labels/{name}", headers=gh_headers(), timeout=15)
+    r = requests.get(
+        f"{API}/repos/{OWNER}/{REPO_NAME}/labels/{name}",
+        headers=gh_headers(),
+        timeout=15,
+    )
     if r.status_code == 200:
         return
     requests.post(
@@ -95,15 +99,19 @@ def load_tasks() -> Dict:
 
 
 def save_tasks(data: Dict):
-    TASKS.write_text(json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    TASKS.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
 
 
 def flatten_roadmap_nodes(doc: Dict) -> List[Dict]:
     out: List[Dict] = []
+
     def walk(n: Dict):
         out.append(n)
         for c in n.get("children", []) or []:
             walk(c)
+
     for root in doc.get("nodes", []) or []:
         walk(root)
     return out
@@ -114,15 +122,21 @@ def sync_roadmap_nodes(created: List[int]):
         return
     upsert_label("roadmap", "0366d6")
     doc = yaml.safe_load(ROADMAP.read_text(encoding="utf-8")) or {}
+
     # Build map of nodes and their children
-    def walk_tree(n: Dict, parent: Optional[str] = None, acc: Dict[str, Dict] = None, edges: Dict[str, List[str]] = None):
+    def walk_tree(
+        n: Dict,
+        parent: Optional[str] = None,
+        acc: Dict[str, Dict] = None,
+        edges: Dict[str, List[str]] = None,
+    ):
         acc = acc or {}
         edges = edges or {}
         nid = n.get("id")
         acc[nid] = n
         kids = [c.get("id") for c in (n.get("children") or [])]
         edges[nid] = kids
-        for c in (n.get("children") or []):
+        for c in n.get("children") or []:
             walk_tree(c, nid, acc, edges)
         return acc, edges
 
@@ -149,7 +163,9 @@ def sync_roadmap_nodes(created: List[int]):
         owner = n.get("owner")
         issue_title = f"[Roadmap] {nid} — {title}"
         # minimal body for creation; will enrich later
-        base_body = f"<!--ROADMAP_ID:{nid}-->\nStatus: {status}\n" + (f"\nOwner: @{owner}\n" if owner else "")
+        base_body = f"<!--ROADMAP_ID:{nid}-->\nStatus: {status}\n" + (
+            f"\nOwner: @{owner}\n" if owner else ""
+        )
         exists = by_marker.get(nid)
         if exists:
             number = exists["number"]
@@ -184,7 +200,9 @@ def sync_roadmap_nodes(created: List[int]):
             continue
         status = (n.get("status") or "queued").lower()
         owner = n.get("owner")
-        header = f"<!--ROADMAP_ID:{nid}-->\nStatus: {status}\n" + (f"\nOwner: @{owner}\n" if owner else "")
+        header = f"<!--ROADMAP_ID:{nid}-->\nStatus: {status}\n" + (
+            f"\nOwner: @{owner}\n" if owner else ""
+        )
         children = edges.get(nid) or []
         if children:
             lines = [header, "\n### Children", ""]
@@ -230,7 +248,7 @@ def sync_tasks(created: List[int]):
         # Create or update issue
         title = t.get("title", "")
         issue_title = f"[Task] {tid}: {title}"
-        body = f"<!--TASK_ID:{tid}-->\n\n{t.get('description','')}\n"
+        body = f"<!--TASK_ID:{tid}-->\n\n{t.get('description', '')}\n"
         # Prepare labels: 'task' + task labels + priority if present
         tlabels = ["task"]
         for lbl in t.get("labels", []) or []:
@@ -249,7 +267,12 @@ def sync_tasks(created: List[int]):
             gh(
                 f"{API}/repos/{OWNER}/{REPO_NAME}/issues/{issue_num}",
                 method="PATCH",
-                json={"title": issue_title, "body": body, "labels": tlabels, "state": desired_state},
+                json={
+                    "title": issue_title,
+                    "body": body,
+                    "labels": tlabels,
+                    "state": desired_state,
+                },
             )
             created.append(int(issue_num))
         else:
@@ -259,7 +282,12 @@ def sync_tasks(created: List[int]):
                 gh(
                     f"{API}/repos/{OWNER}/{REPO_NAME}/issues/{number}",
                     method="PATCH",
-                    json={"title": issue_title, "body": body, "labels": tlabels, "state": desired_state},
+                    json={
+                        "title": issue_title,
+                        "body": body,
+                        "labels": tlabels,
+                        "state": desired_state,
+                    },
                 )
                 # write back
                 ext.setdefault("github", {})["issue"] = number
@@ -300,7 +328,9 @@ def main():
     sync_tasks(created)
     # Deduplicate and write
     nums = sorted(set(created))
-    CREATED_FILE.write_text("\n".join(str(n) for n in nums) + ("\n" if nums else ""), encoding="utf-8")
+    CREATED_FILE.write_text(
+        "\n".join(str(n) for n in nums) + ("\n" if nums else ""), encoding="utf-8"
+    )
 
     # Build links map: roadmap id -> issue URL, task id -> issue URL
     links = {"roadmap": {}, "tasks": {}}
@@ -324,7 +354,9 @@ def main():
                 links["tasks"][tid] = iss.get("html_url")
     except Exception:
         pass
-    (Path("project") / "links.json").write_text(json.dumps(links, indent=2), encoding="utf-8")
+    (Path("project") / "links.json").write_text(
+        json.dumps(links, indent=2), encoding="utf-8"
+    )
 
     print(f"Synced issues: {', '.join(map(str, nums)) if nums else '(none)'}")
 

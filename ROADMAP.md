@@ -24,4 +24,3 @@ Progress: 3/12 (25%)
 [ ] R3 — Quality and DX (0/3)
 ├─ [ ] R3.1 — E2E audit follow-ups (0/1)
 └─ [ ] R3.2 — Docs consolidation (0/1)
-

@@ -1,0 +1,35 @@
+---
+name: import_coderabbit_post_merge
+on:
+  pull_request:
+    types: [closed]
+permissions: { contents: write, pull-requests: write }
+jobs:
+  persist-state:
+    if: ${{ github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'develop' && !contains(github.event.pull_request.labels.*.name, 'state-sync') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with: { ref: 'develop' }
+      - name: Compute CR delta (stubbed)
+        id: delta
+        run: |
+          mkdir -p collaboration/state collaboration/events
+          echo '{}' > collaboration/state/tasks.json
+          echo ''   > collaboration/events/events.jsonl
+          if [ -s collaboration/events/events.jsonl ] || [ -s collaboration/state/tasks.json ]; then echo "has=1" >> $GITHUB_OUTPUT; else echo "has=0" >> $GITHUB_OUTPUT; fi
+      - name: No-op if no delta
+        if: steps.delta.outputs.has == '0'
+        run: echo "No delta; skipping."
+      - name: Create state-sync PR
+        if: steps.delta.outputs.has == '1'
+        run: |
+          BR=state-sync/${{ github.event.pull_request.number }}-${{ github.sha }}
+          git switch -c "$BR"
+          git add collaboration/state collaboration/events
+          git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -m "State sync for PR #${{ github.event.pull_request.number }}"
+          git push origin "$BR"
+          gh pr create --head "$BR" --base develop --title "State sync: PR #${{ github.event.pull_request.number }}" --body "Bot PR persisting CR findings." --label state-sync
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+---

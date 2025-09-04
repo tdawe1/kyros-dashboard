@@ -30,7 +30,9 @@ def find_node(node: Dict[str, Any], node_id: str) -> Optional[Dict[str, Any]]:
     return None
 
 
-def find_node_and_parent(nodes: list, node_id: str, parent: Optional[Dict[str, Any]] = None):
+def find_node_and_parent(
+    nodes: list, node_id: str, parent: Optional[Dict[str, Any]] = None
+):
     for n in nodes:
         if n.get("id") == node_id:
             return n, parent
@@ -82,7 +84,14 @@ def cmd_set_title(doc: Dict[str, Any], node_id: str, title: str):
     return False
 
 
-def cmd_add_node(doc: Dict[str, Any], node_id: str, title: str, parent_id: Optional[str], status: str, owner: Optional[str]):
+def cmd_add_node(
+    doc: Dict[str, Any],
+    node_id: str,
+    title: str,
+    parent_id: Optional[str],
+    status: str,
+    owner: Optional[str],
+):
     new_node = {"id": node_id, "title": title, "status": status}
     if owner:
         new_node["owner"] = owner
@@ -106,6 +115,7 @@ def cmd_move_node(doc: Dict[str, Any], node_id: str, new_parent_id: Optional[str
     target, parent = find_node_and_parent(nodes, node_id)
     if not target:
         return False
+
     # Remove from existing location
     def remove_from_parent(par, child):
         if par is None:
@@ -179,7 +189,12 @@ def regenerate_markdown():
         import subprocess
 
         subprocess.run(
-            [sys.executable, "scripts/roadmap_tree.py", "project/roadmap.yml", "ROADMAP.md"],
+            [
+                sys.executable,
+                "scripts/roadmap_tree.py",
+                "project/roadmap.yml",
+                "ROADMAP.md",
+            ],
             check=True,
         )
     except Exception:
@@ -192,7 +207,9 @@ def main():
 
     sst = sub.add_parser("set-status")
     sst.add_argument("id")
-    sst.add_argument("status", choices=["queued", "in_progress", "approved", "done", "blocked"]) 
+    sst.add_argument(
+        "status", choices=["queued", "in_progress", "approved", "done", "blocked"]
+    )
 
     sso = sub.add_parser("set-owner")
     sso.add_argument("id")
@@ -230,7 +247,9 @@ def main():
     elif args.cmd == "set-title":
         ok = cmd_set_title(doc, args.id, args.title)
     elif args.cmd == "add":
-        ok = cmd_add_node(doc, args.id, args.title, args.parent, args.status, args.owner)
+        ok = cmd_add_node(
+            doc, args.id, args.title, args.parent, args.status, args.owner
+        )
     elif args.cmd == "move":
         ok = cmd_move_node(doc, args.id, args.parent)
     elif args.cmd == "link-task":
@@ -248,4 +267,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

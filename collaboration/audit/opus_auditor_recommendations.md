@@ -45,4 +45,3 @@ Strong foundations:
 - CI: `.github/workflows/test.yml`, `quality-checks.yml`, `staging.yml`, `agent-validation.yml`
 - Backend: `backend/core/config.py`, `backend/tests/conftest.py`, `backend/tests/agent_context.py`
 - Governance: `CONTRIBUTING.md`, `README.md`, `.github/pull_request_template.md`, `collaboration/protocols/agent-communication.md`, `collaboration/coordination/agent-locks.yml`
-

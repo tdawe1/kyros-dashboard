@@ -153,7 +153,7 @@ async def rate_limit_middleware(request: Request, call_next):
     if is_testing():
         logger.debug("Rate limiting disabled in testing environment")
         return await call_next(request)
-    
+
     # Skip rate limiting for health checks and static files
     if request.url.path in ["/api/health", "/docs", "/openapi.json", "/redoc"]:
         return await call_next(request)
