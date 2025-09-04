@@ -64,7 +64,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Cache Poetry dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cache/pypoetry
@@ -123,7 +123,21 @@ jobs:
     - name: Lint with ruff
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         poetry run ruff check . --output-format=github
+
+    - name: Show environment info (debug)
+      working-directory: ./backend
+      run: |
+        set -Eeuo pipefail
+        echo "Python (system):"; python -V || true
+        which python || true
+        echo "Pip:"; pip -V || true
+        poetry --version || true
+        poetry env info || true
+        echo "Python (poetry):"; poetry run python -V || true
+        poetry run which python || true
+        poetry show --tree || true
 
     # - name: Format check with ruff
     #   working-directory: ./backend
@@ -133,6 +147,7 @@ jobs:
     - name: Security check with bandit
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         poetry run bandit -r . -f json -o bandit-report.json
 
     - name: Run unit tests with pytest
@@ -145,7 +160,9 @@ jobs:
         MAX_INPUT_CHARACTERS: 100000
         MAX_TOKENS_PER_JOB: 50000
         DAILY_JOB_LIMIT: 10
+        OPENAI_API_KEY: test-sk
       run: |
+        set -Eeuo pipefail
         PYTHONPATH=. poetry run pytest --cov=. --cov-report=xml --cov-report=html --junitxml=pytest-report.xml -v
 
     - name: Upload coverage to Codecov
@@ -318,6 +335,7 @@ jobs:
         MAX_TOKENS_PER_JOB: 50000
         DAILY_JOB_LIMIT: 10
       run: |
+        set -Eeuo pipefail
         poetry run uvicorn main:app --host 0.0.0.0 --port 8000 &
         sleep 10
 
@@ -328,6 +346,7 @@ jobs:
     - name: Start frontend server
       working-directory: ./frontend
       run: |
+        set -Eeuo pipefail
         npm run preview -- --port 3001 --host 0.0.0.0 &
         sleep 5
 
@@ -432,6 +451,7 @@ jobs:
     - name: Verify backend imports
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         poetry run python -c "import main; print('Backend imports successfully')"
 
   security-scan:
@@ -449,6 +469,7 @@ jobs:
     - name: Install Poetry and dependencies
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         python -m pip install --upgrade pip
         pip install poetry
         poetry install --no-interaction --no-ansi --no-root
@@ -457,6 +478,7 @@ jobs:
     - name: Run security scan with bandit
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         poetry run bandit -r . -f json -o bandit-report.json
 
     - name: Upload security report
@@ -473,6 +495,7 @@ jobs:
     steps:
     - name: Check test results
       run: |
+        set -e
         echo "## CI Performance Summary" >> $GITHUB_STEP_SUMMARY
         echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY

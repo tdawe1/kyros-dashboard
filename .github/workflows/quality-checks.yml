@@ -109,7 +109,10 @@ jobs:
 
       - name: Check for secrets
         run: |
-          detect-secrets scan --baseline .secrets.baseline
+          set -Eeuo pipefail
+          # Fail if new secrets are introduced compared to the baseline
+          detect-secrets scan > detect-secrets-results.json
+          detect-secrets audit --baseline .secrets.baseline --report detect-secrets-results.json || exit 1
 
       - name: Upload security reports
         uses: actions/upload-artifact@v4
