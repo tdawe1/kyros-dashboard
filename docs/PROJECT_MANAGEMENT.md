@@ -299,10 +299,10 @@ python scripts/roadmap_cli.py set-status R2.1 in_progress
 ## Security Configuration
 
 ### JWT Secret Key
-- **Development**: JWT_SECRET_KEY is automatically generated with 32 characters if not provided
-- **Production**: Must set JWT_SECRET_KEY environment variable (minimum 32 characters)
+- **Development**: JWT_SECRET_KEY is automatically generated with 32+ characters if not provided
+- **Non-Development**: Should set JWT_SECRET_KEY environment variable (minimum 32 characters) for stability
 - **Validation**: The system enforces ≥32 character requirement and generates secure fallback if needed
-- **Recommendation**: Always set JWT_SECRET_KEY in non-development environments for security
+- **Recommendation**: Always set JWT_SECRET_KEY in non-development environments for stability and security
 
 ## CodeRabbit Import
 

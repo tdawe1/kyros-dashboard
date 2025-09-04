@@ -1,0 +1,16 @@
+---
+description: Kyros Dashboard Project Rules
+globs:
+alwaysApply: true
+---
+
+# Kyros Dashboard Project Rules
+
+- Always enforce: PRs <300 changed lines, ≤3 modules. 
+- Never edit files under collaboration/state/** or CI configs.
+- Follow branch naming: feat/<task-id>-slug.
+- Only use MCP tools: context.get, search.repo/query, tests.run/execute. 
+- MCP calls must respect lane permissions (Implementer: context.get + search.repo/query; Planner: search.repo/query + context.get; Critic: tests.run/execute + search.repo/query + context.*).
+- Commit style: conventional commits (feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert).
+- Definition of Done: updated tests, typecheck/lint clean, docs updated, critic approval.
+- Use Context Reset Protocol: reset context between tasks, rehydrate only task ID, acceptance, CHANGESCOPE.

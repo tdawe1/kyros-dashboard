@@ -15,3 +15,19 @@
 {"event": "approved", "task": "T-101", "actor": "critic", "notes": "Acceptance satisfied", "ts": "2025-09-03T23:12:47Z"}
 {"event": "merged", "task": "T-101", "actor": "integrator", "notes": "Merged to develop", "ts": "2025-09-03T23:12:49Z"}
 {"event": "status_changed", "task": "T-102", "old_status": "queued", "new_status": "in_progress", "actor": "local-test", "notes": "Testing old format conversion", "ts": "2025-09-03T23:14:04Z"}
+{"event": "task_created", "task": "task-008", "ts": "2025-09-04T08:42:25Z"}
+{"event": "task_created", "task": "task-009", "ts": "2025-09-04T08:42:25Z"}
+{"event": "task_created", "task": "task-010", "ts": "2025-09-04T08:42:25Z"}
+{"event": "task_created", "task": "task-011", "ts": "2025-09-04T08:42:26Z"}
+{"event": "task_created", "task": "task-012", "ts": "2025-09-04T08:42:26Z"}
+{"event": "task_created", "task": "task-013", "ts": "2025-09-04T08:42:26Z"}
+{"event": "task_created", "task": "task-014", "ts": "2025-09-04T08:42:26Z"}
+{"event": "task_updated", "task": "task-008", "ts": "2025-09-04T08:57:20Z"}
+{"event": "task_updated", "task": "task-009", "ts": "2025-09-04T08:57:20Z"}
+{"event": "task_updated", "task": "task-010", "ts": "2025-09-04T08:57:20Z"}
+{"event": "task_updated", "task": "task-011", "ts": "2025-09-04T08:57:20Z"}
+{"event": "task_updated", "task": "task-012", "ts": "2025-09-04T08:57:20Z"}
+{"event": "task_updated", "task": "task-013", "ts": "2025-09-04T08:57:20Z"}
+{"event": "task_updated", "task": "task-014", "ts": "2025-09-04T08:57:20Z"}
+{"event": "status_changed", "task": "task-009", "old_status": "queued", "new_status": "in_progress", "ts": "2025-09-04T09:13:47Z"}
+{"event": "status_changed", "task": "task-008", "old_status": "queued", "new_status": "in_progress", "ts": "2025-09-04T09:19:46Z"}

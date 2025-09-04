@@ -1,0 +1,30 @@
+---
+description: Task T-208 — Update documentation and installation guide (auto-applied)
+globs:
+  - "collaboration/tasks/T-208/**"
+  - "docs/**"
+  - "CLAUDE.md"
+  - "mcp/README.md"
+---
+
+Context Reset: New subtask
+Task: T-208 — Update documentation and installation guide
+Lane: docs
+Branch: feat/T-208-update-documentation-and-installation-gu
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- CLAUDE.md updated with correct installation steps
+- Troubleshooting section added for common issues
+- Alternative module execution commands documented
+- Quick verification steps included
+
+Changescope:
+- CLAUDE.md
+- mcp/README.md
+
+Output: code changes only; summarize what changed and suggest next subtask.

@@ -2,7 +2,7 @@
 
 Progress: 3/12 (25%)
 
-## Goals (Human-only)
+## Goals
 
 - G0 — Ship a reliable, minimal dashboard that demonstrates core value within 4 weeks
   - Keep scope tight; optimize for learnings and demos.

@@ -1,0 +1,38 @@
+---
+description: Plan → Split → PR Pipeline (Drive import + task generation)
+globs:
+alwaysApply: true
+---
+
+# Pipeline Overview
+
+- Source PlanSpec: `collaboration/plans/inbox/planspec.yml` (imported by GH action or local).
+- Split & scaffold tasks into `collaboration/tasks/<ID>/` with acceptance and brief.
+- Generate per‑task Cursor rules in `.cursor/rules/tasks/<ID>.mdc` to auto‑apply context.
+- Open a PR containing the plan and generated tasks/state updates.
+
+# GitHub Actions
+
+- Import: `.github/workflows/plan-import.yml` downloads the latest plan from Drive and stages it.
+- Follow‑up: `.github/workflows/create-plan-pr.yml` opens a PR titled “Import Latest Plan from Drive”.
+
+# Local Task Generation
+
+From repo root:
+
+```bash
+cd scripts
+python split_plan.py ../collaboration/plans/inbox/planspec.yml
+```
+
+Outputs:
+- `collaboration/tasks/<ID>/{ACCEPTANCE.md,BRIEF.md,.cursor.rules.md}`
+- `.cursor/rules/tasks/<ID>.mdc` (auto‑applied Cursor rule for that task)
+
+# Conventions
+
+- Branch per task: `feat/<task-id>-slug`; small diffs; tests updated.
+- DoD enforced per `agents.mdc`: tests, static checks, docs, critic approval.
+
+Reference: see `agents.md`, `collaboration/DEPLOYMENT_WORKFLOW.md`, and `.github/workflows/*`.
+

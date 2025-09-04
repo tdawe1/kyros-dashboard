@@ -1,0 +1,29 @@
+---
+description: Task T-204 — Type-tighten list_users route and add basic API test (auto-applied)
+globs:
+  - "collaboration/tasks/T-204/**"
+  - "backend/**"
+  - "backend/core/auth_router.py"
+  - "backend/tests/test_api_endpoints.py"
+---
+
+Context Reset: New subtask
+Task: T-204 — Type-tighten list_users route and add basic API test
+Lane: backend
+Branch: feat/T-204-type-tighten-list-users-route-and-add-ba
+
+DoD:
+- Satisfy acceptance; tests updated/passing
+- Static checks clean; no secrets
+- PR reviewed by a critic
+
+Acceptance:
+- router.get("/users", response_model=List[User]) applied
+- Endpoint returns schema-conformant payload; pagination respected
+- Test asserts 200 and response shape under admin role
+
+Changescope:
+- backend/core/auth_router.py
+- backend/tests/test_api_endpoints.py
+
+Output: code changes only; summarize what changed and suggest next subtask.

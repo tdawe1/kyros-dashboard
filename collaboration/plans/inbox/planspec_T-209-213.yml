@@ -1,0 +1,83 @@
+plan_id: 2025-09-04-agents-ci-coderabbit-followups
+baseline_branch: develop
+lanes:
+  planner: architect
+  critic: reviewer
+  backend:
+    implementers: [backend-dev]
+  docs:
+    implementers: [docs-dev]
+  ci:
+    implementers: [ci-dev]
+tasks:
+  - id: T-209
+    title: Expose /ready alias and test
+    lane: backend
+    acceptance:
+      - /ready endpoint returns HTTP 200 and body "UP"
+      - Unit test asserts status, body, and content-type
+      - No regression to /api/healthz tests
+    changescope:
+      - backend/main.py
+      - backend/tests/test_healthz.py
+    estimate: S (small route + test)
+    risk: Route overlap; keep alias simple and non-authenticated
+
+  - id: T-210
+    title: Apply CodeRabbit PR #8: rate limiter bytes-safe + fallback
+    lane: backend
+    acceptance:
+      - Reads Redis hash keys/values as str or bytes for tokens/last_refill
+      - Maintains correct token counts across consecutive requests
+      - Safe non-atomic path if pipeline() unavailable
+      - Adds unit tests covering str/bytes hash responses
+    changescope:
+      - backend/middleware/rate_limiter.py
+      - backend/tests/test_rate_limiter.py
+    estimate: M (logic + deterministic tests)
+    risk: Time-dependent logic; fix time via mocking to stabilize tests
+
+  - id: T-211
+    title: Apply CodeRabbit PR #8: JWT secret default_factory + validator
+    lane: backend
+    acceptance:
+      - Settings.jwt_secret_key uses default_factory instead of required Field
+      - Validator enforces min length (>=32) and logs guidance
+      - App boots without env; docs note setting JWT_SECRET_KEY for stability
+      - Secret scan remains clean
+    changescope:
+      - backend/core/config.py
+      - README.md
+      - docs/PROJECT_MANAGEMENT.md
+    estimate: S (config edit + doc note)
+    risk: Init regressions; validate import and startup paths
+
+  - id: T-212
+    title: Apply CodeRabbit PR #8: User model server_default + migration
+    lane: backend
+    acceptance:
+      - Remove redundant index=True where unique=True exists
+      - Add server_default for is_active (SQL true)
+      - Alembic migration updates schema without data loss
+      - Tests cover insert without ORM default and uniqueness
+    changescope:
+      - backend/core/auth/models.py
+      - backend/alembic/versions/**
+      - backend/tests/**
+    estimate: M (model change + migration + tests)
+    risk: Migration correctness; test on fresh and existing DBs
+
+  - id: T-213
+    title: Apply CodeRabbit PR #8: list_users response_model + API test
+    lane: backend
+    acceptance:
+      - router.get("/users", response_model=List[User]) applied
+      - Response matches schema; pagination respected
+      - Test asserts 200 and response shape (admin-only)
+    changescope:
+      - backend/core/auth_router.py
+      - backend/tests/test_api_endpoints.py
+    dependencies:
+      - T-212
+    estimate: S (small code + test)
+    risk: Type import mismatches; rely on existing schemas

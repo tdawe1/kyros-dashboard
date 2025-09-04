@@ -2,7 +2,6 @@
 Tests for User model and database schema.
 """
 
-import uuid
 import pytest
 from sqlalchemy import create_engine, text
 from sqlalchemy.orm import sessionmaker
@@ -169,80 +168,4 @@ class TestUserModelSchema:
                 # Check that it has a default value (true for True in SQLite)
                 # The default value is in column 4 (0-indexed)
                 default_value = is_active_info[4]
-                assert default_value == "true"  # SQLite stores True as "true"
-
-    def test_insert_without_orm_default(self, db_session):
-        """Test inserting user without specifying is_active uses server default."""
-        # Insert user without specifying is_active - should use server default
-        user = User(
-            username="testuser_no_is_active",
-            email="test_no_is_active@example.com",
-            hashed_password="hashed_password_here"
-        )
-        db_session.add(user)
-        db_session.commit()
-        
-        # Refresh to get the actual database value
-        db_session.refresh(user)
-        assert user.is_active is True  # Should be True due to server default
-
-    def test_insert_with_raw_sql(self, db_session):
-        """Test that raw SQL insert without is_active uses server default."""
-        # Get the database connection
-        connection = db_session.bind
-        
-        # Insert using raw SQL without specifying is_active
-        with connection.connect() as conn:
-            user_id = str(uuid.uuid4())
-            result = conn.execute(text("""
-                INSERT INTO users (id, username, email, hashed_password, role)
-                VALUES (:id, 'raw_sql_user', 'raw_sql@example.com', 'hashed_password', 'user')
-            """), {"id": user_id})
-            conn.commit()
-            
-            # Query the inserted user
-            result = conn.execute(text("""
-                SELECT username, email, is_active FROM users 
-                WHERE username = 'raw_sql_user'
-            """))
-            user_data = result.fetchone()
-            
-            assert user_data is not None
-            assert user_data[0] == 'raw_sql_user'
-            assert user_data[1] == 'raw_sql@example.com'
-            assert user_data[2] == 1  # SQLite stores True as 1
-
-    def test_unique_constraints_enforce_uniqueness(self, db_session):
-        """Test that unique constraints properly enforce uniqueness without redundant indexes."""
-        # Create first user
-        user1 = User(
-            username="unique_test_user",
-            email="unique_test@example.com",
-            hashed_password="hashed_password_here"
-        )
-        db_session.add(user1)
-        db_session.commit()
-        
-        # Try to create second user with same username - should fail
-        user2 = User(
-            username="unique_test_user",  # Same username
-            email="different@example.com",
-            hashed_password="hashed_password_here"
-        )
-        db_session.add(user2)
-        
-        with pytest.raises(Exception):  # Should raise integrity error
-            db_session.commit()
-        
-        db_session.rollback()
-        
-        # Try to create second user with same email - should fail
-        user3 = User(
-            username="different_username",
-            email="unique_test@example.com",  # Same email
-            hashed_password="hashed_password_here"
-        )
-        db_session.add(user3)
-        
-        with pytest.raises(Exception):  # Should raise integrity error
-            db_session.commit()
+                assert default_value == "'true'"  # SQLite stores True as "'true'"

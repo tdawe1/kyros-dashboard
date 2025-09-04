@@ -1,0 +1,33 @@
+plan_id: 2025-09-03-baseline
+baseline_branch: develop
+lanes:
+  frontend: gpt-5-high
+  backend: gpt-5-high
+  tests: gemini-2.5-pro
+constraints:
+  - small PRs (<300 lines)
+  - keep CI green
+tasks:
+  - id: T-101
+    title: Optional Sentry init in UI
+    lane: frontend
+    acceptance:
+      - Vercel preview builds with no DSN
+      - When DSN present, errors are captured (manual ok)
+  - id: T-102
+    title: /ready healthcheck (DB+Redis)
+    lane: backend
+    acceptance:
+      - GET /ready returns 200 when DB+Redis reachable; non-200 otherwise
+  - id: T-103
+    title: Status widget shows /ready
+    lane: frontend
+    acceptance:
+      - Widget shows UP/DOWN, polls every 30s, no console errors
+    deps: [T-102]
+  - id: T-104
+    title: Smoke E2E for preview render
+    lane: tests
+    acceptance:
+      - Playwright visits preview URL and asserts no console errors
+    deps: [T-103]

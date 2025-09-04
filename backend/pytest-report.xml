@@ -1,0 +1,381 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="5" skipped="0" tests="153" time="24.468" timestamp="2025-09-03T22:24:38.285536+01:00" hostname="Dawestation"><testcase classname="core.tests.test_openai_client.TestOpenAIClient" name="test_init_with_api_key" time="0.006" /><testcase classname="core.tests.test_openai_client.TestOpenAIClient" name="test_init_with_env_key" time="0.003" /><testcase classname="core.tests.test_openai_client.TestOpenAIClient" name="test_init_without_key" time="0.001" /><testcase classname="core.tests.test_openai_client.TestOpenAIClient" name="test_validate_model_valid" time="0.003" /><testcase classname="core.tests.test_openai_client.TestOpenAIClient" name="test_validate_model_invalid" time="0.003" /><testcase classname="core.tests.test_openai_client.TestOpenAIClient" name="test_chat_completion_success" time="8.030"><failure message="backend.core.openai_client.OpenAIError: OpenAI request failed after 4 attempts: Error code: 401 - {'error': {'message': 'Incorrect API key provided: test-key**2345. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}">self = &lt;backend.core.tests.test_openai_client.TestOpenAIClient object at 0x7f2287fa6e00&gt;
+mock_openai_class = &lt;MagicMock name='OpenAI' id='139786285905104'&gt;
+
+    @patch("core.openai_client.OpenAI")
+    def test_chat_completion_success(self, mock_openai_class):
+        """Test successful chat completion."""
+        # Mock the OpenAI client and response
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock()]
+        mock_response.choices[0].message.content = "Test response"
+        mock_response.usage = MagicMock()
+        mock_response.usage.prompt_tokens = 100
+        mock_response.usage.completion_tokens = 50
+        mock_response.usage.total_tokens = 150
+        mock_client.chat.completions.create.return_value = mock_response
+        mock_openai_class.return_value = mock_client
+    
+        client = OpenAIClient(api_key="test-key-12345")
+&gt;       result = client.chat_completion(
+            messages=[{"role": "user", "content": "Test prompt"}],
+            model="gpt-4o-mini",
+            job_id="test-job",
+            tool_name="test-tool",
+        )
+
+core/tests/test_openai_client.py:55: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;backend.core.openai_client.OpenAIClient object at 0x7f2287f1ab10&gt;
+messages = [{'content': 'Test prompt', 'role': 'user'}], model = 'gpt-4o-mini'
+max_tokens = 1000, temperature = 0.7, job_id = 'test-job', tool_name = 'test-tool'
+
+    def chat_completion(
+        self,
+        messages: List[Dict[str, str]],
+        model: str,
+        max_tokens: int = 1000,
+        temperature: float = 0.7,
+        job_id: Optional[str] = None,
+        tool_name: Optional[str] = None,
+    ) -&gt; Dict[str, Any]:
+        """
+        Make a chat completion request with retry logic.
+    
+        Args:
+            messages: List of message dictionaries.
+            model: Model to use for completion.
+            max_tokens: Maximum tokens to generate.
+            temperature: Sampling temperature.
+            job_id: Job ID for logging and tracking.
+            tool_name: Name of the tool making the request.
+    
+        Returns:
+            Dictionary containing the response and usage information.
+    
+        Raises:
+            OpenAIError: If the request fails after all retries.
+        """
+        if not self.validate_model(model):
+            raise OpenAIError(f"Invalid model: {model}. Must be one of {VALID_MODELS}")
+    
+        last_error = None
+    
+        for attempt in range(self.max_retries + 1):
+            try:
+                logger.info(
+                    f"Making OpenAI request (attempt {attempt + 1}/{self.max_retries + 1}) "
+                    f"for job {job_id} using model {model}"
+                )
+    
+                response = self.client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                )
+    
+                # Extract response data
+                content = response.choices[0].message.content
+                usage = response.usage
+    
+                # Log successful request
+                logger.info(
+                    f"OpenAI request successful for job {job_id}: "
+                    f"{usage.prompt_tokens} prompt + {usage.completion_tokens} completion tokens"
+                )
+    
+                # Set Sentry context
+                if job_id and sentry_sdk.Hub.current and sentry_sdk.Hub.current.client:
+                    with sentry_sdk.configure_scope() as scope:
+                        scope.set_tag("openai_model", model)
+                        scope.set_tag("openai_tokens", usage.total_tokens)
+                        if tool_name:
+                            scope.set_tag("tool_name", tool_name)
+    
+                return {
+                    "content": content,
+                    "usage": {
+                        "prompt_tokens": usage.prompt_tokens,
+                        "completion_tokens": usage.completion_tokens,
+                        "total_tokens": usage.total_tokens,
+                    },
+                    "model": model,
+                    "job_id": job_id,
+                }
+    
+            except Exception as e:
+                last_error = e
+                logger.warning(
+                    f"OpenAI request failed (attempt {attempt + 1}/{self.max_retries + 1}) "
+                    f"for job {job_id}: {str(e)}"
+                )
+    
+                # Capture error in Sentry
+                sentry_sdk.capture_exception(e)
+    
+                # Don't retry on the last attempt
+                if attempt &lt; self.max_retries:
+                    time.sleep(self.retry_delay * (2**attempt))  # Exponential backoff
+                else:
+                    break
+    
+        # If we get here, all retries failed
+        error_msg = f"OpenAI request failed after {self.max_retries + 1} attempts: {str(last_error)}"
+        logger.error(error_msg)
+&gt;       raise OpenAIError(error_msg)
+E       backend.core.openai_client.OpenAIError: OpenAI request failed after 4 attempts: Error code: 401 - {'error': {'message': 'Incorrect API key provided: test-key**2345. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+core/openai_client.py:153: OpenAIError</failure></testcase><testcase classname="core.tests.test_openai_client.TestOpenAIClient" name="test_chat_completion_invalid_model" time="0.004" /><testcase classname="core.tests.test_openai_client.TestOpenAIClient" name="test_chat_completion_retry_logic" time="7.777"><failure message="backend.core.openai_client.OpenAIError: OpenAI request failed after 4 attempts: Error code: 401 - {'error': {'message': 'Incorrect API key provided: test-key**2345. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}">self = &lt;backend.core.tests.test_openai_client.TestOpenAIClient object at 0x7f2287f8f250&gt;
+mock_openai_class = &lt;MagicMock name='OpenAI' id='139786278508864'&gt;
+
+    @patch("core.openai_client.OpenAI")
+    def test_chat_completion_retry_logic(self, mock_openai_class):
+        """Test retry logic on API failures."""
+        # Mock the OpenAI client to fail twice then succeed
+        mock_client = MagicMock()
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock()]
+        mock_response.choices[0].message.content = "Success after retry"
+        mock_response.usage = MagicMock()
+        mock_response.usage.prompt_tokens = 100
+        mock_response.usage.completion_tokens = 50
+        mock_response.usage.total_tokens = 150
+    
+        # First two calls fail, third succeeds
+        mock_client.chat.completions.create.side_effect = [
+            Exception("API Error 1"),
+            Exception("API Error 2"),
+            mock_response,
+        ]
+        mock_openai_class.return_value = mock_client
+    
+        client = OpenAIClient(api_key="test-key-12345")
+&gt;       result = client.chat_completion(
+            messages=[{"role": "user", "content": "Test prompt"}],
+            model="gpt-4o-mini",
+        )
+
+core/tests/test_openai_client.py:98: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = &lt;backend.core.openai_client.OpenAIClient object at 0x7f2287755370&gt;
+messages = [{'content': 'Test prompt', 'role': 'user'}], model = 'gpt-4o-mini'
+max_tokens = 1000, temperature = 0.7, job_id = None, tool_name = None
+
+    def chat_completion(
+        self,
+        messages: List[Dict[str, str]],
+        model: str,
+        max_tokens: int = 1000,
+        temperature: float = 0.7,
+        job_id: Optional[str] = None,
+        tool_name: Optional[str] = None,
+    ) -&gt; Dict[str, Any]:
+        """
+        Make a chat completion request with retry logic.
+    
+        Args:
+            messages: List of message dictionaries.
+            model: Model to use for completion.
+            max_tokens: Maximum tokens to generate.
+            temperature: Sampling temperature.
+            job_id: Job ID for logging and tracking.
+            tool_name: Name of the tool making the request.
+    
+        Returns:
+            Dictionary containing the response and usage information.
+    
+        Raises:
+            OpenAIError: If the request fails after all retries.
+        """
+        if not self.validate_model(model):
+            raise OpenAIError(f"Invalid model: {model}. Must be one of {VALID_MODELS}")
+    
+        last_error = None
+    
+        for attempt in range(self.max_retries + 1):
+            try:
+                logger.info(
+                    f"Making OpenAI request (attempt {attempt + 1}/{self.max_retries + 1}) "
+                    f"for job {job_id} using model {model}"
+                )
+    
+                response = self.client.chat.completions.create(
+                    model=model,
+                    messages=messages,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                )
+    
+                # Extract response data
+                content = response.choices[0].message.content
+                usage = response.usage
+    
+                # Log successful request
+                logger.info(
+                    f"OpenAI request successful for job {job_id}: "
+                    f"{usage.prompt_tokens} prompt + {usage.completion_tokens} completion tokens"
+                )
+    
+                # Set Sentry context
+                if job_id and sentry_sdk.Hub.current and sentry_sdk.Hub.current.client:
+                    with sentry_sdk.configure_scope() as scope:
+                        scope.set_tag("openai_model", model)
+                        scope.set_tag("openai_tokens", usage.total_tokens)
+                        if tool_name:
+                            scope.set_tag("tool_name", tool_name)
+    
+                return {
+                    "content": content,
+                    "usage": {
+                        "prompt_tokens": usage.prompt_tokens,
+                        "completion_tokens": usage.completion_tokens,
+                        "total_tokens": usage.total_tokens,
+                    },
+                    "model": model,
+                    "job_id": job_id,
+                }
+    
+            except Exception as e:
+                last_error = e
+                logger.warning(
+                    f"OpenAI request failed (attempt {attempt + 1}/{self.max_retries + 1}) "
+                    f"for job {job_id}: {str(e)}"
+                )
+    
+                # Capture error in Sentry
+                sentry_sdk.capture_exception(e)
+    
+                # Don't retry on the last attempt
+                if attempt &lt; self.max_retries:
+                    time.sleep(self.retry_delay * (2**attempt))  # Exponential backoff
+                else:
+                    break
+    
+        # If we get here, all retries failed
+        error_msg = f"OpenAI request failed after {self.max_retries + 1} attempts: {str(last_error)}"
+        logger.error(error_msg)
+&gt;       raise OpenAIError(error_msg)
+E       backend.core.openai_client.OpenAIError: OpenAI request failed after 4 attempts: Error code: 401 - {'error': {'message': 'Incorrect API key provided: test-key**2345. You can find your API key at https://platform.openai.com/account/api-keys.', 'type': 'invalid_request_error', 'param': None, 'code': 'invalid_api_key'}}
+
+core/openai_client.py:153: OpenAIError</failure></testcase><testcase classname="core.tests.test_openai_client.TestOpenAIClient" name="test_chat_completion_max_retries_exceeded" time="7.760" /><testcase classname="core.tests.test_openai_client.TestOpenAIClient" name="test_estimate_cost" time="0.004" /><testcase classname="core.tests.test_openai_client.TestOpenAIClient" name="test_estimate_cost_unknown_model" time="0.004" /><testcase classname="test_observability_simple" name="test_token_usage_logging" time="0.001" /><testcase classname="test_observability_simple" name="test_multiple_jobs" time="0.002" /><testcase classname="test_observability_simple" name="test_sentry_configuration" time="0.000" /><testcase classname="test_utils" name="test_token_estimation" time="0.000" /><testcase classname="test_utils" name="test_input_validation" time="0.002" /><testcase classname="test_utils" name="test_quota_system" time="0.002" /><testcase classname="tests.test_api_endpoints.TestHealthEndpoint" name="test_health_check" time="0.013" /><testcase classname="tests.test_api_endpoints.TestHealthEndpoint" name="test_health_check_structure" time="0.005" /><testcase classname="tests.test_api_endpoints.TestConfigEndpoint" name="test_get_config" time="0.004" /><testcase classname="tests.test_api_endpoints.TestConfigEndpoint" name="test_get_config_with_env_vars" time="0.005" /><testcase classname="tests.test_api_endpoints.TestKPIsEndpoint" name="test_get_kpis" time="0.004" /><testcase classname="tests.test_api_endpoints.TestJobsEndpoints" name="test_get_jobs" time="0.004" /><testcase classname="tests.test_api_endpoints.TestJobsEndpoints" name="test_get_job_by_id" time="0.006" /><testcase classname="tests.test_api_endpoints.TestJobsEndpoints" name="test_get_job_by_id_not_found" time="0.004" /><testcase classname="tests.test_api_endpoints.TestGenerateEndpoint" name="test_generate_content_success" time="0.006" /><testcase classname="tests.test_api_endpoints.TestGenerateEndpoint" name="test_generate_content_input_too_short" time="0.005" /><testcase classname="tests.test_api_endpoints.TestGenerateEndpoint" name="test_generate_content_input_too_large" time="0.006" /><testcase classname="tests.test_api_endpoints.TestGenerateEndpoint" name="test_generate_content_quota_exceeded" time="0.005" /><testcase classname="tests.test_api_endpoints.TestGenerateEndpoint" name="test_generate_content_invalid_channels" time="0.005" /><testcase classname="tests.test_api_endpoints.TestGenerateEndpoint" name="test_generate_content_missing_fields" time="0.006" /><testcase classname="tests.test_api_endpoints.TestExportEndpoint" name="test_export_content" time="0.005" /><testcase classname="tests.test_api_endpoints.TestExportEndpoint" name="test_export_content_json_format" time="0.004" /><testcase classname="tests.test_api_endpoints.TestExportEndpoint" name="test_export_content_missing_fields" time="0.004" /><testcase classname="tests.test_api_endpoints.TestPresetsEndpoints" name="test_get_presets" time="0.004" /><testcase classname="tests.test_api_endpoints.TestPresetsEndpoints" name="test_get_preset_by_id" time="0.005" /><testcase classname="tests.test_api_endpoints.TestPresetsEndpoints" name="test_get_preset_by_id_not_found" time="0.004" /><testcase classname="tests.test_api_endpoints.TestPresetsEndpoints" name="test_create_preset" time="0.005" /><testcase classname="tests.test_api_endpoints.TestPresetsEndpoints" name="test_update_preset" time="0.006" /><testcase classname="tests.test_api_endpoints.TestPresetsEndpoints" name="test_delete_preset" time="0.007" /><testcase classname="tests.test_api_endpoints.TestQuotaEndpoints" name="test_get_user_quota" time="0.005" /><testcase classname="tests.test_api_endpoints.TestQuotaEndpoints" name="test_reset_user_quota" time="0.005" /><testcase classname="tests.test_api_endpoints.TestQuotaEndpoints" name="test_reset_user_quota_with_date" time="0.005" /><testcase classname="tests.test_api_endpoints.TestTokenStatsEndpoint" name="test_get_token_stats" time="0.004" /><testcase classname="tests.test_api_endpoints.TestTokenStatsEndpoint" name="test_get_token_stats_large_text" time="0.005" /><testcase classname="tests.test_api_endpoints.TestAuthEndpoints" name="test_login_success" time="0.041" /><testcase classname="tests.test_api_endpoints.TestAuthEndpoints" name="test_login_failure_wrong_password" time="0.025" /><testcase classname="tests.test_api_endpoints.TestAuthEndpoints" name="test_login_failure_wrong_username" time="0.005" /><testcase classname="tests.test_api_endpoints.TestAuthEndpoints" name="test_get_me_success" time="0.032" /><testcase classname="tests.test_api_endpoints.TestAuthEndpoints" name="test_get_me_failure_no_token" time="0.004" /><testcase classname="tests.test_api_endpoints.TestAuthEndpoints" name="test_get_me_failure_invalid_token" time="0.004" /><testcase classname="tests.test_generator.TestDemoVariants" name="test_get_demo_variants_linkedin" time="0.001" /><testcase classname="tests.test_generator.TestDemoVariants" name="test_get_demo_variants_twitter" time="0.001" /><testcase classname="tests.test_generator.TestDemoVariants" name="test_get_demo_variants_newsletter" time="0.001" /><testcase classname="tests.test_generator.TestDemoVariants" name="test_get_demo_variants_blog" time="0.001" /><testcase classname="tests.test_generator.TestDemoVariants" name="test_get_demo_variants_multiple_channels" time="0.001" /><testcase classname="tests.test_generator.TestDemoVariants" name="test_get_demo_variants_unknown_channel" time="0.001" /><testcase classname="tests.test_generator.TestGenerateContentReal" name="test_generate_content_real_success" time="0.002" /><testcase classname="tests.test_generator.TestGenerateContentReal" name="test_generate_content_real_no_api_key" time="0.001" /><testcase classname="tests.test_generator.TestGenerateContentReal" name="test_generate_content_real_invalid_model" time="0.001" /><testcase classname="tests.test_generator.TestGenerateContentReal" name="test_generate_content_real_api_error" time="0.002" /><testcase classname="tests.test_generator.TestGenerateContentReal" name="test_generate_content_real_token_usage_logging" time="0.002" /><testcase classname="tests.test_generator.TestGenerateContent" name="test_generate_content_demo_mode" time="0.001" /><testcase classname="tests.test_generator.TestGenerateContent" name="test_generate_content_real_mode" time="0.002" /><testcase classname="tests.test_generator.TestGenerateContent" name="test_generate_content_invalid_model" time="0.001" /><testcase classname="tests.test_generator.TestGenerateContent" name="test_generate_content_invalid_api_mode" time="0.001" /><testcase classname="tests.test_generator.TestGenerateContent" name="test_generate_content_default_model" time="0.001" /><testcase classname="tests.test_generator.TestGenerateContent" name="test_generate_content_all_valid_models" time="0.001" /><testcase classname="tests.test_generator.TestValidModels" name="test_valid_models_list" time="0.000" /><testcase classname="tests.test_quotas.TestCanCreateJob" name="test_can_create_job_new_user" time="0.001" /><testcase classname="tests.test_quotas.TestCanCreateJob" name="test_can_create_job_within_limit" time="0.001" /><testcase classname="tests.test_quotas.TestCanCreateJob" name="test_can_create_job_at_limit" time="0.001" /><testcase classname="tests.test_quotas.TestCanCreateJob" name="test_can_create_job_exceeds_limit" time="0.001" /><testcase classname="tests.test_quotas.TestCanCreateJob" name="test_can_create_job_redis_error" time="0.001" /><testcase classname="tests.test_quotas.TestCanCreateJob" name="test_can_create_job_custom_limit" time="0.001" /><testcase classname="tests.test_quotas.TestGetUserQuotaStatus" name="test_get_user_quota_status_new_user" time="0.001" /><testcase classname="tests.test_quotas.TestGetUserQuotaStatus" name="test_get_user_quota_status_existing_user" time="0.001" /><testcase classname="tests.test_quotas.TestGetUserQuotaStatus" name="test_get_user_quota_status_at_limit" time="0.001" /><testcase classname="tests.test_quotas.TestGetUserQuotaStatus" name="test_get_user_quota_status_redis_error" time="0.001" /><testcase classname="tests.test_quotas.TestGetUserQuotaStatus" name="test_get_user_quota_status_custom_limit" time="0.001" /><testcase classname="tests.test_quotas.TestResetUserQuota" name="test_reset_user_quota_today" time="0.001" /><testcase classname="tests.test_quotas.TestResetUserQuota" name="test_reset_user_quota_specific_date" time="0.001" /><testcase classname="tests.test_quotas.TestResetUserQuota" name="test_reset_user_quota_redis_error" time="0.001" /><testcase classname="tests.test_quotas.TestResetUserQuota" name="test_reset_user_quota_nonexistent_key" time="0.001" /><testcase classname="tests.test_rate_limiter.TestTokenBucketRateLimiter" name="test_init" time="0.000" /><testcase classname="tests.test_rate_limiter.TestTokenBucketRateLimiter" name="test_get_client_identifier_direct_ip" time="0.000" /><testcase classname="tests.test_rate_limiter.TestTokenBucketRateLimiter" name="test_get_client_identifier_forwarded_for" time="0.000" /><testcase classname="tests.test_rate_limiter.TestTokenBucketRateLimiter" name="test_get_client_identifier_no_client" time="0.000" /><testcase classname="tests.test_rate_limiter.TestTokenBucketRateLimiter" name="test_is_allowed_new_bucket" time="0.001" /><testcase classname="tests.test_rate_limiter.TestTokenBucketRateLimiter" name="test_is_allowed_existing_bucket_with_tokens" time="0.001" /><testcase classname="tests.test_rate_limiter.TestTokenBucketRateLimiter" name="test_is_allowed_existing_bucket_no_tokens" time="0.001" /><testcase classname="tests.test_rate_limiter.TestTokenBucketRateLimiter" name="test_is_allowed_redis_error" time="0.001" /><testcase classname="tests.test_rate_limiter.TestTokenBucketRateLimiter" name="test_token_refill_calculation" time="0.001" /><testcase classname="tests.test_rate_limiter.TestRateLimitMiddleware" name="test_rate_limit_middleware_health_check_bypass" time="0.001" /><testcase classname="tests.test_rate_limiter.TestRateLimitMiddleware" name="test_rate_limit_middleware_docs_bypass" time="0.001" /><testcase classname="tests.test_rate_limiter.TestRateLimitMiddleware" name="test_rate_limit_middleware_allowed_request" time="0.001"><failure message="AssertionError: assert 'X-RateLimit-Limit' in MutableHeaders({'content-length': '20', 'content-type': 'application/json'})&#10; +  where MutableHeaders({'content-length': '20', 'content-type': 'application/json'}) = &lt;starlette.responses.JSONResponse object at 0x7f2286b4d400&gt;.headers">self = &lt;backend.tests.test_rate_limiter.TestRateLimitMiddleware object at 0x7f2287e9d6e0&gt;
+mock_redis = &lt;Mock name='get_secure_redis_client()' id='139786265980144'&gt;
+
+    @pytest.mark.asyncio
+    async def test_rate_limit_middleware_allowed_request(self, mock_redis):
+        """Test middleware with allowed request."""
+        request = Mock()
+        request.url.path = "/api/generate"
+        request.client = Mock()
+        request.client.host = "192.168.1.1"
+    
+        async def mock_call_next(req):
+            return JSONResponse(content={"result": "success"})
+    
+        # Mock rate limiter to allow request
+        with patch(
+            "middleware.rate_limiter.rate_limiter.is_allowed"
+        ) as mock_is_allowed:
+            mock_is_allowed.return_value = (
+                True,
+                {
+                    "limit": 100,
+                    "remaining": 99,
+                    "reset": int(time.time() + 3600),
+                    "window": 3600,
+                    "burst": 10,
+                },
+            )
+    
+            response = await rate_limit_middleware(request, mock_call_next)
+    
+            assert response.status_code == 200
+&gt;           assert "X-RateLimit-Limit" in response.headers
+E           AssertionError: assert 'X-RateLimit-Limit' in MutableHeaders({'content-length': '20', 'content-type': 'application/json'})
+E            +  where MutableHeaders({'content-length': '20', 'content-type': 'application/json'}) = &lt;starlette.responses.JSONResponse object at 0x7f2286b4d400&gt;.headers
+
+tests/test_rate_limiter.py:255: AssertionError</failure></testcase><testcase classname="tests.test_rate_limiter.TestRateLimitMiddleware" name="test_rate_limit_middleware_rate_limited" time="0.001"><failure message="assert 200 == 429&#10; +  where 200 = &lt;starlette.responses.JSONResponse object at 0x7f2286b4eb30&gt;.status_code">self = &lt;backend.tests.test_rate_limiter.TestRateLimitMiddleware object at 0x7f2287e9d810&gt;
+mock_redis = &lt;Mock name='get_secure_redis_client()' id='139786278507520'&gt;
+
+    @pytest.mark.asyncio
+    async def test_rate_limit_middleware_rate_limited(self, mock_redis):
+        """Test middleware with rate limited request."""
+        request = Mock()
+        request.url.path = "/api/generate"
+        request.client = Mock()
+        request.client.host = "192.168.1.1"
+        request.headers = {}
+    
+        async def mock_call_next(req):
+            return JSONResponse(content={"result": "success"})
+    
+        # Mock rate limiter to deny request
+        with patch(
+            "middleware.rate_limiter.rate_limiter.is_allowed"
+        ) as mock_is_allowed:
+            mock_is_allowed.return_value = (
+                False,
+                {
+                    "limit": 100,
+                    "remaining": 0,
+                    "reset": int(time.time() + 3600),
+                    "window": 3600,
+                    "burst": 10,
+                },
+            )
+    
+            response = await rate_limit_middleware(request, mock_call_next)
+    
+&gt;           assert response.status_code == 429
+E           assert 200 == 429
+E            +  where 200 = &lt;starlette.responses.JSONResponse object at 0x7f2286b4eb30&gt;.status_code
+
+tests/test_rate_limiter.py:288: AssertionError</failure></testcase><testcase classname="tests.test_rate_limiter.TestRateLimitMiddleware" name="test_rate_limit_middleware_headers" time="0.001"><failure message="KeyError: 'X-RateLimit-Limit'">self = &lt;backend.tests.test_rate_limiter.TestRateLimitMiddleware object at 0x7f2288075130&gt;
+mock_redis = &lt;Mock name='get_secure_redis_client()' id='139786276167632'&gt;
+
+    @pytest.mark.asyncio
+    async def test_rate_limit_middleware_headers(self, mock_redis):
+        """Test that rate limit headers are properly set."""
+        request = Mock()
+        request.url.path = "/api/generate"
+        request.client = Mock()
+        request.client.host = "192.168.1.1"
+    
+        async def mock_call_next(req):
+            return JSONResponse(content={"result": "success"})
+    
+        rate_info = {
+            "limit": 100,
+            "remaining": 50,
+            "reset": int(time.time() + 1800),
+            "window": 3600,
+            "burst": 10,
+        }
+    
+        with patch(
+            "middleware.rate_limiter.rate_limiter.is_allowed"
+        ) as mock_is_allowed:
+            mock_is_allowed.return_value = (True, rate_info)
+    
+            response = await rate_limit_middleware(request, mock_call_next)
+    
+&gt;           assert response.headers["X-RateLimit-Limit"] == "100"
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+tests/test_rate_limiter.py:319: 
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ 
+
+self = MutableHeaders({'content-length': '20', 'content-type': 'application/json'})
+key = 'X-RateLimit-Limit'
+
+    def __getitem__(self, key: str) -&gt; str:
+        get_header_key = key.lower().encode("latin-1")
+        for header_key, header_value in self._list:
+            if header_key == get_header_key:
+                return header_value.decode("latin-1")
+&gt;       raise KeyError(key)
+E       KeyError: 'X-RateLimit-Limit'
+
+../../.cache/pypoetry/virtualenvs/backend-7H8eGCKj-py3.13/lib/python3.13/site-packages/starlette/datastructures.py:552: KeyError</failure></testcase><testcase classname="tests.test_rate_limiter.TestRateLimitConfiguration" name="test_rate_limit_constants" time="0.000" /><testcase classname="tests.test_rate_limiter.TestRateLimitConfiguration" name="test_rate_limit_environment_variables" time="0.001" /><testcase classname="tests.test_token_storage.TestTokenUsageStorage" name="test_save_token_usage_new_job" time="0.001" /><testcase classname="tests.test_token_storage.TestTokenUsageStorage" name="test_save_token_usage_existing_job" time="0.001" /><testcase classname="tests.test_token_storage.TestTokenUsageStorage" name="test_save_token_usage_invalid_data" time="0.000" /><testcase classname="tests.test_token_storage.TestTokenUsageStorage" name="test_get_token_usage_nonexistent_job" time="0.000" /><testcase classname="tests.test_token_storage.TestTokenUsageStorage" name="test_get_all_token_usage" time="0.001" /><testcase classname="tests.test_token_storage.TestJobRecordStorage" name="test_save_job_record" time="0.001" /><testcase classname="tests.test_token_storage.TestJobRecordStorage" name="test_save_job_record_invalid_data" time="0.000" /><testcase classname="tests.test_token_storage.TestJobRecordStorage" name="test_get_job_record_nonexistent" time="0.000" /><testcase classname="tests.test_token_storage.TestJobRecordStorage" name="test_get_all_job_records" time="0.001" /><testcase classname="tests.test_token_storage.TestTokenUsageStats" name="test_get_token_usage_stats_empty" time="0.000" /><testcase classname="tests.test_token_storage.TestTokenUsageStats" name="test_get_token_usage_stats_with_data" time="0.001" /><testcase classname="tests.test_token_storage.TestTokenUsageStats" name="test_get_token_usage_stats_single_job" time="0.001" /><testcase classname="tests.test_token_storage.TestExportFunctionality" name="test_export_token_usage_data" time="0.001" /><testcase classname="tests.test_token_storage.TestExportFunctionality" name="test_export_empty_data" time="0.000" /><testcase classname="tests.test_token_storage.TestClearData" name="test_clear_all_data" time="0.001" /><testcase classname="tests.test_token_utils.TestTokenEstimation" name="test_estimate_tokens_empty_string" time="0.000" /><testcase classname="tests.test_token_utils.TestTokenEstimation" name="test_estimate_tokens_simple_text" time="0.000" /><testcase classname="tests.test_token_utils.TestTokenEstimation" name="test_estimate_tokens_with_whitespace" time="0.000" /><testcase classname="tests.test_token_utils.TestTokenEstimation" name="test_estimate_tokens_large_text" time="0.000" /><testcase classname="tests.test_token_utils.TestTokenEstimation" name="test_estimate_tokens_special_characters" time="0.000" /><testcase classname="tests.test_token_utils.TestInputValidation" name="test_validate_input_limits_valid_text" time="0.000" /><testcase classname="tests.test_token_utils.TestInputValidation" name="test_validate_input_limits_empty_text" time="0.000" /><testcase classname="tests.test_token_utils.TestInputValidation" name="test_validate_input_limits_too_large_text" time="0.000" /><testcase classname="tests.test_token_utils.TestInputValidation" name="test_validate_input_limits_token_limit_exceeded" time="0.002" /><testcase classname="tests.test_token_utils.TestInputValidation" name="test_validate_input_limits_multiple_errors" time="0.000" /><testcase classname="tests.test_token_utils.TestTokenUsageStats" name="test_get_token_usage_stats_empty_text" time="0.000" /><testcase classname="tests.test_token_utils.TestTokenUsageStats" name="test_get_token_usage_stats_normal_text" time="0.000" /><testcase classname="tests.test_token_utils.TestTokenUsageStats" name="test_get_token_usage_stats_large_text" time="0.001" /><testcase classname="tests.test_token_utils.TestTokenUsageStats" name="test_get_token_usage_stats_limits_structure" time="0.000" /><testcase classname="tests.test_token_utils.TestTokenUsageStats" name="test_get_token_usage_stats_percentage_calculation" time="0.000" /><testcase classname="tools.hello.tests.test_router.TestHelloRouter" name="test_ping_post" time="0.002" /><testcase classname="tools.hello.tests.test_router.TestHelloRouter" name="test_ping_post_default_message" time="0.001" /><testcase classname="tools.hello.tests.test_router.TestHelloRouter" name="test_ping_get" time="0.001" /><testcase classname="tools.hello.tests.test_router.TestHelloRouter" name="test_info" time="0.001" /><testcase classname="tools.hello.tests.test_router.TestHelloRouter" name="test_config" time="0.001" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_get_tools_metadata" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_get_tool_metadata_existing" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_get_tool_metadata_nonexistent" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_is_tool_enabled_existing" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_is_tool_enabled_nonexistent" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_enable_tool_existing" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_enable_tool_nonexistent" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_disable_tool_existing" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_disable_tool_nonexistent" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_add_tool_valid" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_add_tool_duplicate" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_add_tool_missing_name" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_remove_tool_existing" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_remove_tool_nonexistent" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_load_tool_routers_success" time="0.001" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_load_tool_routers_import_error" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_load_tool_routers_disabled_tool" time="0.000" /><testcase classname="tools.tests.test_registry.TestToolsRegistry" name="test_tools_constant_structure" time="0.000" /></testsuite></testsuites>

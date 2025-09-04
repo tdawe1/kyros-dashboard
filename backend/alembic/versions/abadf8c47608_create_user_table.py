@@ -47,25 +47,31 @@ def upgrade() -> None:
     op.create_index(op.f("ix_users_email"), "users", ["email"], unique=True)
     op.create_index(op.f("ix_users_username"), "users", ["username"], unique=True)
     # ### end Alembic commands ###
-    op.execute(
+    
+    # PostgreSQL-specific triggers (skip for SQLite)
+    try:
+        op.execute(
+            """
+        CREATE OR REPLACE FUNCTION update_updated_at_column()
+        RETURNS TRIGGER AS $$
+        BEGIN
+           NEW.updated_at = CURRENT_TIMESTAMP;
+           RETURN NEW;
+        END;
+        $$ language 'plpgsql';
         """
-    CREATE OR REPLACE FUNCTION update_updated_at_column()
-    RETURNS TRIGGER AS $$
-    BEGIN
-       NEW.updated_at = CURRENT_TIMESTAMP;
-       RETURN NEW;
-    END;
-    $$ language 'plpgsql';
-    """
-    )
-    op.execute(
+        )
+        op.execute(
+            """
+        CREATE TRIGGER update_users_updated_at
+        BEFORE UPDATE ON users
+        FOR EACH ROW
+        EXECUTE PROCEDURE update_updated_at_column();
         """
-    CREATE TRIGGER update_users_updated_at
-    BEFORE UPDATE ON users
-    FOR EACH ROW
-    EXECUTE PROCEDURE update_updated_at_column();
-    """
-    )
+        )
+    except Exception:
+        # Skip PostgreSQL-specific code for SQLite
+        pass
 
 
 def downgrade() -> None:

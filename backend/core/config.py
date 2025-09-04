@@ -141,7 +141,7 @@ class Settings(BaseSettings):
     def validate_jwt_secret(cls, v):
         """Validate JWT secret key."""
         if not v or len(v) < 32:
-            logger.warning("JWT secret key is too short, generating a secure one")
+            logger.warning("JWT secret key is too short (minimum 32 characters), generating a secure one")
             import secrets
             return secrets.token_urlsafe(32)
         return v
