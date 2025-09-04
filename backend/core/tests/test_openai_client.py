@@ -1,10 +1,49 @@
 import pytest
+import os
+import types
 from unittest.mock import patch, MagicMock
 from ..openai_client import OpenAIClient, OpenAIError, VALID_MODELS
 
 
 class TestOpenAIClient:
     """Test cases for the OpenAI client wrapper."""
+
+    def setup_method(self):
+        """Set up test environment to prevent network calls and API key dependency."""
+        # Set a test API key
+        os.environ.setdefault("OPENAI_API_KEY", "test-sk")
+        
+        # Create a stub client class
+        class StubClient:
+            class Chat:
+                class Completions:
+                    @staticmethod
+                    def create(**kwargs):
+                        class Choice:
+                            def __init__(self):
+                                self.message = types.SimpleNamespace(content="Test response")
+                        
+                        class Usage:
+                            prompt_tokens = 1
+                            completion_tokens = 1
+                            total_tokens = 2
+                        
+                        return types.SimpleNamespace(choices=[Choice()], usage=Usage())
+                
+                completions = Completions()
+            
+            chat = Chat()
+        
+        # Patch the OpenAI class used by core.openai_client
+        import core.openai_client as mod
+        self.original_openai = mod.OpenAI
+        mod.OpenAI = lambda api_key=None: StubClient()
+
+    def teardown_method(self):
+        """Clean up after tests."""
+        # Restore original OpenAI class
+        import core.openai_client as mod
+        mod.OpenAI = self.original_openai
 
     def test_init_with_api_key(self):
         """Test client initialization with API key."""
