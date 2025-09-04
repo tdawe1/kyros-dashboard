@@ -1,0 +1,29 @@
+---
+description: Task T-504 — Docs branch model (auto-applied)
+globs:
+  - "collaboration/tasks/T-504/**"
+  - "CONTRIBUTING.md"
+  - "README.md"
+  - ".github/pull_request_template.md"
+---
+
+Context Reset: New subtask
+Task: T-504 — Document branch model and PR policy
+Lane: docs
+Branch: feat/T-504-docs-branch-model
+
+DoD:
+- Docs updated; no contradictions; critic review
+
+Acceptance:
+- CONTRIBUTING.md includes develop base, update branch, release flow.
+- README.md has "Branch Model" with link to CONTRIBUTING.
+- PR template includes base=develop, up-to-date, size/scope guard.
+- No docs instruct to target main.
+
+Changescope:
+- CONTRIBUTING.md
+- README.md
+- .github/pull_request_template.md
+
+Output: code changes only; summarize what changed and next subtask.
