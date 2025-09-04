@@ -7,4 +7,3 @@ resource_locks:
   frontend_components: null   # set to agent_id when locked
   ci_workflows: null          # set to agent_id when locked
   docs_guidance: null         # set to agent_id when locked
-

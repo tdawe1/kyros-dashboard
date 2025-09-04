@@ -28,4 +28,3 @@ Generated: 2025-09-04T08:42:26Z
 - task-003 [P1] (codex-cli) — CI validation
 - task-004 [P2] (gemini-cli) — E2E audit
 - task-005 [P3] (gemini-cli) — Deduplicate agent docs
-

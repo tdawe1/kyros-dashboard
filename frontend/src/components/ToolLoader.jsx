@@ -26,8 +26,8 @@ export default function ToolLoader({ ...props }) {
           <div className="text-sm text-gray-500 dark:text-gray-500">
             Available tools:{" "}
             {listTools()
-              .filter(tool => tool.enabled)
-              .map(tool => tool.title)
+              .filter((tool) => tool.enabled)
+              .map((tool) => tool.title)
               .join(", ") || "none"}
           </div>
         </div>

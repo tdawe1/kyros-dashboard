@@ -104,6 +104,7 @@ def write_json_atomic(path: Path, data: dict, expected_etag: str | None = None) 
 # Tasks management helpers
 # ---------------------------
 
+
 def _load_tasks():
     data, etag = read_json_with_etag(TASKS)
     return data.get("version", 1), data.get("tasks", []), etag
@@ -128,11 +129,18 @@ def list_tasks_cli(status: str | None, assignee: str | None, output: str):
     for t in tasks:
         lid = t.get("id")
         print(
-            f"- {lid:>8} | {t.get('status','')} | {t.get('priority','')} | {t.get('assignee') or '-'} | {t.get('title','')}"
+            f"- {lid:>8} | {t.get('status', '')} | {t.get('priority', '')} | {t.get('assignee') or '-'} | {t.get('title', '')}"
         )
 
 
-def create_task_cli(title: str, description: str, labels: List[str], priority: str | None, assignee: str | None, id_override: str | None):
+def create_task_cli(
+    title: str,
+    description: str,
+    labels: List[str],
+    priority: str | None,
+    assignee: str | None,
+    id_override: str | None,
+):
     version, tasks, etag = _load_tasks()
     new_id = id_override or f"task-{len(tasks) + 1:03d}"
     task = {
@@ -173,7 +181,7 @@ def _link_task_to_roadmap(roadmap_id: str, task_id: str):
         return None
 
     target = None
-    for root in (doc.get("nodes") or []):
+    for root in doc.get("nodes") or []:
         target = find(root, roadmap_id)
         if target:
             break
@@ -212,7 +220,14 @@ def transition_task_cli(task_id: str, new_status: str):
             t["status"] = new_status
             t["updated_at"] = utcnow_iso()
             _save_tasks(version, tasks, etag)
-            emit_event({"event": "status_changed", "task": task_id, "old_status": old, "new_status": new_status})
+            emit_event(
+                {
+                    "event": "status_changed",
+                    "task": task_id,
+                    "old_status": old,
+                    "new_status": new_status,
+                }
+            )
             return
     raise RuntimeError("Task not found")
 
@@ -225,12 +240,12 @@ def normalize_event_format(event: dict) -> dict:
     # If it already has an 'event' field, it's already in the new format
     if "event" in event:
         return event
-    
+
     # Convert old format to new format
     kind = event.get("kind")
     action = event.get("action")
     task = event.get("task")
-    
+
     if kind == "task" and action == "in_progress":
         return {
             "event": "status_changed",
@@ -239,7 +254,7 @@ def normalize_event_format(event: dict) -> dict:
             "new_status": "in_progress",
             "actor": event.get("actor", "unknown"),
             "notes": event.get("message", ""),
-            "ts": event.get("ts", utcnow_iso())
+            "ts": event.get("ts", utcnow_iso()),
         }
     elif kind == "pr" and action == "opened":
         return {
@@ -249,7 +264,7 @@ def normalize_event_format(event: dict) -> dict:
             "url": event.get("url", ""),
             "actor": event.get("actor", "unknown"),
             "notes": event.get("message", ""),
-            "ts": event.get("ts", utcnow_iso())
+            "ts": event.get("ts", utcnow_iso()),
         }
     elif kind == "test" and action == "completed":
         return {
@@ -258,7 +273,7 @@ def normalize_event_format(event: dict) -> dict:
             "status": event.get("result", "unknown"),
             "actor": event.get("actor", "ci"),
             "notes": event.get("message", ""),
-            "ts": event.get("ts", utcnow_iso())
+            "ts": event.get("ts", utcnow_iso()),
         }
     elif kind == "review" and action == "requested":
         return {
@@ -266,7 +281,7 @@ def normalize_event_format(event: dict) -> dict:
             "task": task,
             "actor": event.get("actor", "ci"),
             "notes": event.get("message", ""),
-            "ts": event.get("ts", utcnow_iso())
+            "ts": event.get("ts", utcnow_iso()),
         }
     elif kind == "review" and action == "approved":
         return {
@@ -274,7 +289,7 @@ def normalize_event_format(event: dict) -> dict:
             "task": task,
             "actor": event.get("actor", "critic"),
             "notes": event.get("message", ""),
-            "ts": event.get("ts", utcnow_iso())
+            "ts": event.get("ts", utcnow_iso()),
         }
     elif kind == "merge" and action == "completed":
         return {
@@ -282,9 +297,9 @@ def normalize_event_format(event: dict) -> dict:
             "task": task,
             "actor": event.get("actor", "integrator"),
             "notes": event.get("message", ""),
-            "ts": event.get("ts", utcnow_iso())
+            "ts": event.get("ts", utcnow_iso()),
         }
-    
+
     # If we can't map it, return as-is but add a warning
     print(f"Warning: Unknown event format: {event}", file=sys.stderr)
     return event
@@ -472,7 +487,14 @@ def main():
             list_tasks_cli(args.status, args.assignee, args.output)
         elif args.cmd == "create-task":
             labels = [s.strip() for s in (args.labels or "").split(",") if s.strip()]
-            create_task_cli(args.title, args.description, labels, args.priority, args.assignee, args.id)
+            create_task_cli(
+                args.title,
+                args.description,
+                labels,
+                args.priority,
+                args.assignee,
+                args.id,
+            )
             # If roadmap id provided, link it to the last created task id by reading tasks.json
             if args.roadmap_id:
                 try:
@@ -492,7 +514,9 @@ def main():
             }
             # labels if present
             if args.labels is not None:
-                fields["labels"] = [s.strip() for s in args.labels.split(",") if s.strip()]
+                fields["labels"] = [
+                    s.strip() for s in args.labels.split(",") if s.strip()
+                ]
             if args.status is not None:
                 fields["status"] = args.status
             update_task_cli(args.id, fields)

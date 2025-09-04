@@ -71,7 +71,7 @@ jobs:
               print(f"Query: {query}")
               files = find_latest(query)
               print(f"Found {len(files)} files in folder")
-              
+
               # Also try a simpler query to see if folder access works
               print("Testing folder access with simpler query...")
               test_files = svc.files().list(
@@ -98,7 +98,7 @@ jobs:
                   "trashed=false and (name contains 'yml' or name contains 'yaml')"
               )
               print(f"Found {len(files)} files with broader search")
-              
+
           # 4. Try specific .yml search in folder
           if not files and folder_id:
               print("Trying specific .yml search in folder...")
@@ -120,7 +120,7 @@ jobs:
                           print(f"  - {f['name']} ({f.get('mimeType', 'unknown')})")
                   except Exception as e:
                       print(f"  ERROR listing folder contents: {e}")
-              
+
               # Try to find folders that might contain plans
               print("\nSearching for folders that might contain plans...")
               try:
@@ -134,7 +134,7 @@ jobs:
                       print(f"  - {f['name']} (ID: {f['id']})")
               except Exception as e:
                   print(f"  ERROR searching for folders: {e}")
-              
+
               sys.exit(1)
 
           fid, name = files[0]['id'], files[0]['name']
@@ -151,7 +151,7 @@ jobs:
 
           print(f"DOWNLOADED {name} ({fid})")
           print(f"File size: {len(fh.getvalue())} bytes")
-          
+
           # Verify file was created
           import os
           if os.path.exists('planspec.yml'):
@@ -166,13 +166,13 @@ jobs:
         run: |
           echo "Starting staging step..."
           ls -la planspec.yml || echo "planspec.yml not found in root"
-          
+
           mkdir -p collaboration/plans/inbox
           echo "Created inbox directory"
-          
+
           cp planspec.yml collaboration/plans/inbox/
           echo "Copied planspec.yml to inbox"
-          
+
           ls -la collaboration/plans/inbox/
           echo "Contents of inbox directory:"
           git config user.name "GitHub Actions"
