@@ -574,3 +574,81 @@ class TestAuthEndpoints:
             "/api/auth/me", headers={"Authorization": "Bearer invalidtoken"}
         )
         assert response.status_code == 401
+
+    def test_list_users_success(self, client, test_user, admin_user):
+        """Test listing users as admin."""
+        # First, log in as admin to get a token
+        login_response = client.post(
+            "/api/auth/login",
+            json={"username": admin_user.username, "password": admin_user.plain_password},
+        )
+        assert login_response.status_code == 200
+        token = login_response.json()["access_token"]
+
+        # Now, access the /users endpoint
+        response = client.get(
+            "/api/auth/users", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        
+        # Should return a list of users
+        assert isinstance(data, list)
+        assert len(data) >= 2  # At least test_user and admin_user
+        
+        # Check that both users are in the response
+        usernames = [user["username"] for user in data]
+        assert "testuser" in usernames  # test_user.username
+        assert "admin" in usernames     # admin_user.username
+        
+        # Check user structure
+        user = data[0]
+        required_fields = ["id", "username", "email", "role", "is_active", "created_at"]
+        for field in required_fields:
+            assert field in user
+
+    def test_list_users_failure_no_token(self, client):
+        """Test listing users without a token."""
+        response = client.get("/api/auth/users")
+        assert response.status_code == 401
+
+    def test_list_users_failure_invalid_token(self, client):
+        """Test listing users with an invalid token."""
+        response = client.get(
+            "/api/auth/users", headers={"Authorization": "Bearer invalidtoken"}
+        )
+        assert response.status_code == 401
+
+    def test_list_users_failure_non_admin(self, client, test_user):
+        """Test listing users as non-admin user."""
+        # First, log in as regular user to get a token
+        login_response = client.post(
+            "/api/auth/login",
+            json={"username": test_user.username, "password": test_user.plain_password},
+        )
+        token = login_response.json()["access_token"]
+
+        # Try to access the /users endpoint
+        response = client.get(
+            "/api/auth/users", headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 403  # Forbidden for non-admin
+
+    def test_list_users_with_pagination(self, client, admin_user):
+        """Test listing users with pagination parameters."""
+        # First, log in as admin to get a token
+        login_response = client.post(
+            "/api/auth/login",
+            json={"username": admin_user.username, "password": admin_user.plain_password},
+        )
+        token = login_response.json()["access_token"]
+
+        # Test with pagination parameters
+        response = client.get(
+            "/api/auth/users?skip=0&limit=1", 
+            headers={"Authorization": f"Bearer {token}"}
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert isinstance(data, list)
+        assert len(data) <= 1  # Should respect limit
