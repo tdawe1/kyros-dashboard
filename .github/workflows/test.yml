@@ -508,4 +508,3 @@ jobs:
         echo "Security scan:   ${{ needs.security-scan.result }}"
         # always succeed; this is informational during stabilization
         exit 0
-# Trigger new CI run
