@@ -2,7 +2,7 @@ name: Generate Project Board
 
 on:
   workflow_run:
-    workflows: ["Tests"]
+    workflows: ["smoke"]
     types: [completed]
   schedule:
     - cron: "15 3 * * *"
@@ -13,7 +13,7 @@ permissions:
 
 jobs:
   build_board:
-    if: ${{ (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop') || github.event_name != 'workflow_run' }}
+    if: ${{ github.event_name != 'workflow_run' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'develop') }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
