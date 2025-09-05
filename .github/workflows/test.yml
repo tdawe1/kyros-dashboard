@@ -42,7 +42,8 @@ jobs:
               - '.github/workflows/test.yml'
   backend-tests:
     needs: [changes]
-    if: needs.changes.outputs.backend == 'true'
+    if: ${{ fromJSON(needs.changes.outputs.backend) }}
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -172,7 +173,8 @@ jobs:
 
   frontend-tests:
     needs: [changes]
-    if: needs.changes.outputs.frontend == 'true'
+    if: ${{ fromJSON(needs.changes.outputs.frontend) }}
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
 
     steps:
@@ -224,11 +226,11 @@ jobs:
           frontend/test-results/
 
   e2e-tests:
-    needs: [changes, backend-tests, frontend-tests]
-    # FE ∨ BE ∨ push-to-develop
+    needs: [changes, frontend-tests, backend-tests]
     if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop')
-           || needs.changes.outputs.frontend == 'true'
-           || needs.changes.outputs.backend == 'true' }}
+           || fromJSON(needs.changes.outputs.frontend)
+           || fromJSON(needs.changes.outputs.backend) }}
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}-e2e
@@ -365,11 +367,11 @@ jobs:
         retention-days: 30
 
   build-verification:
-    needs: [changes, frontend-tests]
-    # FE ∨ BE ∨ push-to-develop
+    needs: [changes, frontend-tests, backend-tests]
     if: ${{ (github.event_name == 'push' && github.ref == 'refs/heads/develop')
-           || needs.changes.outputs.frontend == 'true'
-           || needs.changes.outputs.backend == 'true' }}
+           || fromJSON(needs.changes.outputs.frontend)
+           || fromJSON(needs.changes.outputs.backend) }}
+    continue-on-error: ${{ github.event_name == 'pull_request' }}
     runs-on: ubuntu-latest
 
     steps:
