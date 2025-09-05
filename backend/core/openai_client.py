@@ -5,213 +5,107 @@ This module provides a standardized interface for OpenAI API calls across all to
 It includes retry logic, token logging, and error handling.
 """
 
+from __future__ import annotations
+
 import os
-import logging
 import time
-import threading
-from typing import Dict, List, Any, Optional
-from openai import OpenAI
-import sentry_sdk
+from typing import Any, Dict, Optional
 
-logger = logging.getLogger(__name__)
+try:
+    # SDK import lives here so tests can patch it or patch get_client()
+    from openai import OpenAI  # type: ignore
+except Exception:  # pragma: no cover
+    OpenAI = None  # tests can monkeypatch get_client regardless
 
-# Valid models whitelist
-VALID_MODELS = ["gpt-4", "gpt-4-turbo", "gpt-4o", "gpt-4o-mini"]
+DEFAULT_MODEL = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
+_MAX_RETRIES = int(os.getenv("OPENAI_MAX_RETRIES", "3"))
+_RETRY_BACKOFF = float(os.getenv("OPENAI_RETRY_BACKOFF", "0.5"))
 
-
-class OpenAIError(Exception):
-    """Custom exception for OpenAI-related errors."""
-
+class OpenAIError(RuntimeError):
     pass
 
+# ---- dependency injection & singleton client ----
+_client_singleton: Optional[Any] = None
 
-class OpenAIClient:
+def get_client() -> Any:
     """
-    Wrapper for OpenAI API client with retry logic and standardized error handling.
+    Returns a singleton OpenAI client. Tests can monkeypatch this function to
+    return a fake client object, or set OPENAI_TEST_MODE=1 to bypass network.
     """
+    global _client_singleton
+    if _client_singleton is None:
+        api_key = os.getenv("OPENAI_API_KEY", "")
+        base_url = os.getenv("OPENAI_BASE_URL")  # optional (Azure/self-hosted)
+        if OpenAI is None:
+            raise OpenAIError("OpenAI SDK not available")
+        _client_singleton = OpenAI(api_key=api_key, base_url=base_url)  # type: ignore
+    return _client_singleton
 
-    def __init__(self, api_key: Optional[str] = None):
-        """
-        Initialize the OpenAI client.
+# ---- test-mode stub ----
+_TEST_MODE = os.getenv("OPENAI_TEST_MODE") == "1" or os.getenv("ENV") == "test"
 
-        Args:
-            api_key: OpenAI API key. If not provided, will use OPENAI_API_KEY env var.
-        """
-        self.api_key = api_key or os.getenv("OPENAI_API_KEY")
-        if not self.api_key:
-            raise OpenAIError("OpenAI API key not provided")
-
-        self.client = OpenAI(api_key=self.api_key)
-        self.max_retries = int(os.getenv("OPENAI_MAX_RETRIES", "3"))
-        self.retry_delay = float(os.getenv("OPENAI_RETRY_DELAY", "1.0"))
-
-    def validate_model(self, model: str) -> bool:
-        """
-        Validate that the model is in the whitelist.
-
-        Args:
-            model: Model name to validate.
-
-        Returns:
-            True if model is valid, False otherwise.
-        """
-        return model in VALID_MODELS
-
-    def chat_completion(
-        self,
-        messages: List[Dict[str, str]],
-        model: str,
-        max_tokens: int = 1000,
-        temperature: float = 0.7,
-        job_id: Optional[str] = None,
-        tool_name: Optional[str] = None,
-    ) -> Dict[str, Any]:
-        """
-        Make a chat completion request with retry logic.
-
-        Args:
-            messages: List of message dictionaries.
-            model: Model to use for completion.
-            max_tokens: Maximum tokens to generate.
-            temperature: Sampling temperature.
-            job_id: Job ID for logging and tracking.
-            tool_name: Name of the tool making the request.
-
-        Returns:
-            Dictionary containing the response and usage information.
-
-        Raises:
-            OpenAIError: If the request fails after all retries.
-        """
-        if not self.validate_model(model):
-            raise OpenAIError(f"Invalid model: {model}. Must be one of {VALID_MODELS}")
-
-        last_error = None
-
-        for attempt in range(self.max_retries + 1):
-            try:
-                logger.info(
-                    f"Making OpenAI request (attempt {attempt + 1}/{self.max_retries + 1}) "
-                    f"for job {job_id} using model {model}"
-                )
-
-                response = self.client.chat.completions.create(
-                    model=model,
-                    messages=messages,
-                    max_tokens=max_tokens,
-                    temperature=temperature,
-                )
-
-                # Extract response data
-                content = response.choices[0].message.content
-                usage = response.usage
-
-                # Log successful request
-                logger.info(
-                    f"OpenAI request successful for job {job_id}: "
-                    f"{usage.prompt_tokens} prompt + {usage.completion_tokens} completion tokens"
-                )
-
-                # Set Sentry context
-                if job_id and sentry_sdk.Hub.current and sentry_sdk.Hub.current.client:
-                    with sentry_sdk.configure_scope() as scope:
-                        scope.set_tag("openai_model", model)
-                        scope.set_tag("openai_tokens", usage.total_tokens)
-                        if tool_name:
-                            scope.set_tag("tool_name", tool_name)
-
-                return {
-                    "content": content,
-                    "usage": {
-                        "prompt_tokens": usage.prompt_tokens,
-                        "completion_tokens": usage.completion_tokens,
-                        "total_tokens": usage.total_tokens,
-                    },
-                    "model": model,
-                    "job_id": job_id,
-                }
-
-            except Exception as e:
-                last_error = e
-                logger.warning(
-                    f"OpenAI request failed (attempt {attempt + 1}/{self.max_retries + 1}) "
-                    f"for job {job_id}: {str(e)}"
-                )
-
-                # Capture error in Sentry
-                sentry_sdk.capture_exception(e)
-
-                # Don't retry on the last attempt
-                if attempt < self.max_retries:
-                    time.sleep(self.retry_delay * (2**attempt))  # Exponential backoff
-                else:
-                    break
-
-        # If we get here, all retries failed
-        error_msg = f"OpenAI request failed after {self.max_retries + 1} attempts: {str(last_error)}"
-        logger.error(error_msg)
-        raise OpenAIError(error_msg)
-
-    def estimate_cost(
-        self, prompt_tokens: int, completion_tokens: int, model: str
-    ) -> float:
-        """
-        Estimate the cost of a request based on token usage.
-
-        Args:
-            prompt_tokens: Number of prompt tokens.
-            completion_tokens: Number of completion tokens.
-            model: Model used for the request.
-
-        Returns:
-            Estimated cost in USD.
-        """
-        # Pricing per 1K tokens (as of 2024)
-        pricing = {
-            "gpt-4": {"input": 0.03, "output": 0.06},
-            "gpt-4-turbo": {"input": 0.01, "output": 0.03},
-            "gpt-4o": {"input": 0.005, "output": 0.015},
-            "gpt-4o-mini": {"input": 0.00015, "output": 0.0006},
-        }
-
-        if model not in pricing:
-            logger.warning(f"Unknown model {model} for cost estimation")
-            return 0.0
-
-        input_cost = (prompt_tokens / 1000) * pricing[model]["input"]
-        output_cost = (completion_tokens / 1000) * pricing[model]["output"]
-
-        return input_cost + output_cost
-
-
-# Global client instance
-_client_instance = None
-_client_lock = threading.Lock()
-
-
-def get_openai_client() -> OpenAIClient:
+def _fake_chat_completion(messages: list[dict[str, str]], **kwargs: Any) -> Dict[str, Any]:
     """
-    Get the global OpenAI client instance.
-
-    Returns:
-        OpenAIClient instance.
+    Deterministic stub used when OPENAI_TEST_MODE=1.
     """
-    global _client_instance
-    if _client_instance is None:
-        with _client_lock:
-            if _client_instance is None:
-                _client_instance = OpenAIClient()
-    return _client_instance
+    content = "ok"
+    # mirror a minimal shape used by callers/tests
+    return {
+        "id": "chatcmpl_test",
+        "choices": [{"message": {"content": content}}],
+        "usage": {"prompt_tokens": 0, "completion_tokens": 0, "total_tokens": 0},
+        "model": kwargs.get("model", DEFAULT_MODEL),
+    }
 
-
-def create_openai_client(api_key: Optional[str] = None) -> OpenAIClient:
+# ---- public API ----
+def chat_completion(
+    messages: list[dict[str, str]],
+    model: str = DEFAULT_MODEL,
+    max_tokens: int = 64,
+    temperature: float = 0.2,
+    **kwargs: Any,
+) -> Dict[str, Any]:
     """
-    Create a new OpenAI client instance.
-
-    Args:
-        api_key: OpenAI API key. If not provided, will use OPENAI_API_KEY env var.
-
-    Returns:
-        New OpenAIClient instance.
+    Thin wrapper that retries transient failures and raises OpenAIError on hard failures.
+    In tests (OPENAI_TEST_MODE=1 or ENV=test), returns a deterministic stub and does not
+    hit the network.
     """
-    return OpenAIClient(api_key=api_key)
+    if _TEST_MODE:
+        return _fake_chat_completion(messages, model=model, max_tokens=max_tokens, temperature=temperature, **kwargs)
+
+    last_exc: Optional[Exception] = None
+    for attempt in range(_MAX_RETRIES + 1):
+        try:
+            client = get_client()
+            resp = client.chat.completions.create(  # type: ignore[attr-defined]
+                model=model,
+                messages=messages,
+                max_tokens=max_tokens,
+                temperature=temperature,
+                **kwargs,
+            )
+            # Normalize to dict for tests that don't import SDK types
+            return getattr(resp, "to_dict", lambda: resp)()
+        except Exception as exc:  # noqa: BLE001
+            last_exc = exc
+            # simple transient heuristic; tests can still patch get_client()
+            if attempt < _MAX_RETRIES:
+                time.sleep(_RETRY_BACKOFF * (2**attempt))
+            else:
+                break
+    raise OpenAIError(f"OpenAI request failed after {_MAX_RETRIES + 1} attempts: {last_exc}")
+
+# ---- legacy compatibility ----
+def get_openai_client() -> Any:
+    """
+    Legacy compatibility function. Returns the singleton client.
+    """
+    return get_client()
+
+def create_openai_client(api_key: Optional[str] = None) -> Any:
+    """
+    Legacy compatibility function. Creates a new client with optional API key.
+    """
+    if api_key:
+        return OpenAI(api_key=api_key) if OpenAI else None
+    return get_client()
