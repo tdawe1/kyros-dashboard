@@ -14,6 +14,9 @@ jobs:
   create-pr:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.conclusion == 'success'
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     steps:
       - name: Checkout code
         uses: actions/checkout@v4

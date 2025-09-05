@@ -9,6 +9,9 @@ permissions:
 jobs:
   import:
     runs-on: ubuntu-latest
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: true
     outputs:
       branch_name: ${{ steps.stage.outputs.BRANCH_NAME }}
     steps:
