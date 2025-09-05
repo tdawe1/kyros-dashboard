@@ -2,12 +2,13 @@
 Pytest configuration and fixtures for the Kyros API tests.
 """
 
+# --- imports first ---
+from __future__ import annotations
+
 import os
 import sys
+from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock, AsyncMock
-
-# Add the parent directory to the path so we can import our modules
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 import pytest
 from fastapi.testclient import TestClient
@@ -16,9 +17,32 @@ from sqlalchemy.pool import StaticPool
 from sqlalchemy.orm import sessionmaker
 
 from core.database import Base, get_db
+from main import app
+from utils.token_storage import clear_all_data
+from core.auth.schemas import UserCreate
+from core.auth.service import create_user
 
 # Ensure models are registered with SQLAlchemy's Base before creating tables
 import core.models  # noqa: F401
+
+# --- optional: helpers used by hooks ---
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _setup_env_and_paths() -> None:
+    """Set up environment variables and Python path for tests."""
+    os.environ.setdefault("PYTHONHASHSEED", "0")
+    os.environ.setdefault("ENV", "test")
+    # Add the parent directory to the path so we can import our modules
+    p = str(ROOT)
+    if p not in sys.path:
+        sys.path.insert(0, p)
+
+
+# --- pytest hooks ---
+def pytest_sessionstart(session):
+    """Set up environment and paths when pytest session starts."""
+    _setup_env_and_paths()
 
 
 def pytest_configure(config):
@@ -56,13 +80,6 @@ def pytest_configure(config):
     config._redis_patcher = patcher
 
     # Force CI cache refresh - this line ensures the latest version is used
-
-
-# Import the app after the patch has been applied
-from main import app  # noqa: E402
-from utils.token_storage import clear_all_data  # noqa: E402
-from core.auth.schemas import UserCreate  # noqa: E402
-from core.auth.service import create_user  # noqa: E402
 
 
 # Test database setup
