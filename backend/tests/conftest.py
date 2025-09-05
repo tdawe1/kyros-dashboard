@@ -29,6 +29,12 @@ import core.models  # noqa: F401
 ROOT = Path(__file__).resolve().parents[1]
 
 
+@pytest.fixture(autouse=True, scope="session")
+def _openai_test_mode():
+    """Ensure OPENAI_TEST_MODE=1 is set for all tests."""
+    os.environ.setdefault("OPENAI_TEST_MODE", "1")
+
+
 def _setup_env_and_paths() -> None:
     """Set up environment variables and Python path for tests."""
     os.environ.setdefault("PYTHONHASHSEED", "0")
