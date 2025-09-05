@@ -3,6 +3,7 @@ name: Sync Issues to Tasks
 on:
   pull_request:
     types: [closed]
+    branches: [develop]      # base branch filter
   schedule:
     - cron: "30 3 * * *"
   workflow_dispatch:
@@ -12,7 +13,7 @@ permissions:
 
 jobs:
   sync:
-    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'develop') }}
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -31,19 +32,19 @@ jobs:
           set -euo pipefail
           # Basic mapping from GitHub labels to our task labels/priority
           LABELS=$(python - <<'PY'
-import os
-labels = [l.strip() for l in os.environ.get('ISSUE_LABELS','').split(',') if l.strip()]
-mapped = []
-prio = None
-for l in labels:
-    lo = l.lower()
-    if lo in ('backend','frontend','docs','ci','review','coderabbit','bug','enhancement','task'):
-        mapped.append(lo)
-    if lo in ('p1','p2','p3'):
-        prio = lo.upper()
-print(','.join(mapped))
-print(prio or '')
-PY
+          import os
+          labels = [l.strip() for l in os.environ.get('ISSUE_LABELS','').split(',') if l.strip()]
+          mapped = []
+          prio = None
+          for l in labels:
+              lo = l.lower()
+              if lo in ('backend','frontend','docs','ci','review','coderabbit','bug','enhancement','task'):
+                  mapped.append(lo)
+              if lo in ('p1','p2','p3'):
+                  prio = lo.upper()
+          print(','.join(mapped))
+          print(prio or '')
+          PY
           )
           TASK_LABELS=$(echo "$LABELS" | sed -n '1p')
           TASK_PRIORITY=$(echo "$LABELS" | sed -n '2p')
@@ -64,20 +65,20 @@ PY
             ${ROADMAP_ID:+--roadmap-id "$ROADMAP_ID"}
           # Capture last created task id from events by scanning tasks.json length
           TID=$(python - <<'PY'
-import json
-with open('collaboration/state/tasks.json','r',encoding='utf-8') as f:
-    data=json.load(f)
-ts=data.get('tasks',[])
-print(ts[-1]['id'] if ts else '')
-PY
+          import json
+          with open('collaboration/state/tasks.json','r',encoding='utf-8') as f:
+              data=json.load(f)
+          ts=data.get('tasks',[])
+          print(ts[-1]['id'] if ts else '')
+          PY
           )
           # Link the GitHub issue id
           python - <<PY
-from mcp import kyros_collab_server as collab
-tid = "$TID".strip()
-if tid:
-    collab.link_external({'id': tid, 'provider':'github', 'key':'issue', 'value': '${{ github.event.issue.number }}'})
-PY
+          from mcp import kyros_collab_server as collab
+          tid = "$TID".strip()
+          if tid:
+              collab.link_external({'id': tid, 'provider':'github', 'key':'issue', 'value': '${{ github.event.issue.number }}'})
+          PY
       - name: Commit changes
         uses: stefanzweifel/git-auto-commit-action@v5
         with:

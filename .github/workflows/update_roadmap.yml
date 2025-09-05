@@ -3,6 +3,7 @@ name: Update Roadmap
 on:
   pull_request:
     types: [closed]
+    branches: [develop]      # base branch filter
   schedule:
     - cron: "30 3 * * *"
   workflow_dispatch:
@@ -12,7 +13,7 @@ permissions:
 
 jobs:
   build:
-    if: ${{ github.event_name != 'pull_request' || (github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'develop') }}
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.merged == true }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
