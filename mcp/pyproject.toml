@@ -12,11 +12,11 @@ dependencies = [
 ]
 
 [project.scripts]
-kyros-collab-mcp = "mcp.kyros_collab_server:main"
-mcp-linear = "mcp.linear_server:main"
-mcp-railway = "mcp.railway_server:main"
-mcp-vercel = "mcp.vercel_server:main"
-mcp-coderabbit = "mcp.coderabbit_server:main"
+kyros-collab-mcp = "kyros_collab_server:main"
+mcp-linear = "linear_server:main"
+mcp-railway = "railway_server:main"
+mcp-vercel = "vercel_server:main"
+mcp-coderabbit = "coderabbit_server:main"
 
 [build-system]
 requires = ["hatchling>=1.18.0"]
