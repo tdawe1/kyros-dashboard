@@ -4,6 +4,7 @@ on:
   workflow_run:
     workflows: ["Tests"]
     types: [completed]
+  workflow_dispatch: {}          # ← REQUIRED for manual runs
 
 env:
   NODE_VERSION: '20'

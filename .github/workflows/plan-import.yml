@@ -1,10 +1,13 @@
+
+# .github/workflows/plan-import.yml
 name: Import Latest Plan from Drive
 on:
-  workflow_dispatch: {}   # run manually (or via gh workflow run)
+  workflow_dispatch: {}          # ← REQUIRED for manual runs
+  # (you can add other triggers later if you want)
 
 permissions:
-  contents: write          # commit plan & tasks
-  pull-requests: write     # open draft PR
+  contents: write
+  pull-requests: write
 
 jobs:
   import:
@@ -33,12 +36,17 @@ jobs:
           from googleapiclient.discovery import build
           from googleapiclient.http import MediaIoBaseDownload
 
+
           # --- Auth ---
+
+          
+
           creds = service_account.Credentials.from_service_account_info(
               json.loads(os.environ["GDRIVE_SA_JSON"]),
               scopes=["https://www.googleapis.com/auth/drive.readonly"]
           )
           svc = build('drive', 'v3', credentials=creds)
+
 
           folder_id = os.environ.get("PLANS_INBOX_FOLDER_ID", "").strip()
           print(f"Raw folder ID from env: '{folder_id}'")
@@ -159,6 +167,28 @@ jobs:
           else:
               print("❌ ERROR: planspec.yml file was not created")
               sys.exit(1)
+
+          folder = os.environ["PLANS_INBOX_FOLDER_ID"]
+          
+          resp = svc.files().list(
+              q=f"'{folder}' in parents and trashed=false and name contains '.yml'",
+              orderBy="modifiedTime desc",
+              pageSize=1,
+              fields="files(id,name)"
+          ).execute()
+          files = resp.get('files', [])
+          if not files:
+              print("No .yml plans found in Plans Inbox."); sys.exit(1)
+          fid, name = files[0]['id'], files[0]['name']
+          
+          request = svc.files().get_media(fileId=fid)
+          fh = io.BytesIO()
+          downloader = MediaIoBaseDownload(fh, request)
+          done=False
+          while not done:
+              status, done = downloader.next_chunk()
+          open('planspec.yml', 'wb').write(fh.getvalue())
+          print(f"DOWNLOADED {name} {fid}")
           PY
 
       - name: Stage PlanSpec into repo

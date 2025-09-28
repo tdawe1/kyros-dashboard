@@ -16,6 +16,7 @@ on:
       - 'docs/**'
       - 'collaboration/logs/**'
       - 'CHANGELOG.md'
+  workflow_dispatch: {}          # ← REQUIRED for manual runs
 
 concurrency:
   group: tests-${{ github.ref }}
