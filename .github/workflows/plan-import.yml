@@ -1,3 +1,4 @@
+
 # .github/workflows/plan-import.yml
 name: Import Latest Plan from Drive
 on:
@@ -11,6 +12,8 @@ permissions:
 jobs:
   import:
     runs-on: ubuntu-latest
+    outputs:
+      branch_name: ${{ steps.stage.outputs.BRANCH_NAME }}
     steps:
       - uses: actions/checkout@v4
 
@@ -22,7 +25,7 @@ jobs:
       - name: Install Google client + YAML
         run: pip install google-api-python-client google-auth google-auth-httplib2 pyyaml
 
-      - name: Download newest PlanSpec from Drive folder
+      - name: Download newest PlanSpec from Drive (folder → fallback root)
         env:
           GDRIVE_SA_JSON: ${{ secrets.GDRIVE_SA_JSON }}
           PLANS_INBOX_FOLDER_ID: ${{ secrets.PLANS_INBOX_FOLDER_ID }}
@@ -32,12 +35,139 @@ jobs:
           from google.oauth2 import service_account
           from googleapiclient.discovery import build
           from googleapiclient.http import MediaIoBaseDownload
+
+
+          # --- Auth ---
+
           
+
           creds = service_account.Credentials.from_service_account_info(
               json.loads(os.environ["GDRIVE_SA_JSON"]),
               scopes=["https://www.googleapis.com/auth/drive.readonly"]
           )
           svc = build('drive', 'v3', credentials=creds)
+
+
+          folder_id = os.environ.get("PLANS_INBOX_FOLDER_ID", "").strip()
+          print(f"Raw folder ID from env: '{folder_id}'")
+          print(f"Folder ID length: {len(folder_id)}")
+          print(f"Folder ID type: {type(folder_id)}")
+
+          # Test if we can access the folder at all
+          if folder_id:
+              try:
+                  folder_info = svc.files().get(fileId=folder_id, fields="id,name,mimeType").execute()
+                  print(f"Folder exists: {folder_info.get('name')} (ID: {folder_info.get('id')})")
+                  print(f"Folder MIME type: {folder_info.get('mimeType')}")
+              except Exception as e:
+                  print(f"ERROR: Cannot access folder {folder_id}: {e}")
+                  print("This suggests the folder ID is invalid or we don't have permission")
+
+          def find_latest(query):
+              return svc.files().list(
+                  q=query,
+                  orderBy="modifiedTime desc",
+                  pageSize=1,
+                  fields="files(id,name)"
+              ).execute().get("files", [])
+
+          # 1. Try folder first (if set)
+          files = []
+          if folder_id:
+              print(f"Searching in folder: {folder_id}")
+              query = f"'{folder_id}' in parents and trashed=false and (name contains '.yml' or name contains '.yaml')"
+              print(f"Query: {query}")
+              files = find_latest(query)
+              print(f"Found {len(files)} files in folder")
+              
+              # Also try a simpler query to see if folder access works
+              print("Testing folder access with simpler query...")
+              test_files = svc.files().list(
+                  q=f"'{folder_id}' in parents and trashed=false",
+                  pageSize=5,
+                  fields="files(id,name,mimeType)"
+              ).execute().get("files", [])
+              print(f"Total files in folder: {len(test_files)}")
+              for f in test_files:
+                  print(f"  - {f['name']} (type: {f.get('mimeType', 'unknown')})")
+
+          # 2. Fallback to root
+          if not files:
+              print("No files found in folder, searching root directory...")
+              files = find_latest(
+                  "trashed=false and (name contains '.yml' or name contains '.yaml')"
+              )
+              print(f"Found {len(files)} files in root")
+
+          # 3. Try broader search if still no files
+          if not files:
+              print("Trying broader search for any YAML files...")
+              files = find_latest(
+                  "trashed=false and (name contains 'yml' or name contains 'yaml')"
+              )
+              print(f"Found {len(files)} files with broader search")
+              
+          # 4. Try specific .yml search in folder
+          if not files and folder_id:
+              print("Trying specific .yml search in folder...")
+              files = find_latest(
+                  f"'{folder_id}' in parents and trashed=false and name contains '.yml'"
+              )
+              print(f"Found {len(files)} .yml files in folder")
+
+          if not files:
+              print("No .yml/.yaml plans found in Drive.")
+              print("Available file types in folder:")
+              if folder_id:
+                  try:
+                      all_files = svc.files().list(
+                          q=f"'{folder_id}' in parents and trashed=false",
+                          fields="files(name,mimeType)"
+                      ).execute().get("files", [])
+                      for f in all_files[:10]:  # Show first 10 files
+                          print(f"  - {f['name']} ({f.get('mimeType', 'unknown')})")
+                  except Exception as e:
+                      print(f"  ERROR listing folder contents: {e}")
+              
+              # Try to find folders that might contain plans
+              print("\nSearching for folders that might contain plans...")
+              try:
+                  folders = svc.files().list(
+                      q="trashed=false and mimeType='application/vnd.google-apps.folder' and (name contains 'plan' or name contains 'inbox')",
+                      fields="files(id,name)",
+                      pageSize=10
+                  ).execute().get("files", [])
+                  print(f"Found {len(folders)} potential folders:")
+                  for f in folders:
+                      print(f"  - {f['name']} (ID: {f['id']})")
+              except Exception as e:
+                  print(f"  ERROR searching for folders: {e}")
+              
+              sys.exit(1)
+
+          fid, name = files[0]['id'], files[0]['name']
+
+          request = svc.files().get_media(fileId=fid)
+          fh = io.BytesIO()
+          downloader = MediaIoBaseDownload(fh, request)
+          done = False
+          while not done:
+              status, done = downloader.next_chunk()
+
+          with open('planspec.yml', 'wb') as f:
+              f.write(fh.getvalue())
+
+          print(f"DOWNLOADED {name} ({fid})")
+          print(f"File size: {len(fh.getvalue())} bytes")
+          
+          # Verify file was created
+          import os
+          if os.path.exists('planspec.yml'):
+              print("✅ planspec.yml file created successfully")
+          else:
+              print("❌ ERROR: planspec.yml file was not created")
+              sys.exit(1)
+
           folder = os.environ["PLANS_INBOX_FOLDER_ID"]
           
           resp = svc.files().list(
@@ -62,5 +192,46 @@ jobs:
           PY
 
       - name: Stage PlanSpec into repo
+        id: stage
         run: |
+          echo "Starting staging step..."
+          ls -la planspec.yml || echo "planspec.yml not found in root"
+          
           mkdir -p collaboration/plans/inbox
+          echo "Created inbox directory"
+          
+          cp planspec.yml collaboration/plans/inbox/
+          echo "Copied planspec.yml to inbox"
+          
+          ls -la collaboration/plans/inbox/
+          echo "Contents of inbox directory:"
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+
+          # Create timestamped commit message
+          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
+          COMMIT_MSG="Import latest plan from Drive (${TIMESTAMP})"
+
+          # Add and commit the plan directly to develop
+          git add collaboration/plans/inbox/planspec.yml
+          git commit -m "$COMMIT_MSG"
+
+          # Push directly to develop
+          git push origin develop
+
+          # Output success message
+          echo "PLAN_IMPORTED=true" >> $GITHUB_OUTPUT
+          echo "COMMIT_MSG=$COMMIT_MSG" >> $GITHUB_OUTPUT
+
+          # Save commit info for any follow-up workflows
+          echo "PLAN_IMPORTED=true" > import_status.txt
+          echo "$COMMIT_MSG" > commit_message.txt
+
+      - name: Upload import status artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: import-status
+          path: |
+            import_status.txt
+            commit_message.txt
+          retention-days: 1

@@ -1,0 +1,115 @@
+name: Agent Validation
+
+on:
+  pull_request:
+    branches: [develop]
+
+jobs:
+  validate-agent-pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch base before diff
+        run: |
+          git fetch origin "${{ github.base_ref }}:${{ github.base_ref }}"
+
+      - name: Derive variables
+        id: vars
+        run: |
+          echo "PR_TITLE=${{ github.event.pull_request.title }}" >> $GITHUB_ENV
+          echo "BASE_REF=${{ github.base_ref }}" >> $GITHUB_ENV
+          echo "HEAD_REF=${{ github.head_ref }}" >> $GITHUB_ENV
+
+      - name: Validate Agent Changes
+        env:
+          PR_TITLE: ${{ env.PR_TITLE }}
+          BASE_REF: ${{ env.BASE_REF }}
+          HEAD_REF: ${{ env.HEAD_REF }}
+        run: |
+          set -euo pipefail
+          echo "PR_TITLE: $PR_TITLE"
+          echo "BASE_REF:  $BASE_REF"
+          echo "HEAD_REF:  $HEAD_REF"
+          
+          # Compute changed files against base
+          CHANGED=$(git diff --name-only "$BASE_REF...HEAD" || true)
+          echo "Changed files:\n$CHANGED"
+          
+          # Ensure no edits to collaboration/state/**
+          if echo "$CHANGED" | grep -E '^collaboration/state/' >/dev/null; then
+            echo "❌ Out-of-scope change: collaboration/state/** is not allowed in PRs" >&2
+            exit 1
+          fi
+          
+          # Extract task id from PR title or branch name
+          TASK_ID=$(printf "%s\n%s" "$PR_TITLE" "$HEAD_REF" | sed -n 's/.*\(T-[0-9][0-9][0-9]\).*/\1/p' | head -n1 || true)
+          echo "Detected TASK_ID: ${TASK_ID:-none}"
+          
+          # If task rule exists, enforce globs for changed files
+          if [ -n "${TASK_ID:-}" ] && [ -f ".cursor/rules/tasks/${TASK_ID}.mdc" ]; then
+            echo "Using rule: .cursor/rules/tasks/${TASK_ID}.mdc"
+            python3 - <<'PY'
+import os, fnmatch, sys
+tid = os.environ.get('TASK_ID')
+rule = f'.cursor/rules/tasks/{tid}.mdc'
+changed = [l.strip() for l in os.popen("git diff --name-only $BASE_REF...HEAD").read().splitlines() if l.strip()]
+globs = []
+collect = False
+allow_all = False
+
+with open(rule, 'r', encoding='utf-8') as f:
+    for line in f:
+        line = line.strip()
+        
+        # Skip empty lines and comments
+        if not line or line.startswith('#'):
+            continue
+            
+        # Check for allow-all flag
+        if line == 'allow-all: true':
+            allow_all = True
+            continue
+            
+        # Look for globs section
+        if line == 'globs:':
+            collect = True
+            continue
+            
+        # If collecting globs
+        if collect:
+            # Stop at --- or blank line
+            if line.startswith('---') or not line:
+                break
+            # Process glob pattern
+            if line.startswith('- '):
+                pat = line[2:].strip().strip('"')
+                if pat:
+                    globs.append(pat)
+
+# If no globs found and no allow-all flag, fail closed
+if not globs and not allow_all:
+    print('❌ Task rule has no globs section and no allow-all flag set', file=sys.stderr)
+    print('   Add "globs:" section with file patterns or set "allow-all: true"', file=sys.stderr)
+    sys.exit(1)
+
+def allowed(path):
+    return any(fnmatch.fnmatch(path, pat) for pat in globs)
+
+violations = [p for p in changed if not allowed(p)]
+if violations:
+    print('❌ Out-of-scope changes (per task rule):', file=sys.stderr)
+    print('   Allowed patterns:', ', '.join(globs) if globs else 'allow-all: true', file=sys.stderr)
+    for v in violations:
+        print(' -', v, file=sys.stderr)
+    sys.exit(1)
+else:
+    print('✅ All changes match task rule globs')
+    print('   Allowed patterns:', ', '.join(globs) if globs else 'allow-all: true')
+PY
+          else
+            echo "No task rule found; skipping glob validation"
+          fi
+

@@ -1,6 +1,7 @@
 import { Menu, Bell, User } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { useConfig } from "../hooks/useConfig";
+import ReadyBadge from "../components/ReadyBadge";
 
 const pageTitles = {
   "/": "Dashboard",
@@ -35,6 +36,7 @@ export default function Topbar({ onMenuClick }) {
           >
             {pageTitle}
           </h1>
+          <ReadyBadge />
           {isDemoMode && (
             <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2.5 py-0.5 rounded-full dark:bg-yellow-900 dark:text-yellow-300">
               Demo Mode

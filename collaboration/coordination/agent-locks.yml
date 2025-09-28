@@ -1,0 +1,10 @@
+# Declarative resource locks for agent coordination
+# A lightweight layer on top of collaboration/state/locks.json to express
+# coarse-grained domains that should not be edited concurrently by multiple agents.
+
+resource_locks:
+  backend_core: null          # set to agent_id when locked
+  frontend_components: null   # set to agent_id when locked
+  ci_workflows: null          # set to agent_id when locked
+  docs_guidance: null         # set to agent_id when locked
+

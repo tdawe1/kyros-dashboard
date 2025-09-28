@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kyros Dashboard — Project View</title>
+    <link rel="stylesheet" href="style.css" />
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  </head>
+  <body>
+    <header>
+      <div class="head">
+        <div class="titles">
+          <h1>Kyros Dashboard — Project View</h1>
+          <p>Auto-published from repository. Shows Roadmap and Now/Next Board.</p>
+        </div>
+        <nav>
+          <a id="project-link" class="btn" href="#" target="_blank" rel="noopener" style="display:none">Open GitHub Project</a>
+        </nav>
+      </div>
+    </header>
+    <main>
+      <section>
+        <h2>Roadmap</h2>
+        <div id="roadmap" class="md"></div>
+      </section>
+      <section>
+        <h2>Now / Next / Review / Done</h2>
+        <div id="board" class="md"></div>
+      </section>
+    </main>
+    <footer>
+      <small>Last updated <span id="updated"></span></small>
+    </footer>
+    <script>
+      async function fetchText(path) {
+        const res = await fetch(path + '?_=' + Date.now());
+        if (!res.ok) throw new Error('load failed');
+        return res.text();
+      }
+      async function fetchJSON(path) {
+        const res = await fetch(path + '?_=' + Date.now());
+        if (!res.ok) throw new Error('load failed');
+        return res.json();
+      }
+      function autolinkRoadmap(container, links) {
+        // Link tokens like "[x] R1" or "[ ] R2.1"
+        const html = container.innerHTML;
+        const replaced = html.replace(/(\[[xX\s~!]\]\s+)(R[\d.]+)/g, (m, pre, id) => {
+          const url = links.roadmap && links.roadmap[id];
+          return url ? `${pre}<a href="${url}" target="_blank" rel="noopener">${id}</a>` : m;
+        });
+        container.innerHTML = replaced;
+      }
+      function autolinkBoard(container, links, owner, repo) {
+        let html = container.innerHTML;
+        // Link task ids like "- task-001"
+        html = html.replace(/(-\s+)(task-\d{3})/g, (m, pre, tid) => {
+          const url = links.tasks && links.tasks[tid];
+          return url ? `${pre}<a href="${url}" target="_blank" rel="noopener">${tid}</a>` : m;
+        });
+        // Link GH#123 and PR#123 if repo context known
+        if (owner && repo) {
+          html = html.replace(/GH#(\d+)/g, (m, num) => `<a href="https://github.com/${owner}/${repo}/issues/${num}" target="_blank" rel="noopener">GH#${num}</a>`);
+          html = html.replace(/PR#(\d+)/g, (m, num) => `<a href="https://github.com/${owner}/${repo}/pull/${num}" target="_blank" rel="noopener">PR#${num}</a>`);
+        }
+        container.innerHTML = html;
+      }
+      function detectRepo() {
+        // Best-effort detection: owner from hostname prefix, repo from first path segment
+        const host = location.hostname; // e.g., tdawe1.github.io
+        const owner = host.split('.')[0];
+        const path = location.pathname.split('/').filter(Boolean); // ['', 'repo', ...]
+        const repo = path.length ? path[0] : '';
+        return { owner, repo };
+      }
+      (async () => {
+        try {
+          const links = await fetchJSON('./links.json').catch(() => ({ roadmap: {}, tasks: {} }));
+          const cfg = await fetchJSON('./config.json').catch(() => ({}));
+          if (cfg.project_url) {
+            const a = document.getElementById('project-link');
+            a.href = cfg.project_url;
+            a.style.display = 'inline-block';
+          }
+          const roadmapMD = await fetchText('./ROADMAP.md');
+          const boardMD = await fetchText('./collaboration/board.md');
+          const { owner, repo } = detectRepo();
+          const roadmapEl = document.getElementById('roadmap');
+          const boardEl = document.getElementById('board');
+          roadmapEl.innerHTML = marked.parse(roadmapMD);
+          boardEl.innerHTML = marked.parse(boardMD);
+          autolinkRoadmap(roadmapEl, links);
+          autolinkBoard(boardEl, links, owner, repo);
+          document.getElementById('updated').textContent = new Date().toISOString();
+        } catch (e) {
+          document.getElementById('roadmap').textContent = 'Failed to load content';
+          console.error(e);
+        }
+      })();
+    </script>
+  </body>
+  </html>

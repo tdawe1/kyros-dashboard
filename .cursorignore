@@ -1,0 +1,24 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+node_modules/
+frontend/node_modules/
+frontend/dist/
+backend/htmlcov/
+backend/.pytest_cache/
+.pytest_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+backend/coverage.xml
+venv/
+.venv/
+**/__pycache__/
+
+# Very large blobs that can blow context
+pathlib
+scripts/os
+
+# Generated artifacts
+collaboration/events/events.jsonl
+project/links.json
+collaboration/board.md
+ROADMAP.md

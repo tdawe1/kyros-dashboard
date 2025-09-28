@@ -1,0 +1,32 @@
+---
+description: Task T-503 — Fix frontend build/tests (auto-applied)
+globs:
+  - "collaboration/tasks/T-503/**"
+  - "frontend/src/**"
+  - "frontend/vitest.config.js"
+  - "frontend/vite.config.js"
+  - "frontend/eslint.config.js"
+---
+
+Context Reset: New subtask
+Task: T-503 — Fix frontend build and unit tests
+Lane: frontend
+Branch: feat/T-503-frontend-tests-build-green
+
+DoD:
+- Lint/build/test green in CI; no console errors
+- Changes minimal and scoped; no secrets/network
+- Critic review passes
+
+Acceptance:
+- `npm run lint` passes with no errors.
+- `npm run build` (Vite) succeeds with no errors.
+- `npm run test:ci` (Vitest) passes on CI.
+
+Changescope:
+- frontend/src/**
+- frontend/vitest.config.js
+- frontend/vite.config.js
+- frontend/eslint.config.js
+
+Output: code changes only; summarize what changed and next subtask.

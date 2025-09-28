@@ -1,0 +1,18 @@
+{
+  "fields": {
+    "status": "Status",
+    "priority": "Priority"
+  },
+  "status": {
+    "queued": ["To do"],
+    "in_progress": ["In progress"],
+    "review": ["In review"],
+    "done": ["Done"],
+    "blocked": ["Blocked"]
+  },
+  "priority": {
+    "P1": ["High"],
+    "P2": ["Medium"],
+    "P3": ["Low"]
+  }
+}

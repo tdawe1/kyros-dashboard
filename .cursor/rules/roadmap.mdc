@@ -1,0 +1,27 @@
+---
+description: Maintain project roadmap (auto-applied)
+globs:
+  - "project/roadmap.yml"
+  - "scripts/roadmap_tree.py"
+  - "scripts/roadmap_cli.py"
+  - "ROADMAP.md"
+---
+
+Context Reset: Roadmap update
+Task: Keep roadmap current and focused on outcomes
+Role: Implementer
+
+Commands:
+- Set status: `python scripts/roadmap_cli.py set-status <ID> queued|in_progress|approved|done|blocked`
+- Add item: `python scripts/roadmap_cli.py add <ID> "Title" --parent <PARENT_ID> --status queued --owner thomas`
+- Link to task: `python scripts/roadmap_cli.py link-task <ID> task-001`
+- Sync from task: `python scripts/roadmap_cli.py sync-from-task <ID>`
+- Render: `python scripts/roadmap_tree.py project/roadmap.yml ROADMAP.md`
+
+Constraints:
+- Keep updates minimal and consistent.
+- Reflect only material progress or decisions.
+- Avoid editing unrelated files.
+- Do not create tasks or PRs from the Goals section.
+
+Output: Roadmap YAML/MD changes and a brief summary of updates.
