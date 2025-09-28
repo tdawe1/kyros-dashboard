@@ -105,7 +105,7 @@ class TestDemoVariants:
 class TestGenerateContentReal:
     """Test real content generation with OpenAI API."""
 
-    @patch.dict(os.environ, {"OPENAI_API_KEY": "test_key"})
+    @patch.dict(os.environ, {"OPENAI_API_KEY": "test_key"})  # pragma: allowlist secret
     @pytest.mark.asyncio
     async def test_generate_content_real_success(self, mock_openai, sample_input_text):
         """Test successful real content generation."""

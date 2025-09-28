@@ -530,7 +530,7 @@ class TestAuthEndpoints:
         """Test login with wrong password."""
         response = client.post(
             "/api/auth/login",
-            json={"username": test_user.username, "password": "wrongpassword"},
+            json={"username": test_user.username, "password": "wrongpassword"},  # pragma: allowlist secret
         )
         assert response.status_code == 401
         data = response.json()
@@ -541,7 +541,7 @@ class TestAuthEndpoints:
         """Test login with wrong username."""
         response = client.post(
             "/api/auth/login",
-            json={"username": "wronguser", "password": "somepassword"},
+            json={"username": "wronguser", "password": "somepassword"},  # pragma: allowlist secret
         )
         assert response.status_code == 401
 
