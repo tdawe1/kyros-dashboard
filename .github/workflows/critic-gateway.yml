@@ -1,0 +1,30 @@
+name: critic-gateway
+
+on:
+  issue_comment:
+    types: [created, edited]
+  pull_request:
+    types: [synchronize, opened]
+
+jobs:
+  summarize-cr:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const prNumber = context.payload.pull_request?.number || context.issue.number;
+            const { data: pr } = await github.rest.pulls.get({ owner: context.repo.owner, repo: context.repo.repo, pull_number: prNumber });
+            const { data: comments } = await github.rest.issues.listComments({ owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, per_page: 100 });
+            const cr = comments.filter(c => /coderabbit/i.test(c.user?.login||'') || /CodeRabbit/i.test(c.user?.login||''));
+            if (!cr.length) return;
+            const blockers=[], nits=[];
+            for (const c of cr) (/security|bug|fail|crash|injection|bypass|broken/i.test(c.body) ? blockers : nits).push(c.html_url);
+            const botTag='<!-- cr-checklist -->';
+            const body=[botTag,'### CodeRabbit Critic Checklist',`**Blockers:**\n${blockers.length?blockers.map(x=>`- ${x}`).join('\n'):'- None'}`,`**Nits:**\n${nits.length?nits.map(x=>`- ${x}`).join('\n'):'- None'}`,'> Mark blockers resolved or explain deferral.'].join('\n');
+            const mine=comments.find(c=>c.user?.login?.endsWith('[bot]') && c.body?.includes(botTag));
+            if (mine) await github.rest.issues.updateComment({ owner: context.repo.owner, repo: context.repo.repo, comment_id: mine.id, body });
+            else await github.rest.issues.createComment({ owner: context.repo.owner, repo: context.repo.repo, issue_number: pr.number, body });

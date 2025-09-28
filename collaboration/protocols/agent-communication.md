@@ -29,4 +29,3 @@ to coordinate work without persistent background monitoring.
 
 - All actions should be safe to retry; avoid non-deterministic side effects.
 - Prefer small, atomic commits that are easy to revert.
-

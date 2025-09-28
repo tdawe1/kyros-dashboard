@@ -102,4 +102,3 @@
 - Scan develop CI; if red, capture the first failing assertion/file and propose minimal, scoped fixes (avoid refactors).
 - When develop is green, update/merge release PR #18; confirm deployment finishes cleanly.
 - If cognitive load escalates (many concurrent PRs), propose 5‑agent mode with justification and seat map; request user APPROVE before scaling.
-

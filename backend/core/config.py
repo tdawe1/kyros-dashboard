@@ -47,7 +47,9 @@ class Settings(BaseSettings):
     # Security settings
     # Use a secure default in non-production contexts to avoid import-time failures in CI/tests.
     # Production should still set JWT_SECRET_KEY via environment.
-    jwt_secret_key: str = Field(default_factory=lambda: token_urlsafe(32), env="JWT_SECRET_KEY")
+    jwt_secret_key: str = Field(
+        default_factory=lambda: token_urlsafe(32), env="JWT_SECRET_KEY"
+    )
     jwt_algorithm: str = Field(default="HS256", env="JWT_ALGORITHM")
     jwt_access_token_expire_minutes: int = Field(
         default=30, env="JWT_ACCESS_TOKEN_EXPIRE_MINUTES"
@@ -116,14 +118,17 @@ class Settings(BaseSettings):
             if not v.strip():
                 return []
             # Handle JSON array format
-            if v.strip().startswith('[') and v.strip().endswith(']'):
+            if v.strip().startswith("[") and v.strip().endswith("]"):
                 try:
                     import json
+
                     return json.loads(v)
                 except json.JSONDecodeError:
                     pass
             # Handle comma-separated format
-            return [origin.strip().strip('"\'') for origin in v.split(",") if origin.strip()]
+            return [
+                origin.strip().strip("\"'") for origin in v.split(",") if origin.strip()
+            ]
         return v
 
     @field_validator("environment", mode="before")
@@ -205,10 +210,14 @@ def get_cors_origins() -> List[str]:
     """Get CORS origins based on environment."""
     # Parse the allowed_origins string into a list
     if isinstance(settings.allowed_origins, str):
-        origins = [origin.strip() for origin in settings.allowed_origins.split(",") if origin.strip()]
+        origins = [
+            origin.strip()
+            for origin in settings.allowed_origins.split(",")
+            if origin.strip()
+        ]
     else:
         origins = settings.allowed_origins
-    
+
     if is_production():
         # In production, only allow specific domains
         return origins

@@ -45,7 +45,7 @@ def render_node(node: Dict, prefix: str = "") -> List[str]:
     d, t = count(node)
     badge = status_badge(node.get("status"))
     owner = f" @{node.get('owner')}" if node.get("owner") else ""
-    title = f"{badge} {node.get('id', '')} — {node.get('title','')} ({d}/{t}){owner}"
+    title = f"{badge} {node.get('id', '')} — {node.get('title', '')} ({d}/{t}){owner}"
     lines.append(prefix + title)
 
     kids = node.get("children", []) or []
@@ -72,7 +72,7 @@ def render_node_lines(node: Dict, line_prefix: str, child_prefix: str) -> List[s
     d, t = count(node)
     badge = status_badge(node.get("status"))
     owner = f" @{node.get('owner')}" if node.get("owner") else ""
-    title = f"{badge} {node.get('id','')} — {node.get('title','')} ({d}/{t}){owner}"
+    title = f"{badge} {node.get('id', '')} — {node.get('title', '')} ({d}/{t}){owner}"
     lines.append(line_prefix + title)
     kids = node.get("children", []) or []
     for i, k in enumerate(kids):

@@ -9,4 +9,3 @@ ROLE: Integrator
 - Scope: release PRs, changelog, versioning, PR housekeeping.
 - Avoid editing collaboration/state/** and CI logic unless explicitly tasked.
 - Output: merged PRs, updated changelog, release notes summary.
-

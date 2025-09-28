@@ -14,4 +14,3 @@ ROLE: Critic
   4) Preview has 0 console errors (if FE).
   5) No collaboration/state/** edits.
 - Output one structured ✅/❌ comment with next actions.
-

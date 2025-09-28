@@ -123,6 +123,12 @@ This repo ships MCP servers under `mcp/` and a collaboration model under `collab
 
 See `mcp/README.md` and `agents.md` for details.
 
+## 🔗 Branch Model
+
+**Development:** All PRs target `develop` branch  
+**Releases:** Periodically merge `develop` → `main` for production deployment  
+**Hotfixes:** Direct PRs to `main` for critical production issues only
+
 ## 🚀 Deployment
 
 **Automatic:** GitHub Actions deploys on merge to `main`
@@ -139,7 +145,7 @@ See `mcp/README.md` and `agents.md` for details.
 1. Fork the repository
 2. Create a feature branch: `git checkout -b feature/amazing-feature` [[memory:7928543]]
 3. Commit frequently with clear messages [[memory:7940605]]
-4. Open a Pull Request targeting `main`
+4. Open a Pull Request targeting `develop`
 
 **Requirements:** All code must pass tests, linting, and security checks. PRs require code review approval.
 

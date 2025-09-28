@@ -1,0 +1,14 @@
+---
+name: no-duplicate-tasks
+on: [pull_request]
+jobs:
+  guard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail if legacy tasks/ exists
+        run: |
+          if git ls-files | grep -q '^tasks/'; then
+            echo "::error::Do not use /tasks. Use /collaboration/tasks only."; exit 1
+          fi
+---

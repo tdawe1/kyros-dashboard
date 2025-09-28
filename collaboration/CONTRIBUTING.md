@@ -9,7 +9,18 @@ Thank you for your interest in contributing to the Kyros Dashboard project! This
 3.  **Make your changes.**
 4.  **Commit your changes with clear and descriptive commit messages.**
 5.  **Push your changes to your fork.**
-6.  **Open a pull request against the `main` branch of the original repository.**
+6.  **Open a pull request against the `develop` branch of the original repository.**
+
+### Branch Model
+- **Base branch:** All PRs target `develop`
+- **Releases:** Periodically merge `develop` → `main` for production deployment
+- **Hotfixes:** Direct PRs to `main` for critical production issues only
+
+### Agent Collaboration
+For complex features requiring multi-agent coordination, see:
+- [Agent Workflow](../agents.md) - Collaboration protocols and roles
+- Review Packet requirements for PR handoffs
+- Agent Contract enforcement for task completion
 
 ## 2. Coding Style
 

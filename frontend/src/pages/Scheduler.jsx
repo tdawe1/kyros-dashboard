@@ -47,7 +47,7 @@ export default function Scheduler() {
     { value: "failed", label: "Failed" },
   ];
 
-  const handleCreateSchedule = async scheduleData => {
+  const handleCreateSchedule = async (scheduleData) => {
     try {
       await createSchedule.mutateAsync(scheduleData);
       setShowCreateModal(false);
@@ -67,7 +67,7 @@ export default function Scheduler() {
     }
   };
 
-  const handleDeleteSchedule = async id => {
+  const handleDeleteSchedule = async (id) => {
     if (window.confirm("Are you sure you want to delete this scheduled job?")) {
       try {
         await deleteSchedule.mutateAsync(id);
@@ -78,7 +78,7 @@ export default function Scheduler() {
     }
   };
 
-  const handleRunNow = async id => {
+  const handleRunNow = async (id) => {
     try {
       await runNow.mutateAsync({ id, idempotency_key: `manual_${Date.now()}` });
       refetch();
@@ -87,14 +87,14 @@ export default function Scheduler() {
     }
   };
 
-  const formatDateTime = dateString => {
+  const formatDateTime = (dateString) => {
     if (!dateString) return "Not scheduled";
     // Normalize to UTC for consistent display
     const date = new Date(dateString);
     return date.toLocaleString(undefined, { timeZone: "UTC" }) + " UTC";
   };
 
-  const getStatusColor = status => {
+  const getStatusColor = (status) => {
     switch (status) {
       case "active":
         return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
@@ -111,7 +111,7 @@ export default function Scheduler() {
 
   const filteredSchedules =
     schedules?.filter(
-      schedule => filterStatus === "all" || schedule.status === filterStatus
+      (schedule) => filterStatus === "all" || schedule.status === filterStatus,
     ) || [];
 
   return (
@@ -152,7 +152,7 @@ export default function Scheduler() {
       {/* Tabs */}
       <div className="border-b border-gray-200 dark:border-gray-700">
         <nav className="-mb-px flex space-x-8">
-          {tabs.map(tab => {
+          {tabs.map((tab) => {
             const Icon = tab.icon;
             return (
               <button
@@ -182,10 +182,10 @@ export default function Scheduler() {
                 <Filter className="w-4 h-4 text-gray-500" />
                 <select
                   value={filterStatus}
-                  onChange={e => setFilterStatus(e.target.value)}
+                  onChange={(e) => setFilterStatus(e.target.value)}
                   className="bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-sm text-gray-900 dark:text-gray-100"
                 >
-                  {statusOptions.map(option => (
+                  {statusOptions.map((option) => (
                     <option key={option.value} value={option.value}>
                       {option.label}
                     </option>
@@ -223,7 +223,7 @@ export default function Scheduler() {
             </div>
           ) : (
             <div className="grid gap-4">
-              {filteredSchedules.map(schedule => (
+              {filteredSchedules.map((schedule) => (
                 <div
                   key={schedule.id}
                   className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-6"
@@ -236,7 +236,7 @@ export default function Scheduler() {
                         </h3>
                         <span
                           className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                            schedule.status
+                            schedule.status,
                           )}`}
                         >
                           {schedule.status}
@@ -367,7 +367,7 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
     max_runs: schedule?.max_runs || null,
   });
 
-  const handleSubmit = e => {
+  const handleSubmit = (e) => {
     e.preventDefault();
 
     const submitData = {
@@ -384,7 +384,7 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
   };
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
       [field]: value,
     }));
@@ -425,7 +425,7 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
             <input
               type="text"
               value={formData.name}
-              onChange={e => handleInputChange("name", e.target.value)}
+              onChange={(e) => handleInputChange("name", e.target.value)}
               className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter a name for this scheduled job"
             />
@@ -437,7 +437,7 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
             </label>
             <select
               value={formData.tool}
-              onChange={e => handleInputChange("tool", e.target.value)}
+              onChange={(e) => handleInputChange("tool", e.target.value)}
               className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="hello">Hello World</option>
@@ -450,7 +450,7 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
             </label>
             <textarea
               value={formData.input_source.text || ""}
-              onChange={e =>
+              onChange={(e) =>
                 handleInputChange("input_source", { text: e.target.value })
               }
               className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
@@ -467,7 +467,7 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
               <input
                 type="datetime-local"
                 value={formData.run_at}
-                onChange={e => handleInputChange("run_at", e.target.value)}
+                onChange={(e) => handleInputChange("run_at", e.target.value)}
                 className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
@@ -478,7 +478,9 @@ function CreateScheduleModal({ schedule, onClose, onSubmit }) {
               </label>
               <select
                 value={formData.recurrence}
-                onChange={e => handleInputChange("recurrence", e.target.value)}
+                onChange={(e) =>
+                  handleInputChange("recurrence", e.target.value)
+                }
                 className="w-full p-3 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="none">One-time</option>

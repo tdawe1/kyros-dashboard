@@ -16,6 +16,7 @@ def load_tasks():
 def sort_recent(tasks):
     def key(t):
         return t.get("updated_at") or t.get("created_at") or ""
+
     return sorted(tasks, key=key, reverse=True)
 
 
@@ -23,7 +24,11 @@ def render_board(data: dict) -> str:
     tasks = data.get("tasks", [])
     now = [t for t in tasks if t.get("status") == "in_progress"]
     nxt = [t for t in tasks if t.get("status") in ("queued", "claimed")]
-    review = [t for t in tasks if t.get("status") in ("review", "changes_requested", "blocked")]
+    review = [
+        t
+        for t in tasks
+        if t.get("status") in ("review", "changes_requested", "blocked")
+    ]
     done = [t for t in tasks if t.get("status") == "done"]
 
     lines = []
@@ -57,7 +62,7 @@ def render_board(data: dict) -> str:
             lid = t.get("id")
             pri = t.get("priority") or "-"
             who = t.get("assignee") or "-"
-            title = t.get("title","")
+            title = t.get("title", "")
             badges = external_badges(t)
             lines.append(f"- {lid} [{pri}] ({who}) — {title}{badges}")
         lines.append("")

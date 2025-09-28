@@ -18,6 +18,8 @@ class AgentTestContext:
     @classmethod
     def from_agent(cls, agent_id: str) -> "AgentTestContext":
         # Use stable hash for deterministic seeds across runs
-        seed = int.from_bytes(hashlib.sha256(agent_id.encode()).digest()[:4], 'big') % 1_000_000
+        seed = (
+            int.from_bytes(hashlib.sha256(agent_id.encode()).digest()[:4], "big")
+            % 1_000_000
+        )
         return cls(agent_id=agent_id, seed=seed, mock_time=datetime(2024, 1, 1))
-

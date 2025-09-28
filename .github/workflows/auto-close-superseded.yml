@@ -1,0 +1,60 @@
+name: Auto-close Superseded PR
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  close-superseded:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Auto-close PR #39 when PRs #40 and #41 merged
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const prNum = context.payload.pull_request.number;
+            // Only run when PR #40 or #41 is closed
+            if (![40, 41].includes(prNum)) {
+              core.info(`Not a target PR (got PR #${prNum}); skipping`);
+              return;
+            }
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+
+            async function isMerged(number) {
+              try {
+                const { data } = await github.rest.pulls.get({ owner, repo, pull_number: number });
+                return data.merged === true;
+              } catch (e) {
+                core.warning(`Failed to check PR #${number} merge status: ${e.message}`);
+                return false;
+              }
+            }
+
+            const pr40Merged = await isMerged(40);
+            const pr41Merged = await isMerged(41);
+            core.info(`PR #40 merged: ${pr40Merged}; PR #41 merged: ${pr41Merged}`);
+
+            if (!(pr40Merged && pr41Merged)) {
+              core.info('Both PRs not merged yet; leaving PR #39 open.');
+              return;
+            }
+
+            // Check PR #39 state
+            const { data: pr39 } = await github.rest.pulls.get({ owner, repo, pull_number: 39 });
+            if (pr39.state === 'closed') {
+              core.info('PR #39 already closed.');
+              return;
+            }
+
+            // Close PR #39 and leave a comment
+            await github.rest.issues.createComment({
+              owner,
+              repo,
+              issue_number: 39,
+              body: 'Auto-closing: Superseded by PRs #40 and #41 (both merged).'
+            });
+
+            await github.rest.pulls.update({ owner, repo, pull_number: 39, state: 'closed' });
+            core.info('Closed PR #39.');

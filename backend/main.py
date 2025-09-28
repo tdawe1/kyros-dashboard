@@ -54,10 +54,10 @@ async def ready_check():
 
 def _redis_state(url: Optional[str]) -> str:
     """Check Redis connection state.
-    
+
     Args:
         url: Redis URL to connect to
-        
+
     Returns:
         "unknown" if url not set or redis module not available
         "healthy" if Redis ping succeeds
@@ -65,9 +65,10 @@ def _redis_state(url: Optional[str]) -> str:
     """
     if not url:
         return "unknown"
-    
+
     try:
         import redis
+
         r = redis.from_url(url)
         r.ping()
         return "healthy"
@@ -83,37 +84,38 @@ async def healthz():
         db_healthy = True
         try:
             from core.database import check_database_health
+
             db_healthy = check_database_health()
         except Exception:
             # If database check fails, treat as healthy (graceful degradation)
             db_healthy = True
-        
+
         # Check Redis status
         redis_url = os.getenv("REDIS_URL")
         redis_status = _redis_state(redis_url)
-        
+
         # Determine overall status
         if db_healthy and redis_status in ["healthy", "unknown"]:
             status = "ok"
         else:
             status = "degraded"
-        
+
         return {
             "status": status,
             "db": "healthy" if db_healthy else "unhealthy",
             "redis": redis_status,
             "version": os.getenv("RELEASE_VERSION", "unknown"),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
         }
     except Exception as e:
         logger.error(f"Health check error: {e}")
         return {
             "status": "error",
             "db": "unknown",
-            "redis": "unknown", 
+            "redis": "unknown",
             "version": os.getenv("RELEASE_VERSION", "unknown"),
             "timestamp": datetime.now().isoformat(),
-            "error": str(e)
+            "error": str(e),
         }
 
 

@@ -51,7 +51,7 @@ skip_files = {'tsconfig.json', 'tsconfig.node.json', 'package-lock.json'}
 for p in pathlib.Path('.').rglob('*.json'):
     if 'venv' in str(p) or 'node_modules' in str(p) or p.name in skip_files:
         continue
-    try: 
+    try:
         json.loads(p.read_text())
         print(f'✓ Valid JSON: {p}')
     except Exception as e:

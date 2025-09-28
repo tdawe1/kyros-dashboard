@@ -23,7 +23,9 @@ def main():
     ap.add_argument("--repo", required=True)
     ap.add_argument("--pr", type=int, required=True)
     ap.add_argument("--assign", action="store_true", help="Auto-assign based on labels")
-    ap.add_argument("--roadmap-id", help="Link created tasks to this roadmap id", default=None)
+    ap.add_argument(
+        "--roadmap-id", help="Link created tasks to this roadmap id", default=None
+    )
     args = ap.parse_args()
 
     # Import server modules directly to avoid process orchestration
@@ -75,6 +77,7 @@ def main():
                 try:
                     rp = Path("project/roadmap.yml")
                     doc = yaml.safe_load(rp.read_text(encoding="utf-8")) or {}
+
                     def find(n, rid):
                         if n.get("id") == rid:
                             return n
@@ -83,8 +86,9 @@ def main():
                             if got:
                                 return got
                         return None
+
                     target = None
-                    for root in (doc.get("nodes") or []):
+                    for root in doc.get("nodes") or []:
                         target = find(root, args.roadmap_id)
                         if target:
                             break
@@ -92,7 +96,9 @@ def main():
                         links = target.get("links") or {}
                         links["task_id"] = tid
                         target["links"] = links
-                        rp.write_text(yaml.safe_dump(doc, sort_keys=False), encoding="utf-8")
+                        rp.write_text(
+                            yaml.safe_dump(doc, sort_keys=False), encoding="utf-8"
+                        )
                 except Exception:
                     pass
             created.append(tid)

@@ -84,4 +84,3 @@ echo "  7. Verify that all checks run and approval is required"
 echo ""
 echo "🎉 Branch protection setup complete!"
 echo "Both 'main' and 'develop' branches are now protected and require code review before merging."
-

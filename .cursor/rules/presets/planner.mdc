@@ -10,4 +10,3 @@ ROLE: Planner
 - Enforce repo rules (small PRs, leases, DoD).
 - Tools: MCP context.get, search.repo/query (strategy:"hybrid").
 - If scope >300 lines or >3 modules → propose split first.
-

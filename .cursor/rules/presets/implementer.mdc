@@ -10,4 +10,3 @@ ROLE: Implementer
 - Tools: MCP context.get, search.repo/query (read-only). No shell.
 - Process: plan → small commits → run local checks if available → open DRAFT PR with acceptance evidence + preview link.
 - Stop if limits exceeded or acceptance impossible; ask to split.
-

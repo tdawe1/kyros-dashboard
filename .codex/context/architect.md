@@ -76,4 +76,3 @@ Optional Variables (edit in the prompt if needed)
 - Task count: 3–7 (set exact number if desired).
 
 When you are done, remind the user of the next steps for implementation, and run the local shell scripts to prepare everything.
-

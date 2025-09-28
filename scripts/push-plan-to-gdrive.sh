@@ -26,4 +26,3 @@ fi
 echo "Uploading $SRC → $DST ..."
 rclone copy --progress "$SRC" "$DST"
 echo "Done."
-

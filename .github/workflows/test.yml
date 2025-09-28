@@ -26,6 +26,7 @@ jobs:
   changes:
     runs-on: ubuntu-latest
     outputs:
+      frontend: ${{ steps.filter.outputs.frontend }}
       backend: ${{ steps.filter.outputs.backend }}
     steps:
       - uses: actions/checkout@v4
@@ -34,6 +35,9 @@ jobs:
         uses: dorny/paths-filter@v3
         with:
           filters: |
+            frontend:
+              - 'frontend/**'
+              - '.github/workflows/test.yml'
             backend:
               - 'backend/**'
               - '.github/workflows/test.yml'
@@ -65,7 +69,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
 
     - name: Cache Poetry dependencies
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: |
           ~/.cache/pypoetry
@@ -78,7 +82,7 @@ jobs:
       run: |
         set -e
         python -m pip install --upgrade pip
-        
+
         # Retry poetry installation with proper error handling
         success=false
         for attempt in {1..3}; do
@@ -94,12 +98,12 @@ jobs:
             fi
           fi
         done
-        
+
         if [ "$success" != "true" ]; then
           echo "All poetry installation attempts failed"
           exit 1
         fi
-        
+
         # Retry poetry install with proper error handling
         success=false
         for attempt in {1..3}; do
@@ -115,7 +119,7 @@ jobs:
             fi
           fi
         done
-        
+
         if [ "$success" != "true" ]; then
           echo "All poetry install attempts failed"
           exit 1
@@ -124,7 +128,21 @@ jobs:
     - name: Lint with ruff
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         poetry run ruff check . --output-format=github
+
+    - name: Show environment info (debug)
+      working-directory: ./backend
+      run: |
+        set -Eeuo pipefail
+        echo "Python (system):"; python -V || true
+        which python || true
+        echo "Pip:"; pip -V || true
+        poetry --version || true
+        poetry env info || true
+        echo "Python (poetry):"; poetry run python -V || true
+        poetry run which python || true
+        poetry show --tree || true
 
     # - name: Format check with ruff
     #   working-directory: ./backend
@@ -134,6 +152,7 @@ jobs:
     - name: Security check with bandit
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         poetry run bandit -r . -f json -o bandit-report.json
 
     - name: Run unit tests with pytest
@@ -146,7 +165,9 @@ jobs:
         MAX_INPUT_CHARACTERS: 100000
         MAX_TOKENS_PER_JOB: 50000
         DAILY_JOB_LIMIT: 10
+        OPENAI_API_KEY: test-sk
       run: |
+        set -Eeuo pipefail
         PYTHONPATH=. poetry run pytest --cov=. --cov-report=xml --cov-report=html --junitxml=pytest-report.xml -v
 
     - name: Upload coverage to Codecov
@@ -168,6 +189,8 @@ jobs:
           backend/bandit-report.json
 
   frontend-tests:
+    needs: [changes]
+    if: needs.changes.outputs.frontend == 'true'
     runs-on: ubuntu-latest
 
     steps:
@@ -219,10 +242,9 @@ jobs:
           frontend/test-results/
 
   e2e-tests:
-    needs: [backend-tests, frontend-tests]
-    if: needs.changes.outputs.backend == 'true'
+    needs: [changes, frontend-tests, backend-tests]
+    if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/develop' || needs.changes.outputs.frontend == 'true' || needs.changes.outputs.backend == 'true' }}
     runs-on: ubuntu-latest
-    needs: [backend-tests, frontend-tests]
 
     services:
       redis:
@@ -255,7 +277,7 @@ jobs:
       run: |
         set -e
         python -m pip install --upgrade pip
-        
+
         # Retry poetry installation with proper error handling
         success=false
         for attempt in {1..3}; do
@@ -271,12 +293,12 @@ jobs:
             fi
           fi
         done
-        
+
         if [ "$success" != "true" ]; then
           echo "All poetry installation attempts failed"
           exit 1
         fi
-        
+
         # Retry poetry install with proper error handling
         success=false
         for attempt in {1..3}; do
@@ -292,12 +314,12 @@ jobs:
             fi
           fi
         done
-        
+
         if [ "$success" != "true" ]; then
           echo "All poetry install attempts failed"
           exit 1
         fi
-        
+
         poetry run pip install ruff black bandit isort flake8
 
     - name: Install Node.js dependencies
@@ -319,6 +341,7 @@ jobs:
         MAX_TOKENS_PER_JOB: 50000
         DAILY_JOB_LIMIT: 10
       run: |
+        set -Eeuo pipefail
         poetry run uvicorn main:app --host 0.0.0.0 --port 8000 &
         sleep 10
 
@@ -329,6 +352,7 @@ jobs:
     - name: Start frontend server
       working-directory: ./frontend
       run: |
+        set -Eeuo pipefail
         npm run preview -- --port 3001 --host 0.0.0.0 &
         sleep 5
 
@@ -355,7 +379,7 @@ jobs:
         retention-days: 30
 
   build-verification:
-    needs: [frontend-tests]
+    needs: [changes, frontend-tests]
     if: needs.changes.outputs.backend == 'true'
     runs-on: ubuntu-latest
 
@@ -383,7 +407,7 @@ jobs:
       run: |
         set -e
         python -m pip install --upgrade pip
-        
+
         # Retry poetry installation with proper error handling
         success=false
         for attempt in {1..3}; do
@@ -399,12 +423,12 @@ jobs:
             fi
           fi
         done
-        
+
         if [ "$success" != "true" ]; then
           echo "All poetry installation attempts failed"
           exit 1
         fi
-        
+
         # Retry poetry install with proper error handling
         success=false
         for attempt in {1..3}; do
@@ -420,7 +444,7 @@ jobs:
             fi
           fi
         done
-        
+
         if [ "$success" != "true" ]; then
           echo "All poetry install attempts failed"
           exit 1
@@ -433,6 +457,7 @@ jobs:
     - name: Verify backend imports
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         poetry run python -c "import main; print('Backend imports successfully')"
 
   security-scan:
@@ -450,6 +475,7 @@ jobs:
     - name: Install Poetry and dependencies
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         python -m pip install --upgrade pip
         pip install poetry
         poetry install --no-interaction --no-ansi --no-root
@@ -458,6 +484,7 @@ jobs:
     - name: Run security scan with bandit
       working-directory: ./backend
       run: |
+        set -Eeuo pipefail
         poetry run bandit -r . -f json -o bandit-report.json
 
     - name: Upload security report
@@ -474,6 +501,7 @@ jobs:
     steps:
     - name: Check test results
       run: |
+        set -e
         echo "## CI Performance Summary" >> $GITHUB_STEP_SUMMARY
         echo "| Job | Status |" >> $GITHUB_STEP_SUMMARY
         echo "|-----|--------|" >> $GITHUB_STEP_SUMMARY
@@ -482,7 +510,7 @@ jobs:
         echo "| E2E Tests | ${{ needs.e2e-tests.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Build Verification | ${{ needs.build-verification.result }} |" >> $GITHUB_STEP_SUMMARY
         echo "| Security Scan | ${{ needs.security-scan.result }} |" >> $GITHUB_STEP_SUMMARY
-        
+
         bt="${{ needs.backend-tests.result }}"
         ft="${{ needs.frontend-tests.result }}"
         e2e="${{ needs.e2e-tests.result }}"

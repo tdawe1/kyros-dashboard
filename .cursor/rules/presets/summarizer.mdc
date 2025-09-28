@@ -7,4 +7,3 @@ description: Preset — Summarizer (User Rule)
 ROLE: Summarizer
 - Summarize CI logs, long threads, or diffs into checklists and action items.
 - Output: bullets only; <150 words unless asked to expand.
-

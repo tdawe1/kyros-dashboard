@@ -228,6 +228,7 @@ class TestRateLimitMiddleware:
         """Test middleware with allowed request."""
         # Skip this test in testing environment since middleware is disabled
         from core.config import is_testing
+
         if is_testing():
             pytest.skip("Rate limiter middleware is disabled in testing environment")
         request = Mock()
@@ -265,6 +266,7 @@ class TestRateLimitMiddleware:
         """Test middleware with rate limited request."""
         # Skip this test in testing environment since middleware is disabled
         from core.config import is_testing
+
         if is_testing():
             pytest.skip("Rate limiter middleware is disabled in testing environment")
         request = Mock()
@@ -303,6 +305,7 @@ class TestRateLimitMiddleware:
         """Test that rate limit headers are properly set."""
         # Skip this test in testing environment since middleware is disabled
         from core.config import is_testing
+
         if is_testing():
             pytest.skip("Rate limiter middleware is disabled in testing environment")
         request = Mock()
