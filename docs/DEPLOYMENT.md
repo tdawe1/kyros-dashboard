@@ -163,7 +163,7 @@ To enable branch protection and require code review:
 1. **Create feature branch**: `git checkout -b feature/your-feature-name`
 2. **Make changes**: Commit frequently with clear messages [[memory:7940605]]
 3. **Push branch**: `git push origin feature/your-feature-name`
-4. **Create pull request**: Target the `main` branch
+4. **Create pull request**: Target the `develop` branch
 5. **Wait for checks**: All automated tests must pass
 6. **Request review**: Code owners will be automatically assigned
 7. **Address feedback**: Make requested changes and push updates

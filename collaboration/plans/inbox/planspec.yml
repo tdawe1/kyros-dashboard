@@ -1,97 +1,133 @@
-plan_id: 2025-09-04-stabilize-develop-release
+plan_id: 2025-09-04-ci-unblock-v2
 baseline_branch: develop
+
+# Model routing (informational)
+# Architect/Planner: Opus (Claude 4.1 Opus)
+# Implementer: Sonnet (Claude 4.1 Sonnet; Cursor Auto for small surgical tasks)
+# Critic: CodeRabbit (non-blocking) + human critic
+# Jules: disabled for this sprint
+
 lanes:
-  planner: "@planner"
-  ci:
-    implementers: ["@impl-ci"]
-    critic: "@critic"
   backend:
-    implementers: ["@impl-backend"]
-    critic: "@critic"
+    planner: opus-architect
+    implementers: [cursor-ide, codex-cli-2]
+    critic: [coderabbit, gemini-cli-1]
   frontend:
-    implementers: ["@impl-frontend"]
-    critic: "@critic"
+    planner: opus-architect
+    implementers: [cursor-ide, cursor-ide-2]
+    critic: [coderabbit, gemini-cli-1]
+  ci:
+    planner: opus-architect
+    implementers: [codex-cli-2, cursor-ide]
+    critic: [coderabbit, gemini-cli-1]
   docs:
-    implementers: ["@impl-docs"]
-    critic: "@critic"
-task_dependencies:
-  T-502:
-    blocks: [T-503]
-  T-505:
-    requires: [T-501, T-502, T-503]
+    planner: opus-architect
+    implementers: [cursor-ide-2]
+    critic: [gemini-cli-1]
+
+go_green_criterion: "Flip E2E from informational to required after one clean develop run with FE + BE + E2E all passing."
+
 tasks:
-  - id: T-501
-    title: Gate staging deploy and finalize CI installs
-    lane: ci
+  - id: T-504
+    title: Docs/policy alignment (PRs → develop) + contributor entry
+    lane: docs
     acceptance:
-      - "staging.yml runs only on push to `develop` or when required secrets exist"
-      - "Tests workflow uses `poetry install --no-root` in all backend install steps"
-      - "No CI install/setup failures across required jobs"
-      - "No change to production deploy behavior from `main`"
+      - "CONTRIBUTING.md states PRs target develop; releases via develop→main."
+      - "README.md includes 'Branch Model' section linking to CONTRIBUTING and review-packet.md."
+      - ".github/pull_request_template.md enforces Implementer Handoff ritual and base=develop."
+      - "Legacy /tasks removed; guard workflow added to prevent reintroduction; .cursorrules present."
+      - "Branch protection temporarily requires only 'smoke' on develop during stabilization window (documented)."
     changescope:
-      - .github/workflows/staging.yml
-      - .github/workflows/test.yml
-      - .github/workflows/quality-checks.yml
-    estimate: S — YAML-only fixes; low risk
-    risk: Over-gating staging; mitigate with explicit if on push develop and secrets checks
+      - README.md
+      - collaboration/CONTRIBUTING.md
+      - .github/pull_request_template.md
+      - .github/workflows/no-duplicate-tasks.yml
+      - .cursorrules
+    dependencies: []
+    estimate: S
+    risk: Docs drift vs CI; mitigate by cross-linking workflows and guards.
+
+  - id: T-503
+    title: Frontend build/tests deterministic and green
+    lane: frontend
+    acceptance:
+      - "npm ci, npm run build succeed on CI."
+      - "npm run test:ci passes; at least one high-signal unit test stable."
+      - "npm run lint and npm run format:check pass."
+      - "First PR comment follows Implementer Handoff Prompt; changes within task ChangeScope and size caps."
+    changescope:
+      - frontend/src/**
+      - frontend/vite.config.js
+      - frontend/vitest.config.js
+      - frontend/eslint.config.js
+    dependencies: [T-504]
+    estimate: M
+    risk: CI environment nuances; mitigate with jsdom config and stable mocks.
 
   - id: T-502
-    title: Make backend-tests green on 3.12 and 3.13
+    title: Backend tests green on 3.12 and 3.13
     lane: backend
     acceptance:
-      - "backend-tests (3.12) job passes on a PR against `develop`"
-      - "backend-tests (3.13) job passes on a PR against `develop`"
-      - "Coverage XML and JUnit XML artifacts uploaded"
+      - "backend-tests (3.12, 3.13) jobs pass; coverage/junit artifacts uploaded."
+      - "ruff check and bandit pass; Poetry install stable."
+      - "First PR comment follows Implementer Handoff Prompt; changes within scope and size caps."
     changescope:
       - backend/tests/**
       - backend/core/**
       - backend/middleware/**
-    estimate: M — targeted test fixes; use deterministic mocks
-    risk: Time-dependent or Redis-related flakiness; mitigate with time mocking and fixture isolation
-
-  - id: T-503
-    title: Fix frontend build and unit tests
-    lane: frontend
-    acceptance:
-      - "`npm run lint` passes with no errors"
-      - "`npm run build` (Vite) succeeds with no errors"
-      - "`npm run test:ci` (Vitest) passes on CI"
-    changescope:
-      - frontend/src/**
-      - frontend/vitest.config.js
-      - frontend/vite.config.js
-      - frontend/eslint.config.js
-    estimate: M — config + focused test fixes
-    risk: Hidden network coupling; mitigate with fetch stubs/mocks and baseURL config
-
-  - id: T-504
-    title: Document branch model and PR policy
-    lane: docs
-    acceptance:
-      - "CONTRIBUTING.md contains PRs target develop; Update branch before review; releases via develop→main"
-      - "README.md includes a short Branch Model section linking to CONTRIBUTING"
-      - ".github/pull_request_template.md checklist includes base=develop, up-to-date, size/scope guard"
-      - "No docs instruct to target `main`"
-    changescope:
-      - CONTRIBUTING.md
-      - README.md
-      - .github/pull_request_template.md
-    estimate: S — doc edits only
-    risk: Docs drift; mitigate by linking to workflows and collab guard rules
+    dependencies: [T-504]
+    estimate: M
+    risk: Time/Redis flake; mitigate with deterministic fixtures and patching.
 
   - id: T-505
-    title: Integrate release PR develop→main
-    lane: ci
-    dependencies:
-      - T-501
-      - T-502
-      - T-503
-      - T-504
+    title: E2E reliability and gating (Playwright)
+    lane: frontend
     acceptance:
-      - "Release PR (existing #18 or new) passes all required checks"
-      - "PR merged to `main` and deployment pipeline triggers successfully"
-      - "Post-merge, `main` protection/required checks remain intact"
+      - "E2E job triggers when FE ∨ BE changed or on push to develop, after unit lanes."
+      - "Preview runs with npm run preview -- --port 3001 --host --strictPort; baseURL set."
+      - "Artifacts uploaded (playwright-report, test-results)."
+      - "E2E is informational until go_green_criterion met; after one clean develop run, branch protection updated to require E2E."
     changescope:
-      - (no code changes; CI/release coordination only)
-    estimate: S — coordination and verification
-    risk: Last-minute red checks; mitigate by re-running and hotfixing small issues before merge
+      - .github/workflows/test.yml
+      - frontend/playwright.config.{js,ts}
+      - frontend/e2e/**
+    dependencies: [T-503, T-502]
+    estimate: M
+    risk: Startup races; mitigate with deterministic waits and data-testid selectors.
+
+  - id: T-506
+    title: CodeRabbit harness (non-blocking review + state sync)
+    lane: ci
+    acceptance:
+      - ".coderabbit.yaml label-gates CR (needs-CR), chill profile; status non-blocking; summary present."
+      - "Critic Gateway aggregates CR comments into a single checklist."
+      - "PR-time importer is comment-only; no writes to repo."
+      - "Post-merge state-sync PR auto-created with guards: label=state-sync, author=bot, base=develop, paths ⊆ collaboration/state|events, idempotent, non-recursive."
+      - "agent-validation.yml updated to allow only labelled bot state PRs and forbid all other state writes."
+    changescope:
+      - .coderabbit.yaml
+      - .github/workflows/critic-gateway.yml
+      - .github/workflows/import_coderabbit_on_pr.yml
+      - .github/workflows/import_coderabbit_post_merge.yml
+      - .github/workflows/agent-validation.yml
+      - scripts/import_coderabbit_feedback.py
+    dependencies: [T-504]
+    estimate: S
+    risk: Label bypass; mitigate by checking author, base, paths and skipping recursion.
+
+  - id: T-507
+    title: Smoke CI (stabilization gate)
+    lane: ci
+    acceptance:
+      - "smoke.yml runs FE build + 1 FE unit + 1 BE sanity + ruff/bandit in ≤7 minutes."
+      - "Develop branch protection temporarily requires only smoke (and summary) during stabilization window; documented."
+      - "Rollback-to-strict checklist recorded: re-require backend-tests, frontend-tests, build-verification, security-scan, e2e after go_green_criterion."
+      - "no-duplicate-tasks guard present (prevents root /tasks reintroduction)."
+    changescope:
+      - .github/workflows/smoke.yml
+      - .github/workflows/no-duplicate-tasks.yml
+      - branch-protection docs/notes under collaboration/ or README
+    dependencies: [T-504]
+    estimate: S
+    risk: Over-permissive window; mitigate with 24–48h limit and explicit rollback checklist.
+
