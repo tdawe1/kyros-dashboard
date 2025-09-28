@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
 import os
 import requests
-from mcp.base_jsonrpc import JSONRPCServer
-from mcp.env import load_dotenvs
+try:
+    from .base_jsonrpc import JSONRPCServer
+    from .env import load_dotenvs
+except ImportError:
+    # Fallback for when running as console script
+    from base_jsonrpc import JSONRPCServer
+    from env import load_dotenvs
 
 load_dotenvs()
 
